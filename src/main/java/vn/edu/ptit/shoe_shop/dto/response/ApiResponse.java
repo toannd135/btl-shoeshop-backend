@@ -1,6 +1,5 @@
 package vn.edu.ptit.shoe_shop.dto.response;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 

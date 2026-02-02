@@ -8,4 +8,5 @@ import org.springframework.stereotype.Repository;
 import vn.edu.ptit.shoe_shop.entity.User;
 @Repository
 public interface UserRepository extends JpaRepository<User, UUID>{
+    boolean existsByEmail(String email);
 }
