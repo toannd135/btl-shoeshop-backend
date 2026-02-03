@@ -1,14 +1,11 @@
 package vn.edu.ptit.shoe_shop.entity;
 
-import jakarta.persistence.*;
-import lombok.*;
 
+import jakarta.persistence.*;
 import java.sql.Types;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
-
-import org.apache.catalina.security.SecurityUtil;
 import org.hibernate.annotations.JdbcTypeCode;
 import vn.edu.ptit.shoe_shop.constant.GenderEnum;
 import vn.edu.ptit.shoe_shop.constant.StatusEnum;
@@ -19,11 +16,15 @@ public class User {
     
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "user_id", columnDefinition = "CHAR(36)")
     @JdbcTypeCode(Types.VARCHAR)
     private UUID userId;
 
-    @Column(name = "name", nullable = false, length = 100)
-    private String name;
+    @Column(name = "firstname", nullable = false, length = 255)
+    private String firstname;
+
+    @Column(name = "lastname", nullable = false, length = 255)
+    private String lastname;
 
     @Column(name = "email", updatable = false, nullable = false, unique = true)
     private String email;
@@ -31,7 +32,10 @@ public class User {
     @Column(name = "phone", nullable = false, length = 10)
     private String phone;
 
-    @Column(name = "passsword", nullable = false)
+    @Column(name = "username", nullable = false, length = 255, unique = true)
+    private String username;
+
+    @Column(name = "password", nullable = false)
     private String password;
 
     @Column(name = "gender")
@@ -60,9 +64,13 @@ public class User {
     @Column(name = "updatedBy")
     private String updatedBy;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "role_id", nullable = false)
+    private Role role;
+
     @PrePersist
     public void handleBeforeCreate() {
-        this.createdBy = "toannd@gmail.com";
+        this.createdBy = String.valueOf(this.userId);
         this.createdAt = Instant.now();
         this.updatedAt = this.createdAt;
         if (this.status == null) {
@@ -72,7 +80,7 @@ public class User {
 
     @PreUpdate
     public void handleBeforeUpdate() {
-//        this.updatedBy = SecurityUtil.getCurrentUserLogin().isPresent() ? SecurityUtil.getCurrentUserLogin().get() : "";
+        this.createdBy = String.valueOf(this.userId);
         this.updatedAt = Instant.now();
     }
 
@@ -81,12 +89,28 @@ public class User {
         return userId;
     }
 
-    public String getName() {
-        return name;
+    public String getUsername() {
+        return username;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getFirstname() {
+        return firstname;
+    }
+
+    public void setFirstname(String firstname) {
+        this.firstname = firstname;
+    }
+
+    public String getLastname() {
+        return lastname;
+    }
+
+    public void setLastname(String lastname) {
+        this.lastname = lastname;
     }
 
     public String getEmail() {
@@ -175,5 +199,13 @@ public class User {
 
     public void setUpdatedBy(String updatedBy) {
         this.updatedBy = updatedBy;
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
     }
 }

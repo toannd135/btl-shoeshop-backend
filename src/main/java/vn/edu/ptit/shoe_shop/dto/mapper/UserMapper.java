@@ -1,12 +1,12 @@
 package vn.edu.ptit.shoe_shop.dto.mapper;
 
-import org.mapstruct.MapMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import vn.edu.ptit.shoe_shop.dto.request.UserCreateRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.request.UserUpdateRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.response.UserResponseDTO;
+import vn.edu.ptit.shoe_shop.entity.Role;
 import vn.edu.ptit.shoe_shop.entity.User;
 
 @Mapper(componentModel = "spring")
@@ -17,6 +17,8 @@ public interface UserMapper {
     @Mapping(target = "createdAt", dateFormat = "yyyy-MM-dd HH:mm:ss")
     @Mapping(target = "updatedAt", dateFormat = "yyyy-MM-dd HH:mm:ss")
     UserResponseDTO toResponseDTO(User user);
+
+    UserResponseDTO.UserRoleResponseDTO mapRoleToRoleResponse(Role role);
 
     @Mapping(target = "userId", ignore = true)
     @Mapping(target = "email", ignore = true)
