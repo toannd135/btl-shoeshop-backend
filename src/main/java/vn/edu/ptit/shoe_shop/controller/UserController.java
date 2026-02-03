@@ -1,6 +1,7 @@
 package vn.edu.ptit.shoe_shop.controller;
 
 import jakarta.validation.Valid;
+import lombok.Getter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -39,5 +40,11 @@ public class UserController {
         return ResponseEntity.ok().body(res);
     }
 
+    @GetMapping("/users/{id}")
+    @ApiMessage("User retrieved successfully")
+    public ResponseEntity<UserResponseDTO> getUser(@PathVariable UUID id) {
+        UserResponseDTO res = this.userService.getUser(id);
+        return ResponseEntity.ok().body(res);
+    }
 
 }

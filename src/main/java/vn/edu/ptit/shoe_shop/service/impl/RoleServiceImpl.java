@@ -5,21 +5,27 @@ import org.springframework.stereotype.Service;
 import vn.edu.ptit.shoe_shop.dto.mapper.RoleMapper;
 import vn.edu.ptit.shoe_shop.dto.request.RoleCreateRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.response.RoleResponseDTO;
+import vn.edu.ptit.shoe_shop.entity.Permission;
 import vn.edu.ptit.shoe_shop.entity.Role;
+import vn.edu.ptit.shoe_shop.repository.PermissionRepository;
 import vn.edu.ptit.shoe_shop.repository.RoleRepository;
 import vn.edu.ptit.shoe_shop.service.RoleService;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class RoleServiceImpl implements RoleService {
 
     private final RoleMapper roleMapper;
     private final RoleRepository roleRepository;
+    private final PermissionRepository permissionRepository;
 
-    public RoleServiceImpl(RoleMapper roleMapper, RoleRepository roleRepository) {
+    public RoleServiceImpl(RoleMapper roleMapper, RoleRepository roleRepository, PermissionRepository permissionRepository) {
         this.roleMapper = roleMapper;
         this.roleRepository = roleRepository;
+        this.permissionRepository = permissionRepository;
     }
 
     @Override
@@ -34,6 +40,12 @@ public class RoleServiceImpl implements RoleService {
         role.setName(role.getName().toUpperCase());
         role.setCode(role.getCode().toUpperCase());
         //check permission
+        if(roleCreateRequestDTO.getPermissions() != null && !roleCreateRequestDTO.getPermissions().isEmpty()) {
+            List<UUID> permissionIds = roleCreateRequestDTO.getPermissions().stream()
+                    .map(RoleCreateRequestDTO.PermissionRoleCreateRequestDTO::getId).collect(Collectors.toList());
+            List<Permission> permissions = this.permissionRepository.findByPermissionIdIn(permissionIds);
+            role.setPermissions(permissions);
+        }
         this.roleRepository.save(role);
         return this.roleMapper.toResponseDTO(role);
     }

@@ -11,45 +11,41 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
-@Entity
-@Table(name = "roles")
-public class Role {
 
+@Entity
+@Table(name = "permissions")
+public class Permission {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "role_id", columnDefinition = "CHAR(36)")
+    @Column(name = "permission_id", columnDefinition = "CHAR(36)")
     @JdbcTypeCode(Types.VARCHAR)
-    private UUID roleId;
+    private UUID permissionId;
 
-    @Column(name = "name", nullable = false, length = 255)
+    @Column(name = "name", length = 200, nullable = false)
     private String name;
 
-    @Column(name = "code", nullable = false)
-    private String code;
+    @Column(name = "api_path", length = 300, nullable = false)
+    private String apiPath;
 
-    @Column(name = "description", columnDefinition = "MEDIUMTEXT")
-    private String description;
+    @Column(name = "method", length = 20, nullable = false)
+    private String method;
 
-    @Column(name = "status", nullable = false)
+    @Column(name = "module", length = 100, nullable = false)
+    private String module;
+
+    @Column(name = "status")
     @Enumerated(EnumType.STRING)
     private StatusEnum status;
 
-    @Column(name = "createdAt", nullable = false)
+    @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
-    @Column(name = "updatedAt")
+    @Column(name = "updated_at")
     private Instant updatedAt;
 
-    @OneToMany(mappedBy = "role", fetch = FetchType.LAZY)
+    @ManyToMany(mappedBy = "permissions", fetch = FetchType.LAZY)
     @JsonIgnore
-    private List<User> users;
-
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JsonIgnoreProperties(value = {"roles"})
-    @JoinTable(name = "permission_role", joinColumns = @JoinColumn(name = "role_id"),
-            inverseJoinColumns = @JoinColumn(name = "permission_id")
-    )
-    private List<Permission> permissions;
+    private List<Role> roles;
 
     @PrePersist
     public void handleBeforeCreate() {
@@ -65,8 +61,8 @@ public class Role {
         this.updatedAt = Instant.now();
     }
 
-    public UUID getRoleId() {
-        return roleId;
+    public UUID getPermissionId() {
+        return permissionId;
     }
 
     public String getName() {
@@ -77,20 +73,28 @@ public class Role {
         this.name = name;
     }
 
-    public String getCode() {
-        return code;
+    public String getApiPath() {
+        return apiPath;
     }
 
-    public void setCode(String code) {
-        this.code = code;
+    public void setApiPath(String apiPath) {
+        this.apiPath = apiPath;
     }
 
-    public String getDescription() {
-        return description;
+    public String getMethod() {
+        return method;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public void setMethod(String method) {
+        this.method = method;
+    }
+
+    public String getModule() {
+        return module;
+    }
+
+    public void setModule(String module) {
+        this.module = module;
     }
 
     public StatusEnum getStatus() {
@@ -117,19 +121,11 @@ public class Role {
         this.updatedAt = updatedAt;
     }
 
-    public List<User> getUsers() {
-        return users;
+    public List<Role> getRoles() {
+        return roles;
     }
 
-    public void setUsers(List<User> users) {
-        this.users = users;
-    }
-
-    public List<Permission> getPermissions() {
-        return permissions;
-    }
-
-    public void setPermissions(List<Permission> permissions) {
-        this.permissions = permissions;
+    public void setRoles(List<Role> roles) {
+        this.roles = roles;
     }
 }

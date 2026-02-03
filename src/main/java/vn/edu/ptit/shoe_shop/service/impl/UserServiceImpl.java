@@ -2,6 +2,7 @@ package vn.edu.ptit.shoe_shop.service.impl;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import vn.edu.ptit.shoe_shop.constant.RoleConstants;
 import vn.edu.ptit.shoe_shop.dto.mapper.UserMapper;
 import vn.edu.ptit.shoe_shop.dto.request.UserCreateRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.request.UserUpdateRequestDTO;
@@ -42,7 +43,7 @@ public class UserServiceImpl implements UserService {
         if(userCreateRequestDTO.getRole() != null && userCreateRequestDTO.getRole().getId() != null){
             Role role = this.roleRepository.findByRoleId(UUID.fromString(userCreateRequestDTO.getRole().getId()))
                     .orElseThrow(() -> new IdInvalidException("Role not found"));
-            if (role.getCode().equals("ROLE_ADMIN")){
+            if (role.getCode().equals(RoleConstants.ROLE_ADMIN)){
                 throw new IllegalStateException("role not access");
             }
             user.setRole(role);
@@ -57,6 +58,13 @@ public class UserServiceImpl implements UserService {
         User user = this.userRepository.findByUserId(id)
                 .orElseThrow(() -> new IdInvalidException("User not found"));
         this.userMapper.updateUserFromDto(userUpdateRequestDTO, user);
+        return this.userMapper.toResponseDTO(user);
+    }
+
+    @Override
+    public UserResponseDTO getUser(UUID id) {
+        User user = this.userRepository.findByUserId(id)
+                .orElseThrow(() -> new IdInvalidException("User not found"));
         return this.userMapper.toResponseDTO(user);
     }
 }
