@@ -1,9 +1,6 @@
 package vn.edu.ptit.shoe_shop.dto.request;
 
-import jakarta.persistence.Column;
 import lombok.Getter;
-
-import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 

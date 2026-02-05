@@ -4,6 +4,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import vn.edu.ptit.shoe_shop.dto.mapper.RoleMapper;
 import vn.edu.ptit.shoe_shop.dto.request.RoleCreateRequestDTO;
+import vn.edu.ptit.shoe_shop.dto.request.RoleUpdateRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.response.RoleResponseDTO;
 import vn.edu.ptit.shoe_shop.entity.Permission;
 import vn.edu.ptit.shoe_shop.entity.Role;
@@ -37,8 +38,6 @@ public class RoleServiceImpl implements RoleService {
             throw new DataIntegrityViolationException("Role already exists with same code!");
         }
         Role role = this.roleMapper.toEntity(roleCreateRequestDTO);
-        role.setName(role.getName().toUpperCase());
-        role.setCode(role.getCode().toUpperCase());
         //check permission
         if(roleCreateRequestDTO.getPermissions() != null && !roleCreateRequestDTO.getPermissions().isEmpty()) {
             List<UUID> permissionIds = roleCreateRequestDTO.getPermissions().stream()
@@ -48,5 +47,23 @@ public class RoleServiceImpl implements RoleService {
         }
         this.roleRepository.save(role);
         return this.roleMapper.toResponseDTO(role);
+    }
+
+    @Override
+    public RoleResponseDTO updateRole(RoleUpdateRequestDTO roleUpdateRequestDTO, UUID id) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'updateRole'");
+    }
+
+    @Override
+    public RoleResponseDTO fetchRole(UUID id) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'fetchRole'");
+    }
+
+    @Override
+    public void deleteRole(UUID id) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'deleteRole'");
     }
 }

@@ -1,7 +1,6 @@
 package vn.edu.ptit.shoe_shop.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import vn.edu.ptit.shoe_shop.constant.StatusEnum;

@@ -3,6 +3,7 @@ package vn.edu.ptit.shoe_shop.service;
 import java.util.UUID;
 
 import vn.edu.ptit.shoe_shop.dto.request.PermissionCreateRequestDTO;
+import vn.edu.ptit.shoe_shop.dto.request.PermissionUpdateRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.response.PermissionResponseDTO;
 
 public interface PermissionService {

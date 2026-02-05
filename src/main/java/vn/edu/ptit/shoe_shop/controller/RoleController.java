@@ -17,6 +17,8 @@ import vn.edu.ptit.shoe_shop.dto.response.RoleResponseDTO;
 import vn.edu.ptit.shoe_shop.service.RoleService;
 import vn.edu.ptit.shoe_shop.utils.annotation.ApiMessage;
 
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/api/v1")
 public class RoleController {
@@ -34,30 +36,24 @@ public class RoleController {
         return ResponseEntity.status(HttpStatus.CREATED).body(res);
     }
 
-  @PostMapping("/roles")
-    @ApiMessage("Role created successfully")
-    public ResponseEntity<RoleResponseDTO> createRole(@RequestBody @Valid RoleCreateRequestDTO roleCreateRequestDTO) {
-        RoleResponseDTO roleResponseDTO = this.roleService.createRole(roleCreateRequestDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(roleResponseDTO);
-    }
 
     @PutMapping("/roles/{id}")
     @ApiMessage("Role updated successfully")
-    public ResponseEntity<RoleResponseDTO> updateRole(@PathVariable Long id, @Valid @RequestBody RoleUpdateRequestDTO roleRequestDTO) {
+    public ResponseEntity<RoleResponseDTO> updateRole(@PathVariable UUID id, @Valid @RequestBody RoleUpdateRequestDTO roleRequestDTO) {
         RoleResponseDTO roleResponseDTO = this.roleService.updateRole(roleRequestDTO, id);
         return ResponseEntity.ok().body(roleResponseDTO);
     }
 
     @DeleteMapping("/roles/{id}")
     @ApiMessage("Role deleted successfully")
-    public ResponseEntity<Void> deleteRole(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteRole(@PathVariable UUID id) {
         this.roleService.deleteRole(id);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/roles/{id}")
     @ApiMessage("Role retrieved successfully")
-    public ResponseEntity<RoleResponseDTO> getRole(@PathVariable Long id) {
+    public ResponseEntity<RoleResponseDTO> getRole(@PathVariable UUID id) {
         RoleResponseDTO roleResponseDTO = this.roleService.fetchRole(id);
         return ResponseEntity.ok().body(roleResponseDTO);
     }

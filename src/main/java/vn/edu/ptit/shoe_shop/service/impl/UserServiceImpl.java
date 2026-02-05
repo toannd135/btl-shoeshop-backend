@@ -38,20 +38,22 @@ public class UserServiceImpl implements UserService {
         if(userCreateRequestDTO.getEmail() != null && this.userRepository.existsByEmail(userCreateRequestDTO.getEmail())) {
             throw new DataIntegrityViolationException("Email already exists");
         }
-        // chuan hoa ten
         User user = this.userMapper.toEntity(userCreateRequestDTO);
         // kiem tra role
         if(userCreateRequestDTO.getRole() != null && userCreateRequestDTO.getRole().getId() != null){
             Role role = this.roleRepository.findByRoleId(UUID.fromString(userCreateRequestDTO.getRole().getId()))
                     .orElseThrow(() -> new IdInvalidException("Role not found"));
-            if (role.getCode().equals(RoleConstants.ROLE_ADMIN)){
+            if (!role.getCode().equals(RoleConstants.ROLE_ADMIN)){
                 throw new IllegalStateException("role not access");
             }
             user.setRole(role);
         }
         //ma hoa passwd
+
         this.userRepository.save(user);
-        return this.userMapper.toResponseDTO(user);
+        UserResponseDTO res = this.userMapper.toResponseDTO(user);
+        res.setFullName(user.getFirstName() +  " " + user.getLastName());
+        return res;
     }
 
     @Override

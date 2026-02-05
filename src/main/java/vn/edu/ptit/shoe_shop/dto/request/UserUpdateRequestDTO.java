@@ -11,5 +11,5 @@ public class UserUpdateRequestDTO {
     private String gender;
     private String dateOfBirth;
     private String avatarImage;
-
+    private String status;
 }
