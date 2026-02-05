@@ -12,8 +12,6 @@ public class RoleCreateRequestDTO {
     private String name;
     private String code;
     private String description;
-    private Instant createdAt;
-    private Instant updatedAt;
 
     private List<PermissionRoleCreateRequestDTO> permissions;
 

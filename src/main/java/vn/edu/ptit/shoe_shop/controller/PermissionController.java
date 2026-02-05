@@ -19,11 +19,12 @@ public class PermissionController {
         this.permissionService = permissionService;
     }
 
-
     @PostMapping("/permissions")
     @ApiMessage("Permission created successfully")
     public ResponseEntity<PermissionResponseDTO> createPermission(@RequestBody @Valid PermissionCreateRequestDTO permissionCreateRequestDTO) {
         PermissionResponseDTO res = this.permissionService.createPermission(permissionCreateRequestDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(res);
     }
+
+
 }

@@ -4,8 +4,8 @@ import lombok.Getter;
 
 @Getter
 public class UserCreateRequestDTO {
-    private String firstname;
-    private String lastname;
+    private String firstName;
+    private String lastName;
     private String username;
     private String email;
     private String password;

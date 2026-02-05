@@ -13,6 +13,8 @@ public class RoleResponseDTO {
     private String name;
     private String code;
     private String description;
+    private String createdAt;
+    private String updatedAt;
 
     private List<PermissionRoleRequestDTO> permissions;
 

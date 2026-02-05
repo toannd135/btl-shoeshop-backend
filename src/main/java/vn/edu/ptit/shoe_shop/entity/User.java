@@ -20,11 +20,11 @@ public class User {
     @JdbcTypeCode(Types.VARCHAR)
     private UUID userId;
 
-    @Column(name = "firstname", nullable = false, length = 255)
-    private String firstname;
+    @Column(name = "first_name", nullable = false, length = 255)
+    private String firstName;
 
-    @Column(name = "lastname", nullable = false, length = 255)
-    private String lastname;
+    @Column(name = "last_name", nullable = false, length = 255)
+    private String lastName;
 
     @Column(name = "email", updatable = false, nullable = false, unique = true)
     private String email;
@@ -84,7 +84,6 @@ public class User {
         this.updatedAt = Instant.now();
     }
 
-
     public UUID getUserId() {
         return userId;
     }
@@ -97,20 +96,20 @@ public class User {
         this.username = username;
     }
 
-    public String getFirstname() {
-        return firstname;
+    public String getLastName() {
+        return lastName;
     }
 
-    public void setFirstname(String firstname) {
-        this.firstname = firstname;
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
     }
 
-    public String getLastname() {
-        return lastname;
+    public String getFirstName() {
+        return firstName;
     }
 
-    public void setLastname(String lastname) {
-        this.lastname = lastname;
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
     }
 
     public String getEmail() {

@@ -38,6 +38,7 @@ public class UserServiceImpl implements UserService {
         if(userCreateRequestDTO.getEmail() != null && this.userRepository.existsByEmail(userCreateRequestDTO.getEmail())) {
             throw new DataIntegrityViolationException("Email already exists");
         }
+        // chuan hoa ten
         User user = this.userMapper.toEntity(userCreateRequestDTO);
         // kiem tra role
         if(userCreateRequestDTO.getRole() != null && userCreateRequestDTO.getRole().getId() != null){
@@ -66,5 +67,11 @@ public class UserServiceImpl implements UserService {
         User user = this.userRepository.findByUserId(id)
                 .orElseThrow(() -> new IdInvalidException("User not found"));
         return this.userMapper.toResponseDTO(user);
+    }
+
+    @Override
+    public UserResponseDTO deleteUser(UUID id) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'deleteUser'");
     }
 }
