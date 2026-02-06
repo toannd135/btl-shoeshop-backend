@@ -4,30 +4,29 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.util.UUID;
+
 @Entity
-@Getter
-@Setter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE)
+@Table(name ="product_variant")
 public class ProductVariant {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Integer productVariantId;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID productVariantId;
 
-    String color;
+    @Column(nullable = false)
+    private String color;
 
-    Double size;
+    @Column(nullable = false, unique = true)
+    private String sku;
 
-    Integer price;
+    @Column(nullable = false)
+    private Double size;
 
-    String image;
-
-    Integer stockQuantity;
+    @Column(nullable = false)
+    private Integer stockQuantity;
 
     @ManyToOne(cascade = {CascadeType.DETACH,CascadeType.MERGE,CascadeType.REFRESH,CascadeType.PERSIST})
     @JoinColumn(name = "product_id")
-    Product product;
+    private Product product;
 
 }
