@@ -9,6 +9,6 @@ import java.util.UUID;
 public interface UserService {
     public UserResponseDTO createUser(UserCreateRequestDTO userCreateRequestDTO);
     public UserResponseDTO updateUser(UserUpdateRequestDTO userUpdateRequestDTO, UUID id);
-    public UserResponseDTO deleteUser(UUID id);
-    public UserResponseDTO getUser(UUID id);
+    public void deleteUser(UUID id);
+    public UserResponseDTO fetchUser(UUID id);
 }

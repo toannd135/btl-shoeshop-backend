@@ -11,6 +11,7 @@ public class PermissionResponseDTO {
     private String apiPath;
     private String method;
     private String module;
+    private String status;
     private String createdAt;
     private String updatedAt;
 }

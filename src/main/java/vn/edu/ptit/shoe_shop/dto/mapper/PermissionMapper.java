@@ -2,8 +2,10 @@ package vn.edu.ptit.shoe_shop.dto.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
 import vn.edu.ptit.shoe_shop.dto.request.PermissionCreateRequestDTO;
+import vn.edu.ptit.shoe_shop.dto.request.PermissionUpdateRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.response.PermissionResponseDTO;
 import vn.edu.ptit.shoe_shop.entity.Permission;
 
@@ -16,6 +18,14 @@ public interface PermissionMapper {
     Permission toEntity(PermissionCreateRequestDTO permission);
 
     PermissionResponseDTO toResponseDto(Permission permission);
+
+
+    @Mapping(target = "permissionId", ignore = true)
+    @Mapping(target = "apiPath", ignore = true)
+    @Mapping(target = "name", source = "name", qualifiedByName = "normalizerPermissionName")
+    @Mapping(target = "method", ignore = true)
+    @Mapping(target = "module", source = "module", qualifiedByName = "normalizerPermissionModule")
+    void updatePermissionEntityToDto(PermissionUpdateRequestDTO permissionUpdateRequestDTO, @MappingTarget Permission permission);
 
     @Named("normalizerPermissionName")
     default String normalizerPermissionName(String name){
@@ -55,4 +65,6 @@ public interface PermissionMapper {
         String result = module.trim().replaceAll("([a-z])([A-Z])", "$1_$2").toUpperCase();
         return result;
     }
+
+
 }

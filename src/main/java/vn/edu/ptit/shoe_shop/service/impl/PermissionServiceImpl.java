@@ -4,11 +4,13 @@ import java.util.UUID;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import vn.edu.ptit.shoe_shop.constant.StatusEnum;
 import vn.edu.ptit.shoe_shop.dto.mapper.PermissionMapper;
 import vn.edu.ptit.shoe_shop.dto.request.PermissionCreateRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.request.PermissionUpdateRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.response.PermissionResponseDTO;
 import vn.edu.ptit.shoe_shop.entity.Permission;
+import vn.edu.ptit.shoe_shop.exception.IdInvalidException;
 import vn.edu.ptit.shoe_shop.repository.PermissionRepository;
 import vn.edu.ptit.shoe_shop.service.PermissionService;
 
@@ -36,19 +38,25 @@ public class PermissionServiceImpl implements PermissionService {
 
     @Override
     public PermissionResponseDTO updatePermission(PermissionUpdateRequestDTO permissionRequestDTO, UUID id) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'updatePermission'");
+       Permission permission = this.permissionRepository.findByPermissionId(id)
+               .orElseThrow(() -> new IdInvalidException("Permission not found"));
+       this.permissionMapper.updatePermissionEntityToDto(permissionRequestDTO, permission);
+       return this.permissionMapper.toResponseDto(this.permissionRepository.save(permission));
     }
 
     @Override
     public void deletePermission(UUID id) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'deletePermission'");
+        Permission permission = this.permissionRepository.findByPermissionId(id)
+                .orElseThrow(() -> new IdInvalidException("Permission not found"));
+        permission.setStatus(StatusEnum.DELETED);
+        this.permissionRepository.save(permission);
     }
+
 
     @Override
     public PermissionResponseDTO fetchPermission(UUID id) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'fetchPermission'");
+        Permission permission = this.permissionRepository.findByPermissionId(id)
+                .orElseThrow(() -> new IdInvalidException("Permission not found"));
+        return this.permissionMapper.toResponseDto(permission);
     }
 }

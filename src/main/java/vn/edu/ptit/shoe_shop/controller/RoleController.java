@@ -53,7 +53,7 @@ public class RoleController {
 
     @GetMapping("/roles/{id}")
     @ApiMessage("Role retrieved successfully")
-    public ResponseEntity<RoleResponseDTO> getRole(@PathVariable UUID id) {
+    public ResponseEntity<RoleResponseDTO> fetchRole(@PathVariable UUID id) {
         RoleResponseDTO roleResponseDTO = this.roleService.fetchRole(id);
         return ResponseEntity.ok().body(roleResponseDTO);
     }

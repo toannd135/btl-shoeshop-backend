@@ -2,12 +2,14 @@ package vn.edu.ptit.shoe_shop.service.impl;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import vn.edu.ptit.shoe_shop.constant.StatusEnum;
 import vn.edu.ptit.shoe_shop.dto.mapper.RoleMapper;
 import vn.edu.ptit.shoe_shop.dto.request.RoleCreateRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.request.RoleUpdateRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.response.RoleResponseDTO;
 import vn.edu.ptit.shoe_shop.entity.Permission;
 import vn.edu.ptit.shoe_shop.entity.Role;
+import vn.edu.ptit.shoe_shop.exception.IdInvalidException;
 import vn.edu.ptit.shoe_shop.repository.PermissionRepository;
 import vn.edu.ptit.shoe_shop.repository.RoleRepository;
 import vn.edu.ptit.shoe_shop.service.RoleService;
@@ -51,19 +53,32 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     public RoleResponseDTO updateRole(RoleUpdateRequestDTO roleUpdateRequestDTO, UUID id) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'updateRole'");
+        Role role = this.roleRepository.findByRoleId(id)
+                .orElseThrow(() -> new IdInvalidException("Role not found"));
+        this.roleMapper.updateRoleEntityToDto(roleUpdateRequestDTO, role);
+        if (roleUpdateRequestDTO.getPermissions() != null) {
+            List<UUID> permissions = roleUpdateRequestDTO.getPermissions()
+                    .stream()
+                    .map(RoleUpdateRequestDTO.RolePermissionUpdateRequestDTO::getId)
+                    .collect(Collectors.toList());
+            List<Permission> dbPermissions = this.permissionRepository.findByPermissionIdIn(permissions);
+            role.setPermissions(dbPermissions);
+        }
+        return this.roleMapper.toResponseDTO(this.roleRepository.save(role));
     }
 
     @Override
     public RoleResponseDTO fetchRole(UUID id) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'fetchRole'");
+        Role role = this.roleRepository.findByRoleId(id)
+                .orElseThrow(() -> new IdInvalidException("Role not found"));
+        return this.roleMapper.toResponseDTO(role);
     }
 
     @Override
     public void deleteRole(UUID id) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'deleteRole'");
+        Role role = this.roleRepository.findByRoleId(id)
+                .orElseThrow(() -> new IdInvalidException("Role not found"));
+        role.setStatus(StatusEnum.DELETED);
+        this.roleRepository.save(role);
     }
 }

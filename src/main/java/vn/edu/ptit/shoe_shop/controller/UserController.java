@@ -40,10 +40,17 @@ public class UserController {
         return ResponseEntity.ok().body(res);
     }
 
+    @DeleteMapping("/users/{id}")
+    @ApiMessage("User deleted successfully")
+    public ResponseEntity<Void> deleteUser(@PathVariable UUID id) {
+        this.userService.deleteUser(id);
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/users/{id}")
     @ApiMessage("User retrieved successfully")
-    public ResponseEntity<UserResponseDTO> getUser(@PathVariable UUID id) {
-        UserResponseDTO res = this.userService.getUser(id);
+    public ResponseEntity<UserResponseDTO> fetchUser(@PathVariable UUID id) {
+        UserResponseDTO res = this.userService.fetchUser(id);
         return ResponseEntity.ok().body(res);
     }
 

@@ -2,6 +2,8 @@ package vn.edu.ptit.shoe_shop.dto.request;
 
 import lombok.Getter;
 
+import java.util.UUID;
+
 @Getter
 public class UserCreateRequestDTO {
     private String firstName;
@@ -18,6 +20,6 @@ public class UserCreateRequestDTO {
 
     @Getter
     public static class UserRoleCreateRequestDTO {
-        private String id;
+        private UUID id;
     }
 }

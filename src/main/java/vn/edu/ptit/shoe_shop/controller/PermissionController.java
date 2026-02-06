@@ -47,7 +47,7 @@ public class PermissionController {
 
     @GetMapping("/permissions/{id}")
     @ApiMessage("Permission retrieved successfully")
-    public ResponseEntity<PermissionResponseDTO> getPermission(@PathVariable UUID id){
+    public ResponseEntity<PermissionResponseDTO> fetchPermission(@PathVariable UUID id){
         PermissionResponseDTO permissionResponseDTO = this.permissionService.fetchPermission(id);
         return ResponseEntity.ok().body(permissionResponseDTO);
     }

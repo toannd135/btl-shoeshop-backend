@@ -26,6 +26,10 @@ public interface UserMapper {
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "createdBy", ignore = true)
     @Mapping(target = "updatedBy", ignore = true)
+    @Mapping(target = "firstName", source = "firstName", qualifiedByName = "normalizeName")
+    @Mapping(target = "lastName", source = "lastName", qualifiedByName = "normalizeName")
+    @Mapping(target = "username", source = "username", qualifiedByName = "normalizeUsername")
+    @Mapping(target = "phone", source = "phone", qualifiedByName = "normalizePhone")
     void updateUserFromDto(UserUpdateRequestDTO userUpdateRequestDTO, @MappingTarget User user);
 
     @Mapping(target = "firstName", source = "firstName", qualifiedByName = "normalizeName")

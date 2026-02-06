@@ -3,6 +3,7 @@ package vn.edu.ptit.shoe_shop.service.impl;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import vn.edu.ptit.shoe_shop.constant.RoleConstants;
+import vn.edu.ptit.shoe_shop.constant.StatusEnum;
 import vn.edu.ptit.shoe_shop.dto.mapper.UserMapper;
 import vn.edu.ptit.shoe_shop.dto.request.UserCreateRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.request.UserUpdateRequestDTO;
@@ -15,6 +16,7 @@ import vn.edu.ptit.shoe_shop.repository.UserRepository;
 import vn.edu.ptit.shoe_shop.service.UserService;
 
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -41,11 +43,8 @@ public class UserServiceImpl implements UserService {
         User user = this.userMapper.toEntity(userCreateRequestDTO);
         // kiem tra role
         if(userCreateRequestDTO.getRole() != null && userCreateRequestDTO.getRole().getId() != null){
-            Role role = this.roleRepository.findByRoleId(UUID.fromString(userCreateRequestDTO.getRole().getId()))
+            Role role = this.roleRepository.findByRoleId(userCreateRequestDTO.getRole().getId())
                     .orElseThrow(() -> new IdInvalidException("Role not found"));
-            if (!role.getCode().equals(RoleConstants.ROLE_ADMIN)){
-                throw new IllegalStateException("role not access");
-            }
             user.setRole(role);
         }
         //ma hoa passwd
@@ -65,15 +64,17 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponseDTO getUser(UUID id) {
+    public UserResponseDTO fetchUser(UUID id) {
         User user = this.userRepository.findByUserId(id)
                 .orElseThrow(() -> new IdInvalidException("User not found"));
         return this.userMapper.toResponseDTO(user);
     }
 
     @Override
-    public UserResponseDTO deleteUser(UUID id) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'deleteUser'");
+    public void deleteUser(UUID id) {
+        User user = this.userRepository.findByUserId(id)
+                .orElseThrow(() -> new IdInvalidException("User not found"));
+        user.setStatus(StatusEnum.DELETED);
+        this.userRepository.save(user);
     }
 }
