@@ -194,7 +194,7 @@ public class GlobalExceptionHandler {
         ApiResponse<Object> res = new ApiResponse<>();
         res.setStatusCode(HttpStatus.CONFLICT.value());
         res.setError("Database Constraint Violation");
-        res.setMessage("Operation violates database constraints. Please check your data.");
+        res.setMessage(e.getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(res);
     }
 

@@ -48,10 +48,6 @@ public class Category {
     @Column(name = "updatedBy")
     private String updatedBy;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "role_id", nullable = false)
-    private Role role;
-
     @PrePersist
     public void handleBeforeCreate() {
         this.createdBy = String.valueOf(this.userId);

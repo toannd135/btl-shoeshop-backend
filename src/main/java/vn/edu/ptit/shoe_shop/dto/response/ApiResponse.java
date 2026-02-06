@@ -1,13 +1,10 @@
 package vn.edu.ptit.shoe_shop.dto.response;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.*;
+import lombok.Getter;
+import lombok.Setter;
 
 @Getter
 @Setter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class ApiResponse<T> {
     private int statusCode;
     private String error;
