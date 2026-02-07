@@ -1,17 +1,18 @@
 package vn.edu.ptit.shoe_shop.dto.request;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 @Getter
-@Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@NoArgsConstructor
-@AllArgsConstructor
-public class ProductVariantCreationRequestDTO {
+public class ProductVariantCreateRequestDTO {
+    @NotNull
     String color;
+    @NotNull
+    String sku;
+    @NotNull
     Double size;
-    Integer price;
-    String image;
-    Integer stockQuantity;
+    @NotNull
+    Integer quantity;
 }

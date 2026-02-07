@@ -2,11 +2,13 @@ package vn.edu.ptit.shoe_shop.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import lombok.experimental.FieldDefaults;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import vn.edu.ptit.shoe_shop.common.Auditable;
 import vn.edu.ptit.shoe_shop.constant.GenderEnum;
+import vn.edu.ptit.shoe_shop.constant.StatusEnum;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +16,12 @@ import java.util.UUID;
 
 @Entity
 @Table(name ="products")
-public class Product {
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Product extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -33,17 +40,18 @@ public class Product {
     private GenderEnum gender;
 
     @Column(nullable = false)
-    private String primaryImage;
-
-    @Column(nullable = false)
     private Integer price;
 
-    @CreationTimestamp
-    @Column(updatable = false)
-    private LocalDateTime createdAt;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    StatusEnum status ;
 
-    @UpdateTimestamp
-    private LocalDateTime updatedAt;
+    @PrePersist
+    void initStatus() {
+        if (status == null) {
+            status = StatusEnum.ACTIVE;
+        }
+    }
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
@@ -56,79 +64,4 @@ public class Product {
     )
     private List<ProductVariant> productVariants = new ArrayList<>();
 
-    public UUID getProductId() {
-        return productId;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getBrand() {
-        return brand;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public GenderEnum getGender() {
-        return gender;
-    }
-
-    public String getPrimaryImage() {
-        return primaryImage;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public Category getCategory() {
-        return category;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setBrand(String brand) {
-        this.brand = brand;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public void setGender(GenderEnum gender) {
-        this.gender = gender;
-    }
-
-    public void setPrimaryImage(String primaryImage) {
-        this.primaryImage = primaryImage;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public void setCategory(Category category) {
-        this.category = category;
-    }
-
-    public void setPrice(Integer price) {
-        this.price = price;
-    }
-
-    public Integer getPrice() {
-        return price;
-    }
 }

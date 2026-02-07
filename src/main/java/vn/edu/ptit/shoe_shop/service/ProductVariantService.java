@@ -6,9 +6,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import vn.edu.ptit.shoe_shop.dto.request.ProductVariantCreationRequestDTO;
+import vn.edu.ptit.shoe_shop.dto.request.ProductVariantCreateRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.request.ProductVariantUpdateRequestDTO;
-import vn.edu.ptit.shoe_shop.dto.response.ApiResponse;
 import vn.edu.ptit.shoe_shop.dto.response.ProductVariantResponseDTO;
 import vn.edu.ptit.shoe_shop.entity.Product;
 import vn.edu.ptit.shoe_shop.entity.ProductVariant;
@@ -18,6 +17,7 @@ import vn.edu.ptit.shoe_shop.repository.ProductRepository;
 import vn.edu.ptit.shoe_shop.repository.ProductVariantRepository;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @Transactional
@@ -28,48 +28,35 @@ public class ProductVariantService {
     ProductVariantRepository productVariantRepository;
     ProductRepository productRepository;
 
-    public ApiResponse<ProductVariantResponseDTO> getProductVariant(Integer productId, Integer id) {
+    public ProductVariantResponseDTO getProductVariant(UUID productId, UUID variantId) {
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + productId));
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found with productId: " + productId));
         ;
-        ProductVariant variant = productVariantRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("ProductVariant not found with id: " + id));
+        ProductVariant variant = productVariantRepository
+                .findByProductVariantIdAndProduct(variantId, product)
+                .orElseThrow(() -> new ResourceNotFoundException("ProductVariant not found with variantId: " + variantId));
 
-        return ApiResponse.ok(ProductVariantResponseDTO.builder()
-                .productVariantId(variant.getProductVariantId())
-                .productId(product.getProductId())
-                .color(variant.getColor())
-                .size(variant.getSize())
-                .price(variant.getPrice())
-                .stockQuantity(variant.getStockQuantity())
-                .build());
+        return toResponse(variant);
     }
 
-    public ApiResponse<List<ProductVariantResponseDTO>> getAllProductVariant(Integer productId) {
+    public List<ProductVariantResponseDTO> getAllProductVariant(UUID productId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + productId));
         List<ProductVariant> variants = productVariantRepository.findByProduct(product);
-        List<ProductVariantResponseDTO> response = variants.stream()
-                .map(v -> ProductVariantResponseDTO.builder()
-                        .productVariantId(v.getProductVariantId())
-                        .color(v.getColor())
-                        .size(v.getSize())
-                        .price(v.getPrice())
-                        .stockQuantity(v.getStockQuantity())
-                        .build())
-                .toList() ;
-        return ApiResponse.ok(response,"success with productId: " + productId);
+        return variants.stream()
+                .map(this::toResponse)
+                .toList();
     }
 
 
-    public ApiResponse<ProductVariantResponseDTO> updateProductVariant(Integer productId,
-                                                                       Integer id,
-                                                                       ProductVariantUpdateRequestDTO request) {
+    public ProductVariantResponseDTO updateProductVariant(UUID productId,
+                                                          UUID variantId,
+                                                          ProductVariantUpdateRequestDTO request) {
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + productId));
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found with productId: " + productId));
 
         ProductVariant variant = productVariantRepository
-                .findByProductVariantIdAndProduct(id, product)
+                .findByProductVariantIdAndProduct(variantId, product)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "ProductVariant not found for product " + productId
                 ));
@@ -79,37 +66,32 @@ public class ProductVariantService {
         if (request.getSize() != null) {
             variant.setSize(request.getSize());
         }
-        if (request.getPrice() != null) {
-            variant.setPrice(request.getPrice());
+        if (request.getSku() != null) {
+            variant.setSku(request.getSku());
         }
-        if (request.getStockQuantity() != null) {
-            variant.setStockQuantity(request.getStockQuantity());
+        if (request.getQuantity() != null) {
+            variant.setQuantity(request.getQuantity());
+        }
+        if (request.getStatus() != null) {
+            variant.setStatus(request.getStatus());
         }
         productVariantRepository.save(variant);
 
-        return ApiResponse.ok(ProductVariantResponseDTO.builder()
-                .productId(product.getProductId())
-                .productVariantId(variant.getProductVariantId())
-                .color(variant.getColor())
-                .size(variant.getSize())
-                .price(variant.getPrice())
-                .stockQuantity(variant.getStockQuantity())
-                .build());
+        return toResponse(variant);
     }
 
-    public ApiResponse<Void> deleteProductVariant(Integer productId, Integer id) {
+    public void deleteProductVariant(UUID productId, UUID variantId) {
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + productId));
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found with productId: " + productId));
         ProductVariant variant = productVariantRepository
-                .findByProductVariantIdAndProduct(id, product)
+                .findByProductVariantIdAndProduct(variantId, product)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "ProductVariant not found for product " + productId
+                        "ProductVariant not found for product with variantId: " + variantId
                 ));
         productVariantRepository.delete(variant);
-        return ApiResponse.ok(null, "Product variant successfully deleted");
     }
 
-    public ApiResponse<ProductVariantResponseDTO> addProductVariant(Integer productId, ProductVariantCreationRequestDTO request) {
+    public ProductVariantResponseDTO addProductVariant(UUID productId, ProductVariantCreateRequestDTO request) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() ->
                         new BadRequestException(
@@ -119,20 +101,27 @@ public class ProductVariantService {
 
         ProductVariant variant = productVariantRepository.save(ProductVariant.builder()
                 .product(product)
+                .sku(request.getSku())
                 .color(request.getColor())
                 .size(request.getSize())
-                .price(request.getPrice())
-                .stockQuantity(request.getStockQuantity())
+                .quantity(request.getQuantity())
                 .build());
 
-        return ApiResponse.ok(ProductVariantResponseDTO.builder()
-                .productVariantId(variant.getProductVariantId())
-                .productId(variant.getProduct().getProductId())
-                .color(variant.getColor())
-                .size(variant.getSize())
-                .price(variant.getPrice())
-                .stockQuantity(variant.getStockQuantity())
-                .build());
+        return toResponse(variant);
+    }
+
+    private ProductVariantResponseDTO toResponse(ProductVariant productVariant) {
+        return ProductVariantResponseDTO.builder()
+                .productId(productVariant.getProduct().getProductId())
+                .productVariantId(productVariant.getProductVariantId())
+                .sku(productVariant.getSku())
+                .color(productVariant.getColor())
+                .size(productVariant.getSize())
+
+                .status(productVariant.getStatus())
+                .createdAt(productVariant.getCreatedAt())
+                .updatedAt(productVariant.getUpdatedAt())
+                .build();
     }
 
 }

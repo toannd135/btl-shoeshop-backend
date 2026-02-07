@@ -3,16 +3,14 @@ package vn.edu.ptit.shoe_shop.dto.request;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import vn.edu.ptit.shoe_shop.constant.StatusEnum;
 
 @Getter
-@Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@NoArgsConstructor
-@AllArgsConstructor
 public class ProductVariantUpdateRequestDTO {
     String color;
+    String sku;
     Double size;
-    Integer price;
-    String image;
-    Integer stockQuantity;
+    Integer quantity;
+    StatusEnum status;
 }

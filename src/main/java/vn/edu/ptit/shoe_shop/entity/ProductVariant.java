@@ -3,12 +3,19 @@ package vn.edu.ptit.shoe_shop.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import vn.edu.ptit.shoe_shop.common.Auditable;
+import vn.edu.ptit.shoe_shop.constant.StatusEnum;
 
 import java.util.UUID;
 
 @Entity
-@Table(name ="product_variant")
-public class ProductVariant {
+@Table(name ="product_variants")
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class ProductVariant extends Auditable {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID productVariantId;
@@ -23,7 +30,18 @@ public class ProductVariant {
     private Double size;
 
     @Column(nullable = false)
-    private Integer stockQuantity;
+    private Integer quantity;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    StatusEnum status ;
+
+    @PrePersist
+    void initStatus() {
+        if (status == null) {
+            status = StatusEnum.ACTIVE;
+        }
+    }
 
     @ManyToOne(cascade = {CascadeType.DETACH,CascadeType.MERGE,CascadeType.REFRESH,CascadeType.PERSIST})
     @JoinColumn(name = "product_id")

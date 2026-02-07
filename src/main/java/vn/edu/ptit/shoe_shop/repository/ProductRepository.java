@@ -7,10 +7,9 @@ import vn.edu.ptit.shoe_shop.entity.Product;
 
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 @Repository
-public interface ProductRepository extends JpaRepository<Product,Integer> {
-    Set<Product> findAllByProductIdIn(Set<Integer> productIds);
+public interface ProductRepository extends JpaRepository<Product, UUID> {
 
-    List<Product> findAllByCategory(Category category);
 }

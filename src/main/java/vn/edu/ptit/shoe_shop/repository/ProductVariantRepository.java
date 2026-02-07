@@ -7,11 +7,12 @@ import vn.edu.ptit.shoe_shop.entity.ProductVariant;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
-public interface ProductVariantRepository extends JpaRepository<ProductVariant,Integer> {
+public interface ProductVariantRepository extends JpaRepository<ProductVariant, UUID> {
 
     List<ProductVariant> findByProduct(Product product);
 
-    Optional<ProductVariant> findByProductVariantIdAndProduct(Integer id, Product product);
+    Optional<ProductVariant> findByProductVariantIdAndProduct(UUID id, Product product);
 }

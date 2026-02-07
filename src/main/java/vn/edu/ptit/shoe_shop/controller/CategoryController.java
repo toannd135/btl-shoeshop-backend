@@ -1,46 +1,69 @@
 package vn.edu.ptit.shoe_shop.controller;
 
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import vn.edu.ptit.shoe_shop.dto.request.CategoryRequestDTO;
-import vn.edu.ptit.shoe_shop.dto.response.ApiResponse;
+
+import vn.edu.ptit.shoe_shop.dto.request.CategoryCreateRequestDTO;
+import vn.edu.ptit.shoe_shop.dto.request.CategoryUpdateRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.response.CategoryResponseDTO;
-import vn.edu.ptit.shoe_shop.entity.Category;
-import vn.edu.ptit.shoe_shop.repository.CategoryRepository;
 import vn.edu.ptit.shoe_shop.service.CategoryService;
+import vn.edu.ptit.shoe_shop.utils.annotation.ApiMessage;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
-@Slf4j
+@RequestMapping("/api/v1/categories")
 @RequiredArgsConstructor
-@RequestMapping("/category")
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class CategoryController {
 
     CategoryService categoryService;
-    @GetMapping()
-    public ApiResponse<List<CategoryResponseDTO>> getAllCategories(){
-        return categoryService.getAll();
-    }
+
     @PostMapping()
-    public ApiResponse<CategoryResponseDTO> createCategory(@RequestBody CategoryRequestDTO categoryRequestDTO){
-        return categoryService.createCategory(categoryRequestDTO);
+    @ApiMessage("Category created successfully")
+    public ResponseEntity<CategoryResponseDTO> createCategory(
+            @RequestBody @Valid CategoryCreateRequestDTO request) {
+
+        CategoryResponseDTO res = categoryService.create(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(res);
     }
-    @DeleteMapping("/{id}")
-    public ApiResponse<Void> deleteCategory(@PathVariable Integer id){
-        return categoryService.deleteCategory(id);
-    }
-    @GetMapping("/{id}")
-    public ApiResponse<CategoryResponseDTO> getCategory(@PathVariable Integer id){
-        return categoryService.getCategory(id);
-    }
+
     @PutMapping("/{id}")
-    public ApiResponse<CategoryResponseDTO> updateCategory(@PathVariable Integer id,@RequestBody CategoryRequestDTO categoryRequestDTO){
-        return categoryService.updateCategory(id, categoryRequestDTO);
+    @ApiMessage("Category updated successfully")
+    public ResponseEntity<CategoryResponseDTO> updateCategory(
+            @RequestBody @Valid CategoryUpdateRequestDTO request,
+            @PathVariable UUID id) {
+
+        CategoryResponseDTO res = categoryService.update(id, request);
+        return ResponseEntity.ok().body(res);
+    }
+
+    @DeleteMapping("/{id}")
+    @ApiMessage("Category deleted successfully")
+    public ResponseEntity<Void> deleteCategory(@PathVariable UUID id) {
+        categoryService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}")
+    @ApiMessage("Category retrieved successfully")
+    public ResponseEntity<CategoryResponseDTO> getCategory(
+            @PathVariable UUID id) {
+
+        CategoryResponseDTO res = categoryService.getById(id);
+        return ResponseEntity.ok().body(res);
+    }
+
+    @GetMapping()
+    @ApiMessage("Categories retrieved successfully")
+    public ResponseEntity<List<CategoryResponseDTO>> fetchAllCategories() {
+        List<CategoryResponseDTO> res = categoryService.getAll();
+        return ResponseEntity.ok().body(res);
     }
 }

@@ -1,19 +1,28 @@
 package vn.edu.ptit.shoe_shop.dto.request;
 
+import jakarta.validation.constraints.Min;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import vn.edu.ptit.shoe_shop.constant.GenderEnum;
+import vn.edu.ptit.shoe_shop.constant.StatusEnum;
 
-import java.util.List;
+import java.util.UUID;
 
 @Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ProductUpdateRequestDTO {
-    String title;
+    String name;
+
+    String brand;
+
     String description;
-    Integer categoryId;
-    String primaryImage;
-    List<String> images;
+
+    UUID categoryId;
+
+    GenderEnum gender;
+
+    @Min(1)
+    Integer basePrice;
+
+    StatusEnum status;
 }

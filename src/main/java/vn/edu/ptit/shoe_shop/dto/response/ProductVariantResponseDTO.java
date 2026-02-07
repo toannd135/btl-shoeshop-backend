@@ -3,6 +3,10 @@ package vn.edu.ptit.shoe_shop.dto.response;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import vn.edu.ptit.shoe_shop.constant.StatusEnum;
+
+import java.time.Instant;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -11,11 +15,14 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ProductVariantResponseDTO {
-    Integer productId;
-    Integer productVariantId;
+    UUID productId;
+    UUID productVariantId;
+    String sku;
     String color;
     Double size;
-    Integer price;
-    String image;
-    Integer stockQuantity;
+    Integer quantity;
+    StatusEnum status;
+
+    Instant createdAt;
+    Instant updatedAt;
 }

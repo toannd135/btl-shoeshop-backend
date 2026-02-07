@@ -1,9 +1,14 @@
 package vn.edu.ptit.shoe_shop.entity;
 
 import jakarta.persistence.*;
-import vn.edu.ptit.shoe_shop.constant.RoleEnum;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
+import vn.edu.ptit.shoe_shop.common.Auditable;
 import vn.edu.ptit.shoe_shop.constant.StatusEnum;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
+import java.io.Serializable;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
@@ -11,82 +16,40 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "categories")
-public class Category {
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class Category extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "category_id", updatable = false, nullable = false)
-    private UUID categoryId;
+    UUID categoryId;
 
     @Column(nullable = false, unique = true)
-    private String categoryName;
+    String categoryName;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
-    private Category parent;
+    Category parent;
 
-    @OneToMany(
-            mappedBy = "category",
+    @OneToMany(mappedBy = "category",
             fetch = FetchType.LAZY,
-            cascade = {CascadeType.PERSIST, CascadeType.MERGE}
-    )
-    private Set<Product> products = new HashSet<>();
+            cascade = {CascadeType.DETACH,CascadeType.MERGE,CascadeType.REFRESH,CascadeType.PERSIST})
+    private Set<Product> products;
 
-    @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)
-    private StatusEnum status;
-
-    @Column(name = "createdAt", nullable = false)
-    private Instant createdAt;
-
-    @Column(name = "createdBy", nullable = false)
-    private String createdBy;
-
-    @Column(name = "updatedAt")
-    private Instant updatedAt;
-
-    @Column(name = "updatedBy")
-    private String updatedBy;
+    @Column(nullable = false)
+    StatusEnum status ;
 
     @PrePersist
-    public void handleBeforeCreate() {
-        this.createdBy = String.valueOf(this.userId);
-        this.createdAt = Instant.now();
-        this.updatedAt = this.createdAt;
-        if (this.status == null) {
-            this.status = StatusEnum.ACTIVE;
+    void initStatus() {
+        if (status == null) {
+            status = StatusEnum.ACTIVE;
         }
     }
 
-    @PreUpdate
-    public void handleBeforeUpdate() {
-        this.createdBy = String.valueOf(this.userId);
-        this.updatedAt = Instant.now();
-    }
-    protected Category() {}
-
-    public Category(String categoryName) {
-        this.categoryName = categoryName;
-    }
-
-
-    public UUID getCategoryId() {
-        return categoryId;
-    }
-
-    public String getCategoryName() {
-        return categoryName;
-    }
-
-    public Category getParent() {
-        return parent;
-    }
-
-    public void setCategoryName(String categoryName) {
-        this.categoryName = categoryName;
-    }
-
-    public void setParent(Category parent) {
-        this.parent = parent;
-    }
 }
