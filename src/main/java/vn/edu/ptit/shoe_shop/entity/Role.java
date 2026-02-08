@@ -4,8 +4,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import org.hibernate.annotations.JdbcTypeCode;
-import vn.edu.ptit.shoe_shop.constant.StatusEnum;
+import vn.edu.ptit.shoe_shop.common.enums.StatusEnum;
 
+import java.io.Serializable;
 import java.sql.Types;
 import java.time.Instant;
 import java.util.List;
@@ -13,7 +14,9 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "roles")
-public class Role {
+public class Role implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

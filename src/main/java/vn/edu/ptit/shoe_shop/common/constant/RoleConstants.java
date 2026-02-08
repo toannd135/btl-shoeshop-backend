@@ -1,4 +1,4 @@
-package vn.edu.ptit.shoe_shop.constant;
+package vn.edu.ptit.shoe_shop.common.constant;
 
 public class RoleConstants {
     public static final String ROLE_ADMIN = "ROLE_ADMIN";

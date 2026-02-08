@@ -1,4 +1,4 @@
-package vn.edu.ptit.shoe_shop.exception;
+package vn.edu.ptit.shoe_shop.common.exception;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;

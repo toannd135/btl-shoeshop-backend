@@ -1,4 +1,4 @@
-package vn.edu.ptit.shoe_shop.dto.mapper;
+package vn.edu.ptit.shoe_shop.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

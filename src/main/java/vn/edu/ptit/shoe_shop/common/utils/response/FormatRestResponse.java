@@ -1,4 +1,4 @@
-package vn.edu.ptit.shoe_shop.utils.response;
+package vn.edu.ptit.shoe_shop.common.utils.response;
 
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
@@ -13,7 +13,7 @@ import org.springframework.http.server.ServletServerHttpResponse;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 import vn.edu.ptit.shoe_shop.dto.response.ApiResponse;
-import vn.edu.ptit.shoe_shop.utils.annotation.ApiMessage;
+import vn.edu.ptit.shoe_shop.common.utils.annotation.ApiMessage;
 
 @RestControllerAdvice
 public class FormatRestResponse implements ResponseBodyAdvice<Object> {

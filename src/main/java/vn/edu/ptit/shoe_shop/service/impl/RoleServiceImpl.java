@@ -1,17 +1,22 @@
 package vn.edu.ptit.shoe_shop.service.impl;
 
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import vn.edu.ptit.shoe_shop.constant.StatusEnum;
-import vn.edu.ptit.shoe_shop.dto.mapper.RoleMapper;
+import vn.edu.ptit.shoe_shop.common.enums.StatusEnum;
+import vn.edu.ptit.shoe_shop.dto.request.search.RoleSearchRequestDTO;
+import vn.edu.ptit.shoe_shop.dto.response.page.RolePageResponseDTO;
+import vn.edu.ptit.shoe_shop.mapper.RoleMapper;
 import vn.edu.ptit.shoe_shop.dto.request.RoleCreateRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.request.RoleUpdateRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.response.RoleResponseDTO;
 import vn.edu.ptit.shoe_shop.entity.Permission;
 import vn.edu.ptit.shoe_shop.entity.Role;
-import vn.edu.ptit.shoe_shop.exception.IdInvalidException;
+import vn.edu.ptit.shoe_shop.common.exception.IdInvalidException;
 import vn.edu.ptit.shoe_shop.repository.PermissionRepository;
 import vn.edu.ptit.shoe_shop.repository.RoleRepository;
+import vn.edu.ptit.shoe_shop.repository.RoleRepositoryCustom;
 import vn.edu.ptit.shoe_shop.service.RoleService;
 
 import java.util.List;
@@ -24,11 +29,12 @@ public class RoleServiceImpl implements RoleService {
     private final RoleMapper roleMapper;
     private final RoleRepository roleRepository;
     private final PermissionRepository permissionRepository;
-
-    public RoleServiceImpl(RoleMapper roleMapper, RoleRepository roleRepository, PermissionRepository permissionRepository) {
+    private final RoleRepositoryCustom roleRepositoryCustom;
+    public RoleServiceImpl(RoleMapper roleMapper, RoleRepository roleRepository, PermissionRepository permissionRepository, RoleRepositoryCustom roleRepositoryCustom) {
         this.roleMapper = roleMapper;
         this.roleRepository = roleRepository;
         this.permissionRepository = permissionRepository;
+        this.roleRepositoryCustom = roleRepositoryCustom;
     }
 
     @Override
@@ -80,5 +86,21 @@ public class RoleServiceImpl implements RoleService {
                 .orElseThrow(() -> new IdInvalidException("Role not found"));
         role.setStatus(StatusEnum.DELETED);
         this.roleRepository.save(role);
+    }
+
+    @Override
+    public RolePageResponseDTO searchRoles(RoleSearchRequestDTO request, Pageable pageable) {
+        Page<Role> rolePage = this.roleRepositoryCustom.searchRoles(request, pageable);
+        List<RoleResponseDTO> roleResponseDTOS = rolePage.getContent()
+                .stream()
+                .map(this.roleMapper::toResponseDTO)
+                .collect(Collectors.toList());
+        RolePageResponseDTO res = new RolePageResponseDTO();
+        res.setRoles(roleResponseDTOS);
+        res.setPage(rolePage.getNumber() + 1);
+        res.setPageSize(rolePage.getSize());
+        res.setPages(rolePage.getTotalPages());
+        res.setTotal(rolePage.getTotalElements());
+        return res;
     }
 }

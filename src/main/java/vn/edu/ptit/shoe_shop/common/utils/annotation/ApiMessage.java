@@ -1,4 +1,4 @@
-package vn.edu.ptit.shoe_shop.utils.annotation;
+package vn.edu.ptit.shoe_shop.common.utils.annotation;
 
 import java.lang.annotation.*;
 

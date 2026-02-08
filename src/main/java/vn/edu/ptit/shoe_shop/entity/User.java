@@ -2,17 +2,21 @@ package vn.edu.ptit.shoe_shop.entity;
 
 
 import jakarta.persistence.*;
+
+import java.io.Serializable;
 import java.sql.Types;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
 import org.hibernate.annotations.JdbcTypeCode;
-import vn.edu.ptit.shoe_shop.constant.GenderEnum;
-import vn.edu.ptit.shoe_shop.constant.StatusEnum;
+import vn.edu.ptit.shoe_shop.common.enums.GenderEnum;
+import vn.edu.ptit.shoe_shop.common.enums.StatusEnum;
 
 @Entity
 @Table(name = "users")
-public class User {
+public class User implements Serializable {
+
+    private static final long serialVersionUID = 1L;
     
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -80,7 +84,7 @@ public class User {
 
     @PreUpdate
     public void handleBeforeUpdate() {
-        this.createdBy = String.valueOf(this.userId);
+        this.updatedBy = String.valueOf(this.userId);
         this.updatedAt = Instant.now();
     }
 
