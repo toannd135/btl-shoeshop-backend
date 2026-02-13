@@ -8,11 +8,12 @@ import vn.edu.ptit.shoe_shop.constant.StatusEnum;
 import java.time.Instant;
 import java.util.UUID;
 
+
+@Builder
 @Getter
 @Setter
-@Builder
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ProductVariantResponseDTO {
     UUID productId;
@@ -21,6 +22,7 @@ public class ProductVariantResponseDTO {
     String color;
     Double size;
     Integer quantity;
+    Integer basePrice;
     StatusEnum status;
 
     Instant createdAt;

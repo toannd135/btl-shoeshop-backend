@@ -2,14 +2,11 @@ package vn.edu.ptit.shoe_shop.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 import vn.edu.ptit.shoe_shop.common.Auditable;
 import vn.edu.ptit.shoe_shop.constant.GenderEnum;
-import vn.edu.ptit.shoe_shop.constant.StatusEnum;
 
-import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -25,6 +22,8 @@ public class Product extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "product_id", columnDefinition = "CHAR(36)")
+    @JdbcTypeCode(Types.VARCHAR)
     private UUID productId;
 
     @Column(nullable = false, unique = true)
@@ -38,20 +37,6 @@ public class Product extends Auditable {
 
     @Column(nullable = false)
     private GenderEnum gender;
-
-    @Column(nullable = false)
-    private Integer price;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    StatusEnum status ;
-
-    @PrePersist
-    void initStatus() {
-        if (status == null) {
-            status = StatusEnum.ACTIVE;
-        }
-    }
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)

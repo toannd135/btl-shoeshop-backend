@@ -6,11 +6,14 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import vn.edu.ptit.shoe_shop.constant.GenderEnum;
+import vn.edu.ptit.shoe_shop.constant.StatusEnum;
 
 import java.util.UUID;
 
 
 @Getter
+@Setter
+@NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ProductCreateRequestDTO {
     @NotBlank
@@ -27,8 +30,5 @@ public class ProductCreateRequestDTO {
     @NotNull
     GenderEnum gender;
 
-    @NotNull
-    @Min(1)
-    Integer basePrice;
-
+    StatusEnum status;
 }

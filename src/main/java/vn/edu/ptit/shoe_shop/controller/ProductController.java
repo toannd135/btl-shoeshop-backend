@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("ap1/v1/product")
+@RequestMapping("api/v1/products")
 @Slf4j
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -30,13 +30,13 @@ public class ProductController {
     @ApiMessage("Product retrieved successfully")
     public ResponseEntity<ProductResponseDTO> getProductById(@PathVariable UUID id) {
         ProductResponseDTO res = productService.getById(id);
-        return ResponseEntity.ok(res);
+        return ResponseEntity.ok().body(res);
     }
 
     @GetMapping("/all")
     @ApiMessage("Product list retrieved successfully")
     public ResponseEntity<List<ProductResponseDTO>> getAllProducts() {
-        return ResponseEntity.ok(productService.getAll());
+        return ResponseEntity.ok().body(productService.getAll());
     }
 
     @PostMapping
@@ -55,7 +55,7 @@ public class ProductController {
             @RequestBody @Valid ProductUpdateRequestDTO requestDTO) {
 
         ProductResponseDTO res = productService.update(id, requestDTO);
-        return ResponseEntity.ok(res);
+        return ResponseEntity.ok().body(res);
     }
 
     @DeleteMapping("/{id}")

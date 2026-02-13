@@ -11,7 +11,11 @@ spring:
     username: root
     password: Trungtrung2005@
     driver-class-name: com.mysql.cj.jdbc.Driver
-
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 10MB
   jpa:
     hibernate:
       ddl-auto: update 
@@ -19,3 +23,9 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
+
+cloudinary:
+  cloud-name: dljrbdc51
+  api-key: 368851143165857
+  api-secret: E5etQ4Jq1lu9s_okchG5FUZVa3s
+

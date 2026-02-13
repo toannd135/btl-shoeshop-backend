@@ -42,6 +42,10 @@ public class CategoryService {
                 .parent(parent)
                 .build();
 
+        if (request.getStatus() != null) {
+            category.setStatus(request.getStatus());
+        }
+
         Category saved = categoryRepository.save(category);
 
         return toResponse(saved);

@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-@Slf4j
 @Transactional
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor
@@ -35,9 +34,15 @@ public class ProductService {
         }
         Product product = Product.builder()
                 .name(request.getName())
+                .brand(request.getBrand())
                 .description(request.getDescription())
                 .category(category)
+                .gender(request.getGender())
                 .build();
+
+        if (request.getStatus() != null) {
+            product.setStatus(request.getStatus());
+        }
         Product savedProduct = productRepository.save(product);
 
         return toResponse(savedProduct);
@@ -65,9 +70,6 @@ public class ProductService {
         }
         if (request.getStatus() != null) {
             product.setStatus(request.getStatus());
-        }
-        if (request.getBasePrice() != null) {
-            product.setPrice(request.getBasePrice());
         }
         productRepository.save(product);
         return toResponse(product);
@@ -100,7 +102,6 @@ public class ProductService {
                 .brand(product.getBrand())
                 .gender(product.getGender())
                 .description(product.getDescription())
-                .basePrice(product.getPrice())
                 .status(product.getStatus())
                 .categoryId(product.getCategory() != null ? product.getCategory().getCategoryId() : null)
 

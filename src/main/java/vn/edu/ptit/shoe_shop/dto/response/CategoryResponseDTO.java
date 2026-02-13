@@ -8,8 +8,10 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
-@Getter
+
 @Builder
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)

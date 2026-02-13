@@ -9,6 +9,8 @@ import vn.edu.ptit.shoe_shop.constant.StatusEnum;
 import java.util.UUID;
 
 @Getter
+@Setter
+@NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ProductUpdateRequestDTO {
     String name;
@@ -20,9 +22,6 @@ public class ProductUpdateRequestDTO {
     UUID categoryId;
 
     GenderEnum gender;
-
-    @Min(1)
-    Integer basePrice;
 
     StatusEnum status;
 }

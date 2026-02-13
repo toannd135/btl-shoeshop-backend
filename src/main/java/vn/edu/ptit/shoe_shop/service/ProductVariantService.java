@@ -21,7 +21,6 @@ import java.util.UUID;
 
 @Service
 @Transactional
-@Slf4j
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class ProductVariantService {
@@ -75,6 +74,9 @@ public class ProductVariantService {
         if (request.getStatus() != null) {
             variant.setStatus(request.getStatus());
         }
+        if (request.getBasePrice() != null) {
+            variant.setBasePrice(request.getBasePrice());
+        }
         productVariantRepository.save(variant);
 
         return toResponse(variant);
@@ -99,13 +101,18 @@ public class ProductVariantService {
                         )
                 );
 
-        ProductVariant variant = productVariantRepository.save(ProductVariant.builder()
+        ProductVariant variant = ProductVariant.builder()
                 .product(product)
                 .sku(request.getSku())
                 .color(request.getColor())
                 .size(request.getSize())
                 .quantity(request.getQuantity())
-                .build());
+                .basePrice(request.getBasePrice())
+                .build();
+        if (request.getStatus() != null) {
+            variant.setStatus(request.getStatus());
+        }
+        productVariantRepository.save(variant);
 
         return toResponse(variant);
     }
@@ -117,6 +124,8 @@ public class ProductVariantService {
                 .sku(productVariant.getSku())
                 .color(productVariant.getColor())
                 .size(productVariant.getSize())
+                .quantity(productVariant.getQuantity())
+                .basePrice(productVariant.getBasePrice())
 
                 .status(productVariant.getStatus())
                 .createdAt(productVariant.getCreatedAt())

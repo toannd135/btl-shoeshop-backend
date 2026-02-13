@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import vn.edu.ptit.shoe_shop.constant.StatusEnum;
 import vn.edu.ptit.shoe_shop.entity.User;
 
 import java.time.Instant;
@@ -26,8 +27,17 @@ public abstract class Auditable {
     protected Instant createdAt;
 
     protected Instant updatedAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    StatusEnum status ;
+
     @PrePersist
     protected void onCreate() {
+
+        if (status == null) {
+            status = StatusEnum.ACTIVE;
+        }
         this.createdAt = Instant.now();
         this.updatedAt = Instant.now();
     }

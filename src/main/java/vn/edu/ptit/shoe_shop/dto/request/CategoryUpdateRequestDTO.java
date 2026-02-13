@@ -10,6 +10,8 @@ import vn.edu.ptit.shoe_shop.constant.StatusEnum;
 import java.util.UUID;
 
 @Getter
+@Setter
+@NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CategoryUpdateRequestDTO {
     String categoryName;

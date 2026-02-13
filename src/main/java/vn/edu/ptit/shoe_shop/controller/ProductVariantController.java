@@ -41,7 +41,7 @@ public class ProductVariantController {
     ) {
         List<ProductVariantResponseDTO> res =
                 productVariantService.getAllProductVariant(productId);
-        return ResponseEntity.ok(res);
+        return ResponseEntity.ok().body(res);
     }
 
     @GetMapping("/{variantId}")
@@ -52,7 +52,7 @@ public class ProductVariantController {
     ) {
         ProductVariantResponseDTO res =
                 productVariantService.getProductVariant(productId, variantId);
-        return ResponseEntity.ok(res);
+        return ResponseEntity.ok().body(res);
     }
 
     @PutMapping("/{variantId}")
@@ -64,7 +64,7 @@ public class ProductVariantController {
     ) {
         ProductVariantResponseDTO res =
                 productVariantService.updateProductVariant(productId, variantId, request);
-        return ResponseEntity.ok(res);
+        return ResponseEntity.ok().body(res);
     }
 
     @DeleteMapping("/{variantId}")
