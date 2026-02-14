@@ -6,9 +6,9 @@ COPY pom.xml .
 RUN mvn dependency:go-offline
 
 COPY . . 
-RUN --mount=type=cache,target=/root/.m2 \
-    mvn clean package -DskipTests
-
+# RUN --mount=type=cache,target=/root/.m2 \
+RUN  mvn clean package -DskipTests
+RUN apk add --no-cache wget
 # run stage
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /run
