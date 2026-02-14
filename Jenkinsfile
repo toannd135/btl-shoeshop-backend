@@ -1,7 +1,5 @@
 pipeline {
-    agent {
-        label 'docker_builder'
-    }
+    agent any
 
     environment {
         IMAGE_NAME = "toannd/shoeshop-backend:v4"
