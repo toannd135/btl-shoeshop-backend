@@ -5,7 +5,7 @@ pipeline {
         IMAGE_NAME = "toannd/shoeshop-backend:v4"
         DOCKER_CREDENTIALS = credentials('dockerhub-credentials')
         GITHUB_CREDENTIALS = credentials('github-token')
-        CONFIG_REPO_URL = "https://gitlab.com/btl-web/shoeshop-backend.git"
+        CONFIG_REPO_URL = "https://github.com/toannd135/BTL_WEB_BACKEND.git"
     }
     stages {
         stage ('Agent information') {
