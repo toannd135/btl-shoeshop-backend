@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "toannd/shoeshop-backend:v4"
+        IMAGE_NAME = "toannd/shoeshop-backend:v10"
         DOCKER_CREDENTIALS = credentials('dockerhub-credentials')
         GITHUB_CREDENTIALS = credentials('github-token')
         CONFIG_REPO_URL = "https://github.com/toannd135/BTL_WEB_BACKEND.git"
