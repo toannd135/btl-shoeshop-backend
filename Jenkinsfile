@@ -24,5 +24,16 @@ pipeline {
                 sh 'ls -la'
             }
         }
+        stage('Build Docker Image') {
+            steps {
+                sh "docker build -t ${IMAGE_NAME} ."
+            }
+        }
+        stage('Push to Docker Hub') {
+            steps {
+                sh "echo \$DOCKER_CREDENTIALS_PSW | docker login -u \$DOCKER_CREDENTIALS_USR --password-stdin"
+                sh "docker push ${IMAGE_NAME}"
+            }
+        }
     }
 }
