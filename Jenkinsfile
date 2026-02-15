@@ -5,8 +5,8 @@ pipeline {
 
     environment {
         IMAGE_NAME = "toannd135/shoeshop-backend"
-        DOCKER_CREDENTIALS = credentials('dockerhub-credentials')
-        GITHUB_CREDENTIALS = credentials('github-token')
+        DOCKER_CREDENTIALS = 'dockerhub-credentials'
+        GITHUB_CREDENTIALS = 'github-token'
         CONFIG_REPO_URL = "https://github.com/toannd135/BTL_WEB_BACKEND.git"
     }
     stages {
@@ -65,7 +65,7 @@ pipeline {
                     echo "Pushing Docker image to registry..."
 
                     withCredentials([usernamePassword(
-                        credentialsId: env.DOCKER_CREDENTIALS,
+                        credentialsId: env.DOCKER_CREDENTIALS ,
                         usernameVariable: 'DOCKER_USERNAME',
                         passwordVariable: 'DOCKER_PASSWORD'
                     )]) {
