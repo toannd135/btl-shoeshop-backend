@@ -1,8 +1,10 @@
 pipeline {
-    agent any
+    agent {
+        label 'ptit-server'
+    }
 
     environment {
-        IMAGE_NAME = "toannd/shoeshop-backend:v10"
+        IMAGE_NAME = "toannd/shoeshop-backend"
         DOCKER_CREDENTIALS = credentials('dockerhub-credentials')
         GITHUB_CREDENTIALS = credentials('github-token')
         CONFIG_REPO_URL = "https://github.com/toannd135/BTL_WEB_BACKEND.git"
@@ -10,6 +12,8 @@ pipeline {
     stages {
         stage ('Agent information') {
             steps {
+                echo " Running on agent: ${env.NODE_NAME}"
+                echo " Workspace: ${env.WORKSPACE}"
                 sh 'whoami'
                 sh 'pwd'
                 sh 'uname -a'
@@ -29,11 +33,6 @@ pipeline {
                 sh "docker build -t ${IMAGE_NAME} ."
             }
         }
-        stage('Push to Docker Hub') {
-            steps {
-                sh "echo \$DOCKER_CREDENTIALS_PSW | docker login -u \$DOCKER_CREDENTIALS_USR --password-stdin"
-                sh "docker push ${IMAGE_NAME}"
-            }
-        }
+        
     }
 }
