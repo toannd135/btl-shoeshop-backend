@@ -1,9 +1,12 @@
 package vn.edu.ptit.shoe_shop.mapper;
 
+import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
+import org.mapstruct.NullValuePropertyMappingStrategy;
+
 import vn.edu.ptit.shoe_shop.dto.request.UserCreateRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.request.UserUpdateRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.response.UserResponseDTO;
@@ -30,6 +33,7 @@ public interface UserMapper {
     @Mapping(target = "lastName", source = "lastName", qualifiedByName = "normalizeName")
     @Mapping(target = "username", source = "username", qualifiedByName = "normalizeUsername")
     @Mapping(target = "phone", source = "phone", qualifiedByName = "normalizePhone")
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateUserFromDto(UserUpdateRequestDTO userUpdateRequestDTO, @MappingTarget User user);
 
     @Mapping(target = "firstName", source = "firstName", qualifiedByName = "normalizeName")

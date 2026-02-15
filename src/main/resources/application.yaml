@@ -1,5 +1,5 @@
 server:
-  port: ${SERVER_PORT}
+  port: 8080
 
 management:
   endpoints:
@@ -17,9 +17,9 @@ spring:
     active: dev
 
   datasource:
-    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:shoeshop}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:Thanhmessi}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
@@ -36,4 +36,4 @@ spring:
 
 app:
   cors:
-    allowed-origins: ${CORS_ALLOWED_ORIGINS}
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}

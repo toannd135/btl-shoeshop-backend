@@ -22,7 +22,6 @@ import vn.edu.ptit.shoe_shop.repository.UserRepository;
 import vn.edu.ptit.shoe_shop.repository.UserRepositoryCustom;
 import vn.edu.ptit.shoe_shop.service.UserService;
 
-
 import java.util.List;
 import java.util.UUID;
 
@@ -36,7 +35,7 @@ public class UserServiceImpl implements UserService {
     private static final Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
 
     public UserServiceImpl(UserRepository userRepository, UserMapper userMapper,
-                           RoleRepository roleRepository, UserRepositoryCustom userRepositoryCustom) {
+            RoleRepository roleRepository, UserRepositoryCustom userRepositoryCustom) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
         this.roleRepository = roleRepository;
@@ -48,18 +47,20 @@ public class UserServiceImpl implements UserService {
     public UserResponseDTO createUser(UserCreateRequestDTO userCreateRequestDTO) {
         log.debug("Start createUser with username: {}, email: {}",
                 userCreateRequestDTO.getUsername(), userCreateRequestDTO.getEmail());
-        if(userCreateRequestDTO.getUsername() != null && this.userRepository.existsByUsername(userCreateRequestDTO.getUsername())){
+        if (userCreateRequestDTO.getUsername() != null
+                && this.userRepository.existsByUsername(userCreateRequestDTO.getUsername())) {
             log.warn("Username {} already exists", userCreateRequestDTO.getUsername());
             throw new DataIntegrityViolationException("Username already exists");
         }
-        if(userCreateRequestDTO.getEmail() != null && this.userRepository.existsByEmail(userCreateRequestDTO.getEmail())) {
+        if (userCreateRequestDTO.getEmail() != null
+                && this.userRepository.existsByEmail(userCreateRequestDTO.getEmail())) {
             log.warn("Email {} already exists", userCreateRequestDTO.getEmail());
             throw new DataIntegrityViolationException("Email already exists");
         }
         User user = this.userMapper.toEntity(userCreateRequestDTO);
         log.debug("Mapped User entity: {}", user);
         // kiem tra role
-        if(userCreateRequestDTO.getRole() != null && userCreateRequestDTO.getRole().getId() != null){
+        if (userCreateRequestDTO.getRole() != null && userCreateRequestDTO.getRole().getId() != null) {
             log.debug("Fetching Role with ID: {}", userCreateRequestDTO.getRole().getId());
             Role role = this.roleRepository.findByRoleId(userCreateRequestDTO.getRole().getId())
                     .orElseThrow(() -> {
@@ -69,12 +70,12 @@ public class UserServiceImpl implements UserService {
             user.setRole(role);
             log.debug("Role set for user. Role name: {}", role.getName());
         }
-        //ma hoa passwd
+        // ma hoa passwd
 
         this.userRepository.save(user);
         log.info("User created successfully with ID: {}", user.getUserId());
         UserResponseDTO res = this.userMapper.toResponseDTO(user);
-        res.setFullName(user.getFirstName() +  " " + user.getLastName());
+        res.setFullName(user.getFirstName() + " " + user.getLastName());
         log.debug("End createUser with response: {}", res);
         return res;
     }
@@ -88,6 +89,13 @@ public class UserServiceImpl implements UserService {
                     log.debug("User not found with ID: {}", id);
                     return new IdInvalidException("User not found");
                 });
+        if (userUpdateRequestDTO.getRoleId() != null) {
+            Role role = roleRepository.findByRoleId(
+                    UUID.fromString(userUpdateRequestDTO.getRoleId()))
+                    .orElseThrow(() -> new IdInvalidException("Role not found"));
+
+            user.setRole(role);
+        }
         this.userMapper.updateUserFromDto(userUpdateRequestDTO, user);
         log.debug("Mapped User entity for update: {}", user);
         this.userRepository.save(user);
@@ -134,7 +142,7 @@ public class UserServiceImpl implements UserService {
 
         Page<User> userPage = this.userRepositoryCustom.searchUsers(request, pageable);
 
-        Long  queryTime = System.currentTimeMillis() - startQuery;
+        Long queryTime = System.currentTimeMillis() - startQuery;
         log.debug("User query executed in {} ms. Total results: {}", queryTime, userPage.getTotalElements());
 
         List<UserResponseDTO> userResponseDTOS = userPage.getContent()
@@ -156,6 +164,5 @@ public class UserServiceImpl implements UserService {
 
         return res;
     }
-
 
 }

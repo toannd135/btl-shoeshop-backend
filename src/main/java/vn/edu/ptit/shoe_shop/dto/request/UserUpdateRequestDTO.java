@@ -1,6 +1,9 @@
 package vn.edu.ptit.shoe_shop.dto.request;
 
+import java.time.LocalDate;
+
 import lombok.Getter;
+import vn.edu.ptit.shoe_shop.common.enums.StatusEnum;
 
 @Getter
 public class UserUpdateRequestDTO {
@@ -9,7 +12,8 @@ public class UserUpdateRequestDTO {
     private String username;
     private String phone;
     private String gender;
-    private String dateOfBirth;
+    private LocalDate dateOfBirth;
     private String avatarImage;
-    private String status;
+    private StatusEnum status;
+    private String roleId;
 }
