@@ -37,7 +37,7 @@ pipeline {
                     sh 'git tag --list'
 
                     def tagVersion = sh (
-                        script: "git describe --tags --exact-match 2>/dev/null || git describe --tags --abrev=0 || git rev-parse --short HEAD",
+                        script: "git describe --tags --exact-match 2>/dev/null || git describe --tags --abrev=0 2>/dev/null || git rev-parse --short HEAD",
                         returnStdout: true
                     ).trim()
 
