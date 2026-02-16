@@ -56,6 +56,15 @@ public class Role implements Serializable {
 
     @PrePersist
     public void handleBeforeCreate() {
+        List<String> permissionNames = this.permissions.stream().map(Permission::getName).toList();
+        StringBuilder tmp = new StringBuilder();
+        for (String permissionName : permissionNames) {
+            tmp.append(permissionName);
+            if(!permissionName.equals(permissionNames.get(permissionNames.size() - 1))) {
+                tmp.append("; ");
+            }
+        }
+        this.description = tmp.toString();
         this.createdAt = Instant.now();
         this.updatedAt = this.createdAt;
         if (this.status == null) {

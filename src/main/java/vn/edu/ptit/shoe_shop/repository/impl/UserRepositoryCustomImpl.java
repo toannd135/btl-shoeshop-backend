@@ -17,6 +17,7 @@ import org.springframework.util.StringUtils;
 import vn.edu.ptit.shoe_shop.common.enums.GenderEnum;
 import vn.edu.ptit.shoe_shop.common.enums.StatusEnum;
 import vn.edu.ptit.shoe_shop.dto.request.search.UserSearchRequestDTO;
+import vn.edu.ptit.shoe_shop.entity.QRole;
 import vn.edu.ptit.shoe_shop.entity.QUser;
 import vn.edu.ptit.shoe_shop.entity.User;
 import vn.edu.ptit.shoe_shop.repository.UserRepositoryCustom;
@@ -30,6 +31,7 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
 
     private final JPAQueryFactory queryFactory;
     private final QUser user = QUser.user;
+    private final QRole role = QRole.role;
     private static final Logger log = LoggerFactory.getLogger(UserRepositoryCustomImpl.class);
 
     public UserRepositoryCustomImpl(JPAQueryFactory queryFactory) {
@@ -61,7 +63,7 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
         }
         if (request.getGender() != null) {
             log.debug("Filtering by gender: {}", request.getGender());
-            builder.and(user.gender.eq(GenderEnum.valueOf(request.getGender())));
+            builder.and(user.gender.eq(GenderEnum.valueOf(request.getGender().toUpperCase())));
         }
         if (request.getDateOfBirth() != null) {
             log.debug("Filtering by dateOfBirth: {}", request.getDateOfBirth());
@@ -69,7 +71,11 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
         }
         if(request.getStatus() != null){
             log.debug("Filtering by status: {}", request.getStatus());
-            builder.and(user.status.eq(StatusEnum.valueOf(request.getStatus())));
+            builder.and(user.status.eq(StatusEnum.valueOf(request.getStatus().toUpperCase())));
+        }
+        if(request.getRoleName() != null) {
+            log.debug("Filtering by roleName: {}", request.getRoleName());
+            builder.and(role.name.containsIgnoreCase(request.getRoleName().toUpperCase()));
         }
         log.info("Completed building query conditions");
 

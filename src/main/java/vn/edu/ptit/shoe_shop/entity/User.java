@@ -9,6 +9,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
 import org.hibernate.annotations.JdbcTypeCode;
+import vn.edu.ptit.shoe_shop.common.constant.AvatarConstant;
 import vn.edu.ptit.shoe_shop.common.enums.GenderEnum;
 import vn.edu.ptit.shoe_shop.common.enums.StatusEnum;
 
@@ -74,6 +75,17 @@ public class User implements Serializable {
 
     @PrePersist
     public void handleBeforeCreate() {
+        if(this.avatarImage == null || this.avatarImage.isEmpty()) {
+            if(this.gender == GenderEnum.MALE) {
+                this.avatarImage = AvatarConstant.DEFAULT_AVATAR_MALE;
+            }
+            else if(this.gender == GenderEnum.FEMALE) {
+                this.avatarImage = AvatarConstant.DEFAULT_AVATAR_FEMALE;
+            }
+            else if(this.gender == GenderEnum.OTHER) {
+                this.avatarImage = AvatarConstant.DEFAULT_AVATAR_OTHER;
+            }
+        }
         this.createdBy = String.valueOf(this.userId);
         this.createdAt = Instant.now();
         this.updatedAt = this.createdAt;

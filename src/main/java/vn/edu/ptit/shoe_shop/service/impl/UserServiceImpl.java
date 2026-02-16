@@ -90,9 +90,17 @@ public class UserServiceImpl implements UserService {
                 });
         this.userMapper.updateUserFromDto(userUpdateRequestDTO, user);
         log.debug("Mapped User entity for update: {}", user);
+        Role role = this.roleRepository.findByRoleId(userUpdateRequestDTO.getRole().getId())
+                .orElseThrow(() -> {
+                    log.debug("Role not found with ID: {}", userUpdateRequestDTO.getRole().getId());
+                    return new IdInvalidException("Role not found");
+                });
+        user.setRole(role);
+        log.debug("Role set for user. Role name: {}", role.getName());
         this.userRepository.save(user);
         log.info("User updated successfully with ID: {}", user.getUserId());
         UserResponseDTO res = this.userMapper.toResponseDTO(user);
+        res.setFullName(user.getFirstName() +  " " + user.getLastName());
         log.debug("End updateUser with response: {}", res);
         return res;
     }
@@ -106,6 +114,7 @@ public class UserServiceImpl implements UserService {
                     return new IdInvalidException("User not found");
                 });
         UserResponseDTO res = this.userMapper.toResponseDTO(user);
+        res.setFullName(user.getFirstName() +  " " + user.getLastName());
         log.debug("End fetchUser with response: {}", res);
         return res;
     }

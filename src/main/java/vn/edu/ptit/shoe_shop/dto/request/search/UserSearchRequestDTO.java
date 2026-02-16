@@ -13,6 +13,7 @@ public class UserSearchRequestDTO {
     private String gender;
     private String dateOfBirth;
     private String status;
+    private String roleName;
     private String createdAt;
     private String createdBy;
     private String updatedBy;
