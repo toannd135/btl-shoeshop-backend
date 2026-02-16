@@ -87,15 +87,15 @@ pipeline {
     }
     post {
         always {
-            echo " Cleaning up..."
-            sh """
-                docker rmi ${env.IMAGE_NAME}:${env.IMAGE_TAG} || true
-                docker rmi ${env.IMAGE_NAME}:latest || true
-                docker system prune -f || true
-            """
+            // echo " Cleaning up..."
+            // sh """
+            //     docker rmi ${env.IMAGE_NAME}:${env.IMAGE_TAG} || true
+            //     docker rmi ${env.IMAGE_NAME}:latest || true
+            //     docker system prune -f || true
+            // """
             
           
-            cleanWs()
+            // cleanWs()
         }
         success {
             echo "BUILD SUCCESS!"
