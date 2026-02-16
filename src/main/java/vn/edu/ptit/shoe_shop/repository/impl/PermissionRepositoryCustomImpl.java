@@ -36,19 +36,19 @@ public class PermissionRepositoryCustomImpl implements PermissionRepositoryCusto
         BooleanBuilder builder = new BooleanBuilder();
 
         if(request.getName() != null) {
-            builder.and(permission.name.containsIgnoreCase(request.getName()));
+            builder.or(permission.name.containsIgnoreCase(request.getName()));
         }
         if(request.getApiPath() != null) {
-            builder.and(permission.apiPath.containsIgnoreCase(request.getApiPath()));
+            builder.or(permission.apiPath.containsIgnoreCase(request.getApiPath()));
         }
         if(request.getMethod() != null) {
-            builder.and(permission.method.eq(request.getMethod()));
+            builder.or(permission.method.eq(request.getMethod()));
         }
         if(request.getModule() != null) {
-            builder.and(permission.module.containsIgnoreCase(request.getModule()));
+            builder.or(permission.module.containsIgnoreCase(request.getModule()));
         }
         if(request.getStatus() != null) {
-            builder.and(permission.status.eq(StatusEnum.valueOf(request.getStatus())));
+            builder.or(permission.status.eq(StatusEnum.valueOf(request.getStatus())));
         }
 
         JPAQuery<Permission> query = this.jpaQueryFactory

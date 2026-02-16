@@ -46,38 +46,36 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
 
         if(StringUtils.hasText(request.getFullName())) {
             log.debug("Filtering by fullName: {}", request.getFullName());
-            BooleanBuilder nameBuilder = new BooleanBuilder();
-            nameBuilder.or(user.firstName.containsIgnoreCase(request.getFullName()));
-            nameBuilder.or(user.lastName.containsIgnoreCase(request.getFullName()));
-            builder.and(nameBuilder);
+            builder.or(user.firstName.containsIgnoreCase(request.getFullName()));
+            builder.or(user.lastName.containsIgnoreCase(request.getFullName()));
         }
         if (request.getUsername() != null) {
             log.debug("Filtering by username: {}", request.getUsername());
-            builder.and(user.username.containsIgnoreCase(request.getUsername()));
+            builder.or(user.username.containsIgnoreCase(request.getUsername()));
         }
         if (request.getEmail() != null) {
             log.debug("Filtering by email: {}", request.getEmail());
-            builder.and(user.email.containsIgnoreCase(request.getEmail()));
+            builder.or(user.email.containsIgnoreCase(request.getEmail()));
         }
         if (request.getPhone() != null) {
             log.debug("Filtering by phone: {}", request.getPhone());
-            builder.and(user.phone.containsIgnoreCase(request.getPhone()));
+            builder.or(user.phone.containsIgnoreCase(request.getPhone()));
         }
         if (request.getGender() != null) {
             log.debug("Filtering by gender: {}", request.getGender());
-            builder.and(user.gender.eq(GenderEnum.valueOf(request.getGender().toUpperCase())));
+            builder.or(user.gender.eq(GenderEnum.valueOf(request.getGender().toUpperCase())));
         }
         if (request.getDateOfBirth() != null) {
             log.debug("Filtering by dateOfBirth: {}", request.getDateOfBirth());
-            builder.and(user.dateOfBirth.eq(LocalDate.parse(request.getDateOfBirth())));
+            builder.or(user.dateOfBirth.eq(LocalDate.parse(request.getDateOfBirth())));
         }
         if(request.getStatus() != null){
             log.debug("Filtering by status: {}", request.getStatus());
-            builder.and(user.status.eq(StatusEnum.valueOf(request.getStatus().toUpperCase())));
+            builder.or(user.status.eq(StatusEnum.valueOf(request.getStatus().toUpperCase())));
         }
         if(request.getRoleName() != null) {
             log.debug("Filtering by roleName: {}", request.getRoleName());
-            builder.and(role.name.containsIgnoreCase(request.getRoleName().toUpperCase()));
+            builder.or(role.name.containsIgnoreCase(request.getRoleName().toUpperCase()));
         }
         log.info("Completed building query conditions");
 

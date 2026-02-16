@@ -35,17 +35,17 @@ public class RoleRepositoryCustomImpl implements RoleRepositoryCustom {
     public Page<Role> searchRoles(RoleSearchRequestDTO request, Pageable pageable) {
         BooleanBuilder builder = new BooleanBuilder();
 
-        if(request.getName() != null) {
-            builder.and(role.name.containsIgnoreCase(request.getName()));
+        if(request.getName() != null && !request.getName().isEmpty()) {
+            builder.or(role.name.containsIgnoreCase(request.getName()));
         }
         if(request.getDescription() != null) {
-            builder.and(role.description.containsIgnoreCase(request.getDescription()));
+            builder.or(role.description.containsIgnoreCase(request.getDescription()));
         }
         if(request.getStatus() != null) {
-            builder.and(role.status.eq(StatusEnum.valueOf(request.getStatus())));
+            builder.or(role.status.eq(StatusEnum.valueOf(request.getStatus())));
         }
         if(request.getCode() != null) {
-            builder.and(role.code.containsIgnoreCase(request.getCode()));
+            builder.or(role.code.containsIgnoreCase(request.getCode()));
         }
 
         JPAQuery<Role> query = this.jpaQueryFactory
