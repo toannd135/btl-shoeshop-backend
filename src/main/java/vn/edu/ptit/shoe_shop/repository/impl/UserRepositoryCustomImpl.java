@@ -46,8 +46,10 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
 
         if(StringUtils.hasText(request.getFullName())) {
             log.debug("Filtering by fullName: {}", request.getFullName());
-            builder.and(user.firstName.containsIgnoreCase(request.getFullName()))
-                    .or(user.lastName.containsIgnoreCase(request.getFullName()));
+            BooleanBuilder nameBuilder = new BooleanBuilder();
+            nameBuilder.or(user.firstName.containsIgnoreCase(request.getFullName()));
+            nameBuilder.or(user.lastName.containsIgnoreCase(request.getFullName()));
+            builder.and(nameBuilder);
         }
         if (request.getUsername() != null) {
             log.debug("Filtering by username: {}", request.getUsername());
