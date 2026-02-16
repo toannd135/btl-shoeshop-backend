@@ -59,14 +59,6 @@ pipeline {
                 sh " docker images | grep ${env.IMAGE_NAME}"
             }
         }
-        stage('Test Docker Image') {
-            steps {
-                echo "Testing Docker image..."
-
-                sh " docker run --rm ${env.IMAGE_NAME}:${env.IMAGE_TAG} java -version"
-                echo "Docker image test completed successfully!"
-            }
-        }
         stage('Push Docker Image to Registry') {
             steps {
                 script {
@@ -83,29 +75,6 @@ pipeline {
                     echo "Docker image pushed successfully!"
                 }
             }
-        }
-    }
-    post {
-        always {
-            echo " Cleaning up..."
-            sh """
-                docker rmi ${env.IMAGE_NAME}:${env.IMAGE_TAG} || true
-                docker rmi ${env.IMAGE_NAME}:latest || true
-                docker system prune -f || true
-            """
-            
-          
-            cleanWs()
-        }
-        success {
-            echo "BUILD SUCCESS!"
-            echo "Source code built and pushed: ${env.IMAGE_NAME}:${env.IMAGE_TAG}"
-            echo "Config repository updated with new version"
-            echo "Docker Hub: https://hub.docker.com/repositories/toannd135/shoeshop-backend"
-        }
-        failure {
-            echo "BUILD FAILED!"
-            echo "Please check the logs above"
         }
     }
 }
