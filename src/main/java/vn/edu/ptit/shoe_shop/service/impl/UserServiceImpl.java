@@ -5,8 +5,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import vn.edu.ptit.shoe_shop.common.constant.EmailPattern;
 import vn.edu.ptit.shoe_shop.common.enums.StatusEnum;
 import vn.edu.ptit.shoe_shop.dto.request.search.UserSearchRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.response.page.UserPageResponseDTO;
@@ -26,6 +28,7 @@ import vn.edu.ptit.shoe_shop.service.UserService;
 import java.util.List;
 import java.util.UUID;
 
+
 @Service
 public class UserServiceImpl implements UserService {
 
@@ -33,14 +36,16 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final RoleRepository roleRepository;
     private final UserRepositoryCustom userRepositoryCustom;
+    private final PasswordEncoder passwordEncoder;
     private static final Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
 
     public UserServiceImpl(UserRepository userRepository, UserMapper userMapper,
-                           RoleRepository roleRepository, UserRepositoryCustom userRepositoryCustom) {
+                           RoleRepository roleRepository, UserRepositoryCustom userRepositoryCustom, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
         this.roleRepository = roleRepository;
         this.userRepositoryCustom = userRepositoryCustom;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -69,8 +74,10 @@ public class UserServiceImpl implements UserService {
             user.setRole(role);
             log.debug("Role set for user. Role name: {}", role.getName());
         }
-        //ma hoa passwd
-
+        // ma hoa password
+        String passwordHashed = this.passwordEncoder.encode(userCreateRequestDTO.getPassword());
+        user.setPassword(passwordHashed);
+        log.debug("Password hashed for user");
         this.userRepository.save(user);
         log.info("User created successfully with ID: {}", user.getUserId());
         UserResponseDTO res = this.userMapper.toResponseDTO(user);
@@ -164,6 +171,26 @@ public class UserServiceImpl implements UserService {
                 userPage.getNumber() + 1, userPage.getTotalPages());
 
         return res;
+    }
+
+    @Override
+    public User getUserByUsernameOrEmail(String username) {
+        if(username == null || username.isEmpty()) {
+            log.debug("Username is null or empty");
+            throw new IdInvalidException("Username cannot be null or empty");
+        }
+        if(EmailPattern.EMAIL_PATTERN.matcher(username).matches()) {
+            return this.userRepository.findByEmail(username).orElseThrow(() -> {
+                log.debug("User not found with email: {}", username);
+                return new IdInvalidException("User not found");
+            });
+        }
+        else {
+            return this.userRepository.findByUsername(username).orElseThrow(() -> {
+                log.debug("User not found with username: {}", username);
+                return new IdInvalidException("User not found");
+            });
+        }
     }
 
 

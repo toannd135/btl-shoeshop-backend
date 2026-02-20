@@ -17,7 +17,7 @@ spring:
     active: dev
 
   datasource:
-    url: jdbc:mysql://192.168.1.14:3306/shoeshop?allowPublicKeyRetrieval=true&useSSL=false
+    url: jdbc:mysql://localhost:3306/shoeshop
     username: root
     password: 123456
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -33,7 +33,14 @@ spring:
     web:
       pageable:
         one-indexed-parameters: true
+    redis:
+      host: localhost
+      port: 6379
 
 app:
   cors:
     allowed-origins: http://localhost:3000,http://localhost:5173
+  jwt:
+    base64-secret: qoAEABDke07+AVLepXB4aCMtsT0wMAqR5x2VFyldsnx6e75YQkJH2UcZKTjEyoNgG71SBCXfq5N6NVZxWOfsHQ==
+    access-token-validity-in-seconds: 900
+    refresh-token-validity-in-seconds: 25920000

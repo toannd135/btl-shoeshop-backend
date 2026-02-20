@@ -10,7 +10,7 @@ import org.springframework.web.filter.CorsFilter;
 import java.util.Arrays;
 
 @Configuration
-public class CorsConfig {
+public class WebConfiguration {
 
     @Value("${app.cors.allowed-origins}")
     private String allowedOrigins;

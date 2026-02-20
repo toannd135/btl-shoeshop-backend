@@ -17,4 +17,5 @@ public interface UserService {
     void deleteUser(UUID id);
     UserResponseDTO fetchUser(UUID id);
     UserPageResponseDTO search(UserSearchRequestDTO request, Pageable pageable);
+    User getUserByUsernameOrEmail(String username);
 }
