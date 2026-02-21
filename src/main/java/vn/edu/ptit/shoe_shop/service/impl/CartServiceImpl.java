@@ -4,8 +4,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import vn.edu.ptit.shoe_shop.constant.enums.ProductStatusEnum;
 import vn.edu.ptit.shoe_shop.dto.mapper.CartMapper;

@@ -6,9 +6,9 @@ import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import vn.edu.ptit.shoe_shop.entity.CartItem;
+import vn.edu.ptit.shoe_shop.entity.Coupon;
 
 @Repository
-public interface CartIteamRepository extends JpaRepository<CartItem,UUID> {
-    Optional<CartItem> findByCartItemId(UUID cartItemId);
+public interface CouponRepository extends JpaRepository<Coupon,UUID> {
+    Optional<Coupon> findByCode(String code);
 }

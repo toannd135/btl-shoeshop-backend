@@ -1,4 +1,5 @@
 package vn.edu.ptit.shoe_shop.entity;
+
 import java.math.BigDecimal;
 import java.sql.Types;
 import java.util.ArrayList;
@@ -42,7 +43,7 @@ public class ProductVariant {
 
     @Column(length = 100, unique = true)
     private String sku;
-    @Column(name = "size",precision = 4)
+    @Column(name = "size", precision = 4)
     private BigDecimal size;
 
     @Column(name = "size_system", length = 10)
@@ -67,16 +68,54 @@ public class ProductVariant {
 
     // 1 bien the product co the la nhieu cartitem
     @JsonIgnore
-    @OneToMany(mappedBy = "variant",cascade = CascadeType.ALL,orphanRemoval = true)
+    @OneToMany(mappedBy = "variant", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CartItem> cartItems = new ArrayList<>();
 
-    //  nhieu bien the co the thuoc ve 1 product
+    // nhieu bien the co the thuoc ve 1 product
     @JsonIgnore
     @ManyToOne
-    @JoinColumn(name = "product_id",nullable = false)
+    @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
     // 1 product_variant co the co nhieu anh
-    @OneToMany(mappedBy = "productVariant",cascade = CascadeType.ALL,orphanRemoval = true)
+    @OneToMany(mappedBy = "productVariant", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductImage> listProductVariantImages = new ArrayList<>();
+
+    @OneToMany(mappedBy = "variant", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrderItem> listOrderItems = new ArrayList<>();
+    // @Column(name = "status", nullable = false)
+    // @Enumerated(EnumType.STRING)
+    // private StatusEnum status;
+
+    // @Column(name = "createdAt", nullable = false)
+    // private Instant createdAt;
+
+    // @Column(name = "createdBy", nullable = false)
+    // private String createdBy;
+
+    // @Column(name = "updatedAt")
+    // private Instant updatedAt;
+
+    // @Column(name = "updatedBy")
+    // private String updatedBy;
+
+    // @ManyToOne(fetch = FetchType.LAZY)
+    // @JoinColumn(name = "role_id", nullable = false)
+    // private Role role;
+
+    // @PrePersist
+    // public void handleBeforeCreate() {
+    // this.createdBy = String.valueOf(this.userId);
+    // this.createdAt = Instant.now();
+    // this.updatedAt = this.createdAt;
+    // if (this.status == null) {
+    // this.status = StatusEnum.ACTIVE;
+    // }
+    // }
+
+    // @PreUpdate
+    // public void handleBeforeUpdate() {
+    // this.createdBy = String.valueOf(this.userId);
+    // this.updatedAt = Instant.now();
+    // }
 }
