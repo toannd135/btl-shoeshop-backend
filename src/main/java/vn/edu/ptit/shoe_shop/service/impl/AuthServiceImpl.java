@@ -10,6 +10,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import vn.edu.ptit.shoe_shop.common.constant.JwtConstants;
 import vn.edu.ptit.shoe_shop.common.exception.IdInvalidException;
 import vn.edu.ptit.shoe_shop.common.utils.security.SecurityUtils;
 import vn.edu.ptit.shoe_shop.common.utils.security.jwt.TokenProvider;
@@ -62,7 +63,7 @@ public class AuthServiceImpl implements AuthService {
         User user = customUserDetail.getUser();
         UUID userId = user.getUserId();
         // create access token
-        String accessToken = this.tokenProvider.createAccessToken(authentication, deviceId);
+        String accessToken = this.tokenProvider.createAccessToken(authentication, deviceId); // save into memory frontend
         // create refresh token
         String refreshToken = this.tokenProvider.createRefreshToken(authentication, deviceId);
         String refreshJti = this.tokenProvider.getJtiFromToken(refreshToken);
@@ -84,65 +85,56 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public LoginResult getNewToken(String refreshToken) {
-//        // decode refresh token
-//        Jwt decodeToken = this.tokenProvider.checkValidRefreshToken(refreshToken);
-//        UUID userId = UUID.fromString(decodeToken.getSubject());
-//        String refreshJti = decodeToken.getId();
-//        User user = this.userRepository.findByUserId(userId)
-//                .orElseThrow(() -> {
-//                    log.debug("User not found with ID: {}", userId);
-//                    return new IdInvalidException("User not found");
-//                });
-//
-//        // check token db
-//        RefreshToken refreshTokenEntity = this.refreshTokenRepository.findByToken(refreshToken)
-//                .orElseThrow(() -> new IdInvalidException("Refresh token not found"));
-//
-//        boolean isValidInRedis = this.redisService.isRefreshTokenValid(userId, refreshJti, refreshToken);
-//        if (!isValidInRedis) {
-//            log.debug("Refresh token JTI {} not found or mismatch in Redis", refreshJti);
-//            throw new IdInvalidException("Session expired or invalid");
-//        }
-//
-//        if (refreshTokenEntity.getRevoked()) {
-//            log.debug("Refresh token is revoked for userId: {}", userId);
-//            throw new IdInvalidException("Refresh token is revoked");
-//        }
-//        if (!refreshTokenEntity.getToken().equals(refreshToken)) {
-//            log.debug("Refresh token in DB does not match the provided token for userId: {}", userId);
-//            throw new IdInvalidException("Refresh token is invalid");
-//        }
-//        // check token redis
-////        String redisStoredToken = this.redisService.getRefreshToken(userId);
-//        if (redisStoredToken == null || !redisStoredToken.equals(refreshToken)) {
-//            log.debug("Refresh token in Redis does not match the provided token for userId: {}", userId);
-//            throw new IdInvalidException("Session expired or logged out");
-//        }
-//
-//        CustomUserDetail userDetail = new CustomUserDetail(user);
-//        UsernamePasswordAuthenticationToken authentication =
-//                new UsernamePasswordAuthenticationToken(userDetail, null, userDetail.getAuthorities());
-//        // new access token
-//        String newAccessToken = this.tokenProvider.createAccessToken(authentication);
-//        log.debug("Generated access token: {}", newAccessToken);
-//        String accessJti = this.tokenProvider.getJtiFromToken(newAccessToken);
-//        this.redisService.storeAccessToken(newAccessToken, userId, accessJti);
-//        log.debug("Updated access token in Redis for userId: {}", userId);
-//        // new refresh token
-//        this.redisService.deleteRefreshTokenByJti(userId, refreshJti);
-//        String newRefreshToken = this.tokenProvider.createRefreshToken(authentication);
-//        log.debug("Generated refresh token: {}", newRefreshToken);
-//        // luu refresh token vao database
-//        refreshTokenEntity.setToken(newRefreshToken);
-//        refreshTokenEntity.setExpiryDate(Instant.now().plusSeconds(refreshTokenExpiration));
-//        this.refreshTokenRepository.save(refreshTokenEntity);
-//        log.debug("Saved refresh token in Database for userId: {}", userId);
-//
-//        String newRefreshJti = this.tokenProvider.getJtiFromToken(newRefreshToken);
-//        this.redisService.storeRefreshToken(newRefreshToken, userId, newRefreshJti);
-//
-//       return buildLoginResult(user, newAccessToken, newRefreshToken);
-        return null;
+        // decode refresh token
+        Jwt decodeToken = this.tokenProvider.checkValidRefreshToken(refreshToken);
+        UUID userId = UUID.fromString(decodeToken.getSubject());
+        String deviceId = decodeToken.getClaimAsString(JwtConstants.Claims.DEVICE_ID);
+        String jtiFromRefreshToken = decodeToken.getId();
+        Instant expiresAt = decodeToken.getExpiresAt();
+        // check redis
+
+        String jtiInRedis = this.redisService.getRefreshToken(userId, deviceId);
+        if(jtiInRedis == null || !jtiInRedis.equals(jtiFromRefreshToken)) {
+
+            throw new IdInvalidException("login fail");
+        }
+
+        User user = this.userRepository.findByUserId(userId)
+                .orElseThrow(() -> {
+                    log.debug("User not found with ID: {}", userId);
+                    return new IdInvalidException("User not found");
+                });
+
+        // check token db
+        RefreshToken refreshTokenEntity = this.refreshTokenRepository.findByUserUserIdAndDeviceId(userId, deviceId)
+                .orElseThrow(() -> new IdInvalidException("Refresh token session not found"));
+
+        if (refreshTokenEntity.getRevoked()) {
+            log.debug("Refresh token is revoked for userId: {}", userId);
+            throw new IdInvalidException("Refresh token is revoked");
+        }
+        if (refreshTokenEntity.getExpiryDate().isBefore(Instant.now())) {
+            log.debug("Refresh token in DB has expired for userId: {}", userId);
+            this.refreshTokenRepository.delete(refreshTokenEntity);
+            throw new IdInvalidException("Refresh token expired");
+        }
+        CustomUserDetail userDetail = new CustomUserDetail(user);
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(userDetail, null, userDetail.getAuthorities());
+        // new access token
+        String newAccessToken = this.tokenProvider.createAccessToken(authentication, deviceId); // save into memory frontend
+
+        // new refresh token
+        String newRefreshToken = this.tokenProvider.createRefreshToken(authentication, deviceId);
+        String newRefreshJti = this.tokenProvider.getJtiFromToken(newRefreshToken);
+        // luu refresh token vao database
+        refreshTokenEntity.setToken(newRefreshToken);
+        refreshTokenEntity.setExpiryDate(Instant.now().plusSeconds(refreshTokenExpiration));
+        this.refreshTokenRepository.save(refreshTokenEntity);
+        log.debug("Saved refresh token in Database for userId: {}", userId);
+        this.redisService.storeRefreshToken(userId, newRefreshJti, deviceId);
+
+       return buildLoginResult(user, newAccessToken, newRefreshToken);
     }
 
     @Override

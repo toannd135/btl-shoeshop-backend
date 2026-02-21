@@ -59,10 +59,10 @@ public class AuthController {
     @ApiMessage("Refresh token successful")
     public ResponseEntity<LoginResponseDTO> refreshToken(
             @CookieValue(TokenConstants.REFRESH_TOKEN) String refreshToken) {
+
         if (refreshToken.equals(TokenConstants.FAKE_TOKEN)) {
             throw new BadCredentialsException("Invalid refresh token");
         }
-
         LoginResult res = this.authService.getNewToken(refreshToken);
 
         LoginResponseDTO.UserLoginResponseDTO user = new LoginResponseDTO.UserLoginResponseDTO();
