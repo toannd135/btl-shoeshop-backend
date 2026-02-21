@@ -29,8 +29,13 @@ public class AuthController {
 
     @PostMapping("/login")
     @ApiMessage("Login successful")
-    public ResponseEntity<LoginResponseDTO> login(@Valid @RequestBody LoginRequestDTO loginRequestDTO) {
-        LoginResult res = this.authService.login(loginRequestDTO);
+    public ResponseEntity<LoginResponseDTO> login(
+            @Valid @RequestBody LoginRequestDTO loginRequestDTO,
+            @RequestHeader(value = "X-device-Id", required = false) String deviceId) {
+
+        String finalDeviceId = (deviceId != null) ? deviceId : "unknown-device";
+
+        LoginResult res = this.authService.login(loginRequestDTO, finalDeviceId);
         LoginResponseDTO.UserLoginResponseDTO user = new LoginResponseDTO.UserLoginResponseDTO();
         user.setUserId(res.getUser().getUserId());
         user.setUsername(res.getUser().getUsername());
@@ -58,7 +63,7 @@ public class AuthController {
             throw new BadCredentialsException("Invalid refresh token");
         }
 
-        LoginResult res = this.authService.getRefreshToken(refreshToken);
+        LoginResult res = this.authService.getNewToken(refreshToken);
 
         LoginResponseDTO.UserLoginResponseDTO user = new LoginResponseDTO.UserLoginResponseDTO();
         user.setUserId(res.getUser().getUserId());
@@ -78,4 +83,30 @@ public class AuthController {
                 .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
                 .body(new LoginResponseDTO(res.getAccessToken(), user));
     }
+
+//    @PostMapping("/logout")
+//    @ApiMessage("Logout successful")
+//    public ResponseEntity<Void> logout(
+//            @RequestHeader(HttpHeaders.AUTHORIZATION) String bearerToken,
+//            @CookieValue(TokenConstants.REFRESH_TOKEN) String refreshToken
+//    ) {
+//        String accessToken = null;
+//        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+//            accessToken = bearerToken.substring(7);
+//        }
+//        if (refreshToken.equals(TokenConstants.FAKE_TOKEN)) {
+//            throw new BadCredentialsException("Invalid refresh token");
+//        }
+//        this.authService.logout(refreshToken, accessToken);
+//        ResponseCookie deleteCookie = ResponseCookie.from(TokenConstants.REFRESH_TOKEN, "")
+//                .httpOnly(true)
+//                .secure(true)
+//                .path("/")
+//                .maxAge(0)
+//                .sameSite("Lax")
+//                .build();
+//        return ResponseEntity.ok()
+//                .header(HttpHeaders.SET_COOKIE, deleteCookie.toString())
+//                .build();
+//    }
 }

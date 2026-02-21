@@ -1,12 +1,14 @@
 package vn.edu.ptit.shoe_shop.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.io.Serializable;
 import java.sql.Types;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 import org.hibernate.annotations.JdbcTypeCode;
 import vn.edu.ptit.shoe_shop.common.constant.AvatarConstant;
@@ -72,6 +74,11 @@ public class User implements Serializable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "role_id", nullable = false)
     private Role role;
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<RefreshToken> refreshTokens;
+
 
     @PrePersist
     public void handleBeforeCreate() {
@@ -224,5 +231,11 @@ public class User implements Serializable {
         this.role = role;
     }
 
+    public List<RefreshToken> getRefreshTokens() {
+        return refreshTokens;
+    }
 
+    public void setRefreshTokens(List<RefreshToken> refreshTokens) {
+        this.refreshTokens = refreshTokens;
+    }
 }

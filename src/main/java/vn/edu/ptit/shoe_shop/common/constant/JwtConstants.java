@@ -16,10 +16,7 @@ public final class JwtConstants {
         public static final String TOKEN_TYPE = "tokenType";
         public static final String USER_PREFIX = "user:";
         public static final String SESSION_PREFIX = "session:";
-
+        public static final String DEVICE_ID = "deviceId";
     }
 
-    public static final class Expiration {
-        public static final long REMEMBER_ME_EXPIRATION_SECONDS = 604800L;
-    }
 }

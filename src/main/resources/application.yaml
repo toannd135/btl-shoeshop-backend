@@ -36,6 +36,7 @@ spring:
     redis:
       host: localhost
       port: 6379
+      timeout: 2000
 
 app:
   cors:
@@ -43,4 +44,4 @@ app:
   jwt:
     base64-secret: qoAEABDke07+AVLepXB4aCMtsT0wMAqR5x2VFyldsnx6e75YQkJH2UcZKTjEyoNgG71SBCXfq5N6NVZxWOfsHQ==
     access-token-validity-in-seconds: 900
-    refresh-token-validity-in-seconds: 25920000
+    refresh-token-validity-in-seconds: 2592000

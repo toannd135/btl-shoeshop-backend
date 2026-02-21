@@ -2,6 +2,7 @@ package vn.edu.ptit.shoe_shop.service.impl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -14,91 +15,174 @@ import vn.edu.ptit.shoe_shop.common.utils.security.SecurityUtils;
 import vn.edu.ptit.shoe_shop.common.utils.security.jwt.TokenProvider;
 import vn.edu.ptit.shoe_shop.dto.LoginResult;
 import vn.edu.ptit.shoe_shop.dto.request.auth.LoginRequestDTO;
+import vn.edu.ptit.shoe_shop.entity.RefreshToken;
 import vn.edu.ptit.shoe_shop.entity.User;
+import vn.edu.ptit.shoe_shop.repository.RefreshTokenRepository;
 import vn.edu.ptit.shoe_shop.repository.UserRepository;
 import vn.edu.ptit.shoe_shop.service.AuthService;
 import vn.edu.ptit.shoe_shop.service.CustomUserDetail;
+import vn.edu.ptit.shoe_shop.service.RedisService;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.UUID;
 
 @Service
 public class AuthServiceImpl implements AuthService {
-    private AuthenticationManager authenticationManager;
-    private SecurityUtils securityUtils;
-    private TokenProvider tokenProvider;
-    private UserRepository userRepository;
-
+    private final AuthenticationManager authenticationManager;
+    private final TokenProvider tokenProvider;
+    private final UserRepository userRepository;
+    private final RedisService redisService;
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final SecurityUtils securityUtils;
     private final Logger log = LoggerFactory.getLogger(AuthServiceImpl.class);
 
-    public AuthServiceImpl(AuthenticationManager authenticationManager, SecurityUtils securityUtils, TokenProvider tokenProvider
-    , UserRepository userRepository) {
+    @Value("${app.jwt.refresh-token-validity-in-seconds}")
+    private Long refreshTokenExpiration;
+
+    public AuthServiceImpl(AuthenticationManager authenticationManager, TokenProvider tokenProvider, SecurityUtils securityUtils
+            , UserRepository userRepository, RedisService redisService, RefreshTokenRepository refreshTokenRepository) {
         this.authenticationManager = authenticationManager;
-        this.securityUtils = securityUtils;
         this.tokenProvider = tokenProvider;
+        this.securityUtils = securityUtils;
         this.userRepository = userRepository;
+        this.redisService = redisService;
+        this.refreshTokenRepository = refreshTokenRepository;
     }
 
     @Override
-    public LoginResult login(LoginRequestDTO request) {
+    @Transactional
+    public LoginResult login(LoginRequestDTO request, String deviceId) {
         UsernamePasswordAuthenticationToken authenticationToken =
                 new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword());
         Authentication authentication = this.authenticationManager.authenticate(authenticationToken);
         SecurityContextHolder.getContext().setAuthentication(authentication);
-
-        String accessToken = this.tokenProvider.createAccessToken(authentication);
-        // luu access token vao redis
-        log.debug("Generated access token: {}", accessToken);
-        String refreshToken = this.tokenProvider.createRefreshToken(authentication);
-        // luu refresh token vao redis
-        log.debug("Generated refresh token: {}", refreshToken);
-
-        LoginResult res = new LoginResult();
+        // get user info
         CustomUserDetail customUserDetail = (CustomUserDetail) authentication.getPrincipal();
         User user = customUserDetail.getUser();
-        LoginResult.UserLoginResult userLoginResult = new LoginResult.UserLoginResult();
-        userLoginResult.setUserId(String.valueOf(user.getUserId()));
-        userLoginResult.setUsername(user.getUsername());
-        userLoginResult.setFullName(user.getFirstName() + " " + user.getLastName());
-        userLoginResult.setRoleCode(user.getRole().getCode());
-        res.setUser(userLoginResult);
-        res.setAccessToken(accessToken);
-        res.setRefreshToken(refreshToken);
-        return res;
+        UUID userId = user.getUserId();
+        // create access token
+        String accessToken = this.tokenProvider.createAccessToken(authentication, deviceId);
+        // create refresh token
+        String refreshToken = this.tokenProvider.createRefreshToken(authentication, deviceId);
+        String refreshJti = this.tokenProvider.getJtiFromToken(refreshToken);
+        // save refresh token into redis, database
+        RefreshToken tokenEntity = this.refreshTokenRepository.findByUserUserIdAndDeviceId(userId, deviceId)
+                .orElse(new RefreshToken());
+        tokenEntity.setToken(refreshToken);
+        tokenEntity.setExpiryDate(Instant.now().plusSeconds(refreshTokenExpiration));
+        tokenEntity.setDeviceId(deviceId);
+        tokenEntity.setRevoked(false);
+        tokenEntity.setUser(user);
+        this.refreshTokenRepository.save(tokenEntity);
+        log.debug("Saved refresh token in Database for userId: {}", userId);
+        this.redisService.storeRefreshToken(userId, refreshJti ,deviceId);
 
+        return buildLoginResult(user, accessToken, refreshToken);
     }
 
     @Override
-//    @Transactional
-    public LoginResult getRefreshToken(String refreshToken) {
-        // decode refresh token
-        Jwt decodeToken = this.tokenProvider.checkValidRefreshToken(refreshToken);
-        UUID userId = UUID.fromString(decodeToken.getSubject());
+    @Transactional
+    public LoginResult getNewToken(String refreshToken) {
+//        // decode refresh token
+//        Jwt decodeToken = this.tokenProvider.checkValidRefreshToken(refreshToken);
+//        UUID userId = UUID.fromString(decodeToken.getSubject());
+//        String refreshJti = decodeToken.getId();
+//        User user = this.userRepository.findByUserId(userId)
+//                .orElseThrow(() -> {
+//                    log.debug("User not found with ID: {}", userId);
+//                    return new IdInvalidException("User not found");
+//                });
+//
+//        // check token db
+//        RefreshToken refreshTokenEntity = this.refreshTokenRepository.findByToken(refreshToken)
+//                .orElseThrow(() -> new IdInvalidException("Refresh token not found"));
+//
+//        boolean isValidInRedis = this.redisService.isRefreshTokenValid(userId, refreshJti, refreshToken);
+//        if (!isValidInRedis) {
+//            log.debug("Refresh token JTI {} not found or mismatch in Redis", refreshJti);
+//            throw new IdInvalidException("Session expired or invalid");
+//        }
+//
+//        if (refreshTokenEntity.getRevoked()) {
+//            log.debug("Refresh token is revoked for userId: {}", userId);
+//            throw new IdInvalidException("Refresh token is revoked");
+//        }
+//        if (!refreshTokenEntity.getToken().equals(refreshToken)) {
+//            log.debug("Refresh token in DB does not match the provided token for userId: {}", userId);
+//            throw new IdInvalidException("Refresh token is invalid");
+//        }
+//        // check token redis
+////        String redisStoredToken = this.redisService.getRefreshToken(userId);
+//        if (redisStoredToken == null || !redisStoredToken.equals(refreshToken)) {
+//            log.debug("Refresh token in Redis does not match the provided token for userId: {}", userId);
+//            throw new IdInvalidException("Session expired or logged out");
+//        }
+//
+//        CustomUserDetail userDetail = new CustomUserDetail(user);
+//        UsernamePasswordAuthenticationToken authentication =
+//                new UsernamePasswordAuthenticationToken(userDetail, null, userDetail.getAuthorities());
+//        // new access token
+//        String newAccessToken = this.tokenProvider.createAccessToken(authentication);
+//        log.debug("Generated access token: {}", newAccessToken);
+//        String accessJti = this.tokenProvider.getJtiFromToken(newAccessToken);
+//        this.redisService.storeAccessToken(newAccessToken, userId, accessJti);
+//        log.debug("Updated access token in Redis for userId: {}", userId);
+//        // new refresh token
+//        this.redisService.deleteRefreshTokenByJti(userId, refreshJti);
+//        String newRefreshToken = this.tokenProvider.createRefreshToken(authentication);
+//        log.debug("Generated refresh token: {}", newRefreshToken);
+//        // luu refresh token vao database
+//        refreshTokenEntity.setToken(newRefreshToken);
+//        refreshTokenEntity.setExpiryDate(Instant.now().plusSeconds(refreshTokenExpiration));
+//        this.refreshTokenRepository.save(refreshTokenEntity);
+//        log.debug("Saved refresh token in Database for userId: {}", userId);
+//
+//        String newRefreshJti = this.tokenProvider.getJtiFromToken(newRefreshToken);
+//        this.redisService.storeRefreshToken(newRefreshToken, userId, newRefreshJti);
+//
+//       return buildLoginResult(user, newAccessToken, newRefreshToken);
+        return null;
+    }
 
-        User user = this.userRepository.findByUserId(userId)
-                .orElseThrow(() -> new IdInvalidException("User not found"));
+    @Override
+    public void logout(String refreshToken, String accessToken) {
+//        Jwt decodeAccessToken = this.tokenProvider.checkValidAccessToken(accessToken);
+//        String accessTokenId = decodeAccessToken.getId();
+//        Instant expiryDate = decodeAccessToken.getExpiresAt();
+//        long secondsLeft = Duration.between(Instant.now(), expiryDate).getSeconds();
+//        log.debug("Access token {} has {} seconds left until expiration", accessTokenId, secondsLeft);
+//
+//        if(secondsLeft > 0) {
+//            this.redisService.saveBlacklistedAccessToken(accessTokenId, secondsLeft);
+//             log.debug("Saved access token {} to blacklist for {} seconds", accessTokenId, secondsLeft);
+//        }
+//        String username = SecurityUtils.getCurrentUserLogin()
+//                .orElseThrow(() -> new IdInvalidException("User not logged in"));
+//
+//        // delete token in database
+//        RefreshToken refreshTokenEntity = this.refreshTokenRepository.findByToken(refreshToken)
+//                .orElseThrow(() -> new IdInvalidException("Refresh token not found"));
+//        refreshTokenEntity.setRevoked(true);
+//        this.refreshTokenRepository.save(refreshTokenEntity);
+//        Jwt decodeRefreshToken = this.tokenProvider.checkValidRefreshToken(refreshToken);
+//        UUID userId = UUID.fromString(decodeRefreshToken.getSubject());
+//        String refreshJti = this.tokenProvider.getJtiFromToken(refreshToken);
+//        // delete token in redis
+//        this.redisService.deleteRefreshTokenByUserId(userId, refreshJti);
 
-        // so sanh refresh token voi refresh token trong redis
+    }
 
-        CustomUserDetail userDetail = new CustomUserDetail(user);
-        UsernamePasswordAuthenticationToken authentication =
-                new UsernamePasswordAuthenticationToken(userDetail, null, userDetail.getAuthorities());
-
-        String newAccessToken = this.tokenProvider.createAccessToken(authentication);
-        // luu access token vao redis
-        log.debug("Generated access token: {}", newAccessToken);
-        String newRefreshToken = this.tokenProvider.createRefreshToken(authentication);
-        // luu refresh token vao redis
-        log.debug("Generated refresh token: {}", newRefreshToken);
-
+    private LoginResult buildLoginResult(User user, String at, String rt) {
         LoginResult res = new LoginResult();
-        LoginResult.UserLoginResult userLoginResult = new LoginResult.UserLoginResult();
-        userLoginResult.setUserId(String.valueOf(user.getUserId()));
-        userLoginResult.setUsername(user.getUsername());
-        userLoginResult.setFullName(user.getFirstName() + " " + user.getLastName());
-        userLoginResult.setRoleCode(user.getRole().getCode());
-        res.setUser(userLoginResult);
-        res.setAccessToken(newAccessToken);
-        res.setRefreshToken(newRefreshToken);
+        LoginResult.UserLoginResult uRes = new LoginResult.UserLoginResult();
+        uRes.setUserId(String.valueOf(user.getUserId()));
+        uRes.setUsername(user.getUsername());
+        uRes.setFullName(user.getFirstName() + " " + user.getLastName());
+        uRes.setRoleCode(user.getRole().getCode());
+        res.setUser(uRes);
+        res.setAccessToken(at);
+        res.setRefreshToken(rt);
         return res;
     }
 }

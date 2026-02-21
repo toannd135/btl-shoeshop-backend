@@ -13,14 +13,10 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationEntryPoint;
-import org.springframework.security.oauth2.server.resource.web.access.BearerTokenAccessDeniedHandler;
 import org.springframework.security.web.SecurityFilterChain;
 import vn.edu.ptit.shoe_shop.service.CustomUserDetailService;
 import vn.edu.ptit.shoe_shop.service.UserService;
-
-import static org.springframework.http.HttpMethod.GET;
 import static vn.edu.ptit.shoe_shop.common.enums.RoleEnum.ADMIN;
-import static vn.edu.ptit.shoe_shop.common.enums.RoleEnum.MANAGER;
 
 @Configuration
 @EnableMethodSecurity(securedEnabled = true)

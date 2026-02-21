@@ -4,6 +4,7 @@ import vn.edu.ptit.shoe_shop.dto.LoginResult;
 import vn.edu.ptit.shoe_shop.dto.request.auth.LoginRequestDTO;
 
 public interface AuthService {
-    LoginResult login(LoginRequestDTO request);
-    LoginResult getRefreshToken(String refreshToken);
+    LoginResult login(LoginRequestDTO request, String deviceId);
+    LoginResult getNewToken(String refreshToken);
+    void logout(String refreshToken, String accessToken);
 }
