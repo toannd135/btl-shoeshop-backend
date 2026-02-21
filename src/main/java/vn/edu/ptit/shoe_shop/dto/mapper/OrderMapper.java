@@ -24,15 +24,6 @@ public class OrderMapper {
                 .email(order.getUser().getEmail())
                 .build();
 
-        // Map Order Items
-        // order.getListOrderItems().stream().map(item -> 
-        //         OrderItemResponse.builder()
-        //                 .productName(item.getVariant().getProduct().getName())
-        //                 .size(item.getVariant().getSize())
-        //                 .quantity(item.getQuantity())
-        //                 .price(item.getPriceAtPurchase())
-        //                 .build()
-        // ).collect(Collectors.toList());
         List<OrderItemResponse> items = order.getListOrderItems().stream().map(item->
             OrderItemResponse.builder()
             .productName(item.getVariant().getProduct().getName())
