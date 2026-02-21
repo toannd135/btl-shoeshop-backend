@@ -64,7 +64,7 @@ public class GlobalExceptionHandler {
         ApiResponse<Object> res = new ApiResponse<>();
         res.setStatusCode(HttpStatus.UNAUTHORIZED.value());
         res.setError("Authentication Failed");
-        res.setMessage("Invalid username or password");
+        res.setMessage(e.getMessage() != null ? e.getMessage() : "Invalid credentials");
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(res);
     }
 

@@ -11,6 +11,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.edu.ptit.shoe_shop.common.constant.JwtConstants;
+import vn.edu.ptit.shoe_shop.common.exception.BadCredentialsException;
 import vn.edu.ptit.shoe_shop.common.exception.IdInvalidException;
 import vn.edu.ptit.shoe_shop.common.utils.security.SecurityUtils;
 import vn.edu.ptit.shoe_shop.common.utils.security.jwt.TokenProvider;
@@ -35,17 +36,15 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final RedisService redisService;
     private final RefreshTokenRepository refreshTokenRepository;
-    private final SecurityUtils securityUtils;
     private final Logger log = LoggerFactory.getLogger(AuthServiceImpl.class);
 
     @Value("${app.jwt.refresh-token-validity-in-seconds}")
     private Long refreshTokenExpiration;
 
-    public AuthServiceImpl(AuthenticationManager authenticationManager, TokenProvider tokenProvider, SecurityUtils securityUtils
+    public AuthServiceImpl(AuthenticationManager authenticationManager, TokenProvider tokenProvider
             , UserRepository userRepository, RedisService redisService, RefreshTokenRepository refreshTokenRepository) {
         this.authenticationManager = authenticationManager;
         this.tokenProvider = tokenProvider;
-        this.securityUtils = securityUtils;
         this.userRepository = userRepository;
         this.redisService = redisService;
         this.refreshTokenRepository = refreshTokenRepository;
@@ -84,7 +83,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public LoginResult getNewToken(String refreshToken) {
+    public LoginResult getNewToken(String refreshToken, String accessToken) {
         // decode refresh token
         Jwt decodeToken = this.tokenProvider.checkValidRefreshToken(refreshToken);
         UUID userId = UUID.fromString(decodeToken.getSubject());
@@ -95,8 +94,7 @@ public class AuthServiceImpl implements AuthService {
 
         String jtiInRedis = this.redisService.getRefreshToken(userId, deviceId);
         if(jtiInRedis == null || !jtiInRedis.equals(jtiFromRefreshToken)) {
-
-            throw new IdInvalidException("login fail");
+            throw new BadCredentialsException("login fail");
         }
 
         User user = this.userRepository.findByUserId(userId)
@@ -107,17 +105,20 @@ public class AuthServiceImpl implements AuthService {
 
         // check token db
         RefreshToken refreshTokenEntity = this.refreshTokenRepository.findByUserUserIdAndDeviceId(userId, deviceId)
-                .orElseThrow(() -> new IdInvalidException("Refresh token session not found"));
+                .orElseThrow(() -> new BadCredentialsException("Refresh token session not found"));
 
         if (refreshTokenEntity.getRevoked()) {
             log.debug("Refresh token is revoked for userId: {}", userId);
-            throw new IdInvalidException("Refresh token is revoked");
+            throw new BadCredentialsException("Refresh token is revoked");
         }
         if (refreshTokenEntity.getExpiryDate().isBefore(Instant.now())) {
             log.debug("Refresh token in DB has expired for userId: {}", userId);
             this.refreshTokenRepository.delete(refreshTokenEntity);
-            throw new IdInvalidException("Refresh token expired");
+            throw new BadCredentialsException("Refresh token expired");
         }
+        // thu hoi access token
+        revokeAccessToken(accessToken);
+
         CustomUserDetail userDetail = new CustomUserDetail(user);
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(userDetail, null, userDetail.getAuthorities());
@@ -139,30 +140,33 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public void logout(String refreshToken, String accessToken) {
-//        Jwt decodeAccessToken = this.tokenProvider.checkValidAccessToken(accessToken);
-//        String accessTokenId = decodeAccessToken.getId();
-//        Instant expiryDate = decodeAccessToken.getExpiresAt();
-//        long secondsLeft = Duration.between(Instant.now(), expiryDate).getSeconds();
-//        log.debug("Access token {} has {} seconds left until expiration", accessTokenId, secondsLeft);
-//
-//        if(secondsLeft > 0) {
-//            this.redisService.saveBlacklistedAccessToken(accessTokenId, secondsLeft);
-//             log.debug("Saved access token {} to blacklist for {} seconds", accessTokenId, secondsLeft);
-//        }
-//        String username = SecurityUtils.getCurrentUserLogin()
-//                .orElseThrow(() -> new IdInvalidException("User not logged in"));
-//
-//        // delete token in database
-//        RefreshToken refreshTokenEntity = this.refreshTokenRepository.findByToken(refreshToken)
-//                .orElseThrow(() -> new IdInvalidException("Refresh token not found"));
-//        refreshTokenEntity.setRevoked(true);
-//        this.refreshTokenRepository.save(refreshTokenEntity);
-//        Jwt decodeRefreshToken = this.tokenProvider.checkValidRefreshToken(refreshToken);
-//        UUID userId = UUID.fromString(decodeRefreshToken.getSubject());
-//        String refreshJti = this.tokenProvider.getJtiFromToken(refreshToken);
-//        // delete token in redis
-//        this.redisService.deleteRefreshTokenByUserId(userId, refreshJti);
+        Jwt decodeRefreshToken = this.tokenProvider.checkValidRefreshToken(refreshToken);
+        UUID userId = UUID.fromString(decodeRefreshToken.getSubject());
+        String deviceId = decodeRefreshToken.getClaimAsString(JwtConstants.Claims.DEVICE_ID);
+        String jtiFromRefreshToken = decodeRefreshToken.getId();
+        this.redisService.deleteRefreshTokenByJti(userId, jtiFromRefreshToken);
 
+        RefreshToken refreshTokenEntity = this.refreshTokenRepository.findByUserUserIdAndDeviceId(userId, deviceId)
+                .orElseThrow(() -> new BadCredentialsException("Refresh token not found"));
+        refreshTokenEntity.setRevoked(true);
+        this.refreshTokenRepository.save(refreshTokenEntity);
+
+        // thu hoi access token
+        revokeAccessToken(accessToken);
+    }
+
+    private void revokeAccessToken(String accessToken) {
+        try {
+            Jwt decodeAccessToken = this.tokenProvider.checkValidAccessToken(accessToken);
+            Instant expiresAt = decodeAccessToken.getExpiresAt();
+            long remainingTimeInSeconds = Duration.between(Instant.now(), expiresAt).getSeconds();
+            if (remainingTimeInSeconds > 0) {
+                this.redisService.saveBlacklistedAccessToken(accessToken, remainingTimeInSeconds);
+                log.debug("Access Token revoked. Redis TTL set to: {}s", remainingTimeInSeconds);
+            }
+        } catch (Exception e) {
+            log.debug("Revocation skipped: Token is already invalid or expired.");
+        }
     }
 
     private LoginResult buildLoginResult(User user, String at, String rt) {
@@ -177,4 +181,5 @@ public class AuthServiceImpl implements AuthService {
         res.setRefreshToken(rt);
         return res;
     }
+
 }

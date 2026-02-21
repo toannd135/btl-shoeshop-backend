@@ -9,11 +9,14 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import vn.edu.ptit.shoe_shop.service.CustomUserDetailService;
 import vn.edu.ptit.shoe_shop.service.UserService;
 import static vn.edu.ptit.shoe_shop.common.enums.RoleEnum.ADMIN;
@@ -22,6 +25,11 @@ import static vn.edu.ptit.shoe_shop.common.enums.RoleEnum.ADMIN;
 @EnableMethodSecurity(securedEnabled = true)
 public class SecurityConfiguration {
 
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    public SecurityConfiguration(JwtAuthenticationFilter jwtAuthenticationFilter) {
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+    }
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -46,11 +54,11 @@ public class SecurityConfiguration {
         return authProvider;
     }
 
+
     String[] whiteList = {
             "/",
             "/api/v1/auth/login",
             "/api/v1/auth/register",
-            "/api/v1/auth/refresh",
             "/api/v1/auth/verify",
             "/api/v1/auth/forgot-password",
             "/api/v1/auth/reset-password",
@@ -59,7 +67,10 @@ public class SecurityConfiguration {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, CustomAuthenticationEntryPoint customAuthenticationEntryPoint,
-                                           CustomAccessDeniedHandler customAccessDeniedHandler) throws Exception {
+                                           CustomAccessDeniedHandler customAccessDeniedHandler,
+                                           JwtAuthenticationConverter jwtAuthenticationConverter
+
+    ) throws Exception {
         http
                 .csrf(c -> c.disable())
                 .authorizeHttpRequests(
@@ -71,13 +82,17 @@ public class SecurityConfiguration {
                                 .anyRequest()
                                 .authenticated()
                 )
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .sessionManagement(
+                        session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
                 .formLogin(form -> form.disable())
-                .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults())
+                .oauth2ResourceServer(oauth2 -> oauth2
+                        .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter))
                         .authenticationEntryPoint(customAuthenticationEntryPoint)
                 )
                 .exceptionHandling(
                         exceptions -> exceptions
-                                .authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint())
                                 .accessDeniedHandler(customAccessDeniedHandler)
                 );
         return http.build();

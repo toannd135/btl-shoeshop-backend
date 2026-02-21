@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import vn.edu.ptit.shoe_shop.common.constant.TokenConstants;
 import vn.edu.ptit.shoe_shop.common.exception.BadCredentialsException;
@@ -58,12 +59,22 @@ public class AuthController {
     @PostMapping("/refresh-token")
     @ApiMessage("Refresh token successful")
     public ResponseEntity<LoginResponseDTO> refreshToken(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String bearerToken,
             @CookieValue(TokenConstants.REFRESH_TOKEN) String refreshToken) {
 
         if (refreshToken.equals(TokenConstants.FAKE_TOKEN)) {
             throw new BadCredentialsException("Invalid refresh token");
         }
-        LoginResult res = this.authService.getNewToken(refreshToken);
+
+        if(!StringUtils.hasText(bearerToken) || !bearerToken.startsWith("Bearer ")){
+            throw new BadCredentialsException("Missing or invalid Authorization header");
+        }
+        String accessToken = bearerToken.substring(7);
+        if (refreshToken.equals(TokenConstants.FAKE_TOKEN)) {
+            throw new BadCredentialsException("Invalid refresh token");
+        }
+
+        LoginResult res = this.authService.getNewToken(refreshToken, accessToken);
 
         LoginResponseDTO.UserLoginResponseDTO user = new LoginResponseDTO.UserLoginResponseDTO();
         user.setUserId(res.getUser().getUserId());
@@ -84,29 +95,29 @@ public class AuthController {
                 .body(new LoginResponseDTO(res.getAccessToken(), user));
     }
 
-//    @PostMapping("/logout")
-//    @ApiMessage("Logout successful")
-//    public ResponseEntity<Void> logout(
-//            @RequestHeader(HttpHeaders.AUTHORIZATION) String bearerToken,
-//            @CookieValue(TokenConstants.REFRESH_TOKEN) String refreshToken
-//    ) {
-//        String accessToken = null;
-//        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-//            accessToken = bearerToken.substring(7);
-//        }
-//        if (refreshToken.equals(TokenConstants.FAKE_TOKEN)) {
-//            throw new BadCredentialsException("Invalid refresh token");
-//        }
-//        this.authService.logout(refreshToken, accessToken);
-//        ResponseCookie deleteCookie = ResponseCookie.from(TokenConstants.REFRESH_TOKEN, "")
-//                .httpOnly(true)
-//                .secure(true)
-//                .path("/")
-//                .maxAge(0)
-//                .sameSite("Lax")
-//                .build();
-//        return ResponseEntity.ok()
-//                .header(HttpHeaders.SET_COOKIE, deleteCookie.toString())
-//                .build();
-//    }
+    @PostMapping("/logout")
+    @ApiMessage("Logout successful")
+    public ResponseEntity<Void> logout(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String bearerToken,
+            @CookieValue(TokenConstants.REFRESH_TOKEN) String refreshToken) {
+
+        if(!StringUtils.hasText(bearerToken) || !bearerToken.startsWith("Bearer ")){
+            throw new BadCredentialsException("Missing or invalid Authorization header");
+        }
+        String accessToken = bearerToken.substring(7);
+        if (refreshToken.equals(TokenConstants.FAKE_TOKEN)) {
+            throw new BadCredentialsException("Invalid refresh token");
+        }
+        this.authService.logout(refreshToken, accessToken);
+        ResponseCookie deleteCookie = ResponseCookie.from(TokenConstants.REFRESH_TOKEN, "")
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(0)
+                .sameSite("Lax")
+                .build();
+        return ResponseEntity.noContent()
+                .header(HttpHeaders.SET_COOKIE, deleteCookie.toString())
+                .build();
+    }
 }

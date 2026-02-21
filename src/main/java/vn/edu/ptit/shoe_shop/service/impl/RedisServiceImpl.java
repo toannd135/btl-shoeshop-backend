@@ -50,9 +50,15 @@ public class RedisServiceImpl implements RedisService {
 
     @Override
     public void saveBlacklistedAccessToken(String accessToken, long secondsLeft) {
-        String key = TokenConstants.BLACKLIST_PREFIX + accessToken;
+        String key = buildBlackListAccessTokenKey(accessToken);
         this.redisTemplate.opsForValue().set(key, "logout", secondsLeft, TimeUnit.SECONDS);
         log.debug("Blacklisted access token: {}", accessToken);
+    }
+
+    @Override
+    public boolean isBlacklisted(String accessToken) {
+        String key = buildBlackListAccessTokenKey(accessToken);
+        return this.redisTemplate.hasKey(key);
     }
 
     @Override
@@ -74,6 +80,14 @@ public class RedisServiceImpl implements RedisService {
                 .append(userId.toString())
                 .append(":")
                 .append(deviceId)
+                .toString();
+    }
+
+    private String buildBlackListAccessTokenKey(String accessToken) {
+        return new StringBuilder()
+                .append(TokenConstants.BLACKLIST_PREFIX)
+                .append(":")
+                .append(accessToken)
                 .toString();
     }
 }

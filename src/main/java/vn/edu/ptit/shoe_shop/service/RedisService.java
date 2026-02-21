@@ -8,6 +8,7 @@ public interface RedisService {
     String getRefreshToken(UUID userId, String deviceId);
     void deleteRefreshTokenByUserId(UUID userId, String deviceId);
     void saveBlacklistedAccessToken(String accessToken, long secondsLeft);
+    boolean isBlacklisted(String accessToken);
     void deleteRefreshTokenByJti(UUID userId, String jti);
     boolean isRefreshTokenValid(UUID userId, String jti, String refreshToken);
 }
