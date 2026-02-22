@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import vn.edu.ptit.shoe_shop.constant.enums.OrderStatusEnum;
 import vn.edu.ptit.shoe_shop.dto.response.OrderResponse;
@@ -26,8 +27,7 @@ public class OrderController {
             @RequestParam(required = false) OrderStatusEnum status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        String userIdStr="123e4567-e89b-12d3-a456-426614174000";
-        UUID userId = UUID.fromString(userIdStr);
+        String userId="123e4567-e89b-12d3-a456-426614174000";
         Pageable pageable = PageRequest.of(page, size);
 
         return ResponseEntity.ok(orderService.getUserOrders(userId, status, pageable));
@@ -37,9 +37,8 @@ public class OrderController {
     // Ví dụ gọi: GET /api/orders/abc-123
     @GetMapping("/{orderId}")
     public ResponseEntity<OrderResponse> getOrderDetail(
-            @PathVariable UUID orderId) {
-         String userIdStr="123e4567-e89b-12d3-a456-426614174000";
-        UUID userId = UUID.fromString(userIdStr);
+            @PathVariable String orderId) {
+         String userId="123e4567-e89b-12d3-a456-426614174000";
         return ResponseEntity.ok(orderService.getOrderDetail(userId, orderId));
     }
 
@@ -47,11 +46,31 @@ public class OrderController {
     // Ví dụ gọi: PUT /api/orders/abc-123/cancel
     @PutMapping("/{orderId}/cancel")
     public ResponseEntity<OrderResponse> cancelOrder(
-            @PathVariable UUID orderId,
-            @RequestParam(required = false, defaultValue = "Tôi đổi ý") String reason) {
-          String userIdStr="123e4567-e89b-12d3-a456-426614174000";
-        UUID userId = UUID.fromString(userIdStr);
+            @PathVariable String orderId,
+            @RequestParam(required = false, defaultValue = "Tôi không còn nhu cầu nữa") String reason) {
+          String userId="123e4567-e89b-12d3-a456-426614174000";
         OrderResponse response = orderService.cancelOrder(userId, orderId, reason);
+        return ResponseEntity.ok(response);
+    }
+    // 4. Khách hàng theo dõi trạng thái đơn hàng
+    // Ví dụ gọi: PUT /api/orders/abc-123/tracking
+    @GetMapping("/{orderId}/tracking")
+    public ResponseEntity<OrderResponse> trackingOrder(
+            @PathVariable String orderId) {
+        String userId="123e4567-e89b-12d3-a456-426614174000";
+        OrderResponse response = orderService.trackingOrder(userId, orderId);
+        return ResponseEntity.ok(response);
+    }
+     // 5. Admin cập nhật trạng thái của đơn hàng
+    // Ví dụ gọi: PUT /api/orders/abc-123/status
+    // @PreAuthorize("ADMIN")
+    @PutMapping("/{orderId}/status")
+    public ResponseEntity<OrderResponse> updateStatusOrder(
+            @PathVariable String orderId,
+            @RequestParam OrderStatusEnum status
+        ) {
+        String userId="123e4567-e89b-12d3-a456-426614174000";
+        OrderResponse response = orderService.updateStatusOrder(userId, orderId,status);
         return ResponseEntity.ok(response);
     }
 }

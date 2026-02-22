@@ -10,6 +10,8 @@ import vn.edu.ptit.shoe_shop.dto.mapper.OrderMapper;
 import vn.edu.ptit.shoe_shop.dto.response.OrderResponse;
 import vn.edu.ptit.shoe_shop.entity.Order;
 import vn.edu.ptit.shoe_shop.entity.OrderItem;
+import vn.edu.ptit.shoe_shop.entity.ProductVariant;
+import vn.edu.ptit.shoe_shop.exception.IdInvalidException;
 import vn.edu.ptit.shoe_shop.exception.NotFoundException;
 import vn.edu.ptit.shoe_shop.repository.OrderRepository;
 import vn.edu.ptit.shoe_shop.service.OrderService;
@@ -23,14 +25,20 @@ public class OrderServiceImpl implements OrderService {
     private final OrderMapper orderMapper;
 
     // --- 1. Lịch sử đơn hàng / Danh sách đơn hàng ---
-    public Page<OrderResponse> getUserOrders(UUID userId, OrderStatusEnum status, Pageable pageable) {
+    public Page<OrderResponse> getUserOrders(String userId, OrderStatusEnum status, Pageable pageable) {
         Page<Order> orders;
-        
+        UUID userIdUUID;
+        try {
+            userIdUUID=UUID.fromString(userId);
+        } catch (Exception e) {
+            // TODO: handle exception
+            throw new IdInvalidException("Id không đúng định dạng!");
+        }
         // Nếu client truyền lên status thì lọc, không thì lấy tất cả
         if (status != null) {
-            orders = orderRepository.findAllByUser_UserIdAndStatusOrderByCreatedAtDesc(userId, status, pageable);
+            orders = orderRepository.findAllByUser_UserIdAndStatusOrderByCreatedAtDesc(userIdUUID, status, pageable);
         } else {
-            orders = orderRepository.findAllByUser_UserIdOrderByCreatedAtDesc(userId, pageable);
+            orders = orderRepository.findAllByUser_UserIdOrderByCreatedAtDesc(userIdUUID, pageable);
         }
 
         // Chuyển đổi Page<Order> sang Page<OrderResponse>
@@ -38,8 +46,17 @@ public class OrderServiceImpl implements OrderService {
     }
 
     // --- 2. Chi tiết đơn hàng / Theo dõi trạng thái ---
-    public OrderResponse getOrderDetail(UUID userId, UUID orderId) {
-        Order order = orderRepository.findByOrderIdAndUser_UserId(orderId, userId)
+    public OrderResponse getOrderDetail(String userId, String orderId) {
+        UUID userIdUUID;
+        UUID orderIdUUID;
+        try {
+            userIdUUID=UUID.fromString(userId);
+            orderIdUUID=UUID.fromString(orderId);
+        } catch (Exception e) {
+            // TODO: handle exception
+            throw new IdInvalidException("Id không đúng định dạng!");
+        }
+        Order order = orderRepository.findByOrderIdAndUser_UserId(orderIdUUID, userIdUUID)
                 .orElseThrow(() -> new NotFoundException("Không tìm thấy đơn hàng hoặc bạn không có quyền truy cập!"));
                 
         return orderMapper.toOrderResponse(order);
@@ -47,8 +64,17 @@ public class OrderServiceImpl implements OrderService {
 
     // --- 3. Hủy đơn hàng ---
     @Transactional(rollbackFor = Exception.class)
-    public OrderResponse cancelOrder(UUID userId, UUID orderId, String cancelReason) {
-        Order order = orderRepository.findByOrderIdAndUser_UserId(orderId, userId)
+    public OrderResponse cancelOrder(String userId, String orderId, String cancelReason) {
+        UUID userIdUUID;
+        UUID orderIdUUID;
+        try {
+            userIdUUID=UUID.fromString(userId);
+            orderIdUUID=UUID.fromString(orderId);
+        } catch (Exception e) {
+            // TODO: handle exception
+            throw new IdInvalidException("Id không đúng định dạng!");
+        }
+        Order order = orderRepository.findByOrderIdAndUser_UserId(orderIdUUID, userIdUUID)
                 .orElseThrow(() -> new NotFoundException("Không tìm thấy đơn hàng!"));
 
         // CỰC KỲ QUAN TRỌNG: Chỉ cho phép hủy khi đơn hàng đang ở trạng thái PENDING (Chờ xác nhận)
@@ -63,7 +89,7 @@ public class OrderServiceImpl implements OrderService {
 
         // ROLLBACK TỒN KHO: Trả lại số lượng giày vào kho
         for (OrderItem item : order.getListOrderItems()) {
-            var variant = item.getVariant();
+            ProductVariant variant = item.getVariant();
             // Cộng lại số lượng đã trừ lúc mua
             variant.setQuantity(variant.getQuantity() + item.getQuantity()); 
         }
@@ -71,4 +97,40 @@ public class OrderServiceImpl implements OrderService {
         Order savedOrder = orderRepository.save(order);
         return orderMapper.toOrderResponse(savedOrder);
     }
+
+    @Override
+    public OrderResponse trackingOrder(String userId, String orderId) {
+        UUID userIdUUID;
+        UUID orderIdUUID;
+        try {
+            userIdUUID=UUID.fromString(userId);
+            orderIdUUID=UUID.fromString(orderId);
+        } catch (Exception e) {
+            // TODO: handle exception
+            throw new IdInvalidException("Id không đúng định dạng!");
+        }
+        Order order = orderRepository.findByOrderIdAndUser_UserId(orderIdUUID, userIdUUID)
+                .orElseThrow(() -> new NotFoundException("Không tìm thấy đơn hàng!"));
+        return orderMapper.toOrderResponse(order);
+    }
+
+    @Override
+    public OrderResponse updateStatusOrder(String userId, String orderId,OrderStatusEnum status) {
+        UUID userIdUUID;
+        UUID orderIdUUID;
+        try {
+            userIdUUID=UUID.fromString(userId);
+            orderIdUUID=UUID.fromString(orderId);
+        } catch (Exception e) {
+            // TODO: handle exception
+            throw new IdInvalidException("Id không đúng định dạng!");
+        }
+        Order order = orderRepository.findByOrderIdAndUser_UserId(orderIdUUID, userIdUUID)
+                .orElseThrow(() -> new NotFoundException("Không tìm thấy đơn hàng!"));
+        order.setStatus(status);
+        this.orderRepository.save(order);
+        return orderMapper.toOrderResponse(order);
+    }
+
+    
 }
