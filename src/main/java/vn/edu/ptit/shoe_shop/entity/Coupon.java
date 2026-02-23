@@ -188,6 +188,11 @@ public class Coupon {
     }
 
 
+    public UUID getCouponId() {
+        return couponId;
+    }
+
+
     // public List<OrderCoupon> getListOrderCoupons() {
     //     return listOrderCoupons;
     // }
