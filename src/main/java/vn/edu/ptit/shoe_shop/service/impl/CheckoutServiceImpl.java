@@ -28,7 +28,6 @@ import vn.edu.ptit.shoe_shop.exception.NotFoundException;
 import vn.edu.ptit.shoe_shop.repository.CartRepository;
 import vn.edu.ptit.shoe_shop.repository.CouponRepository;
 import vn.edu.ptit.shoe_shop.repository.OrderRepository;
-import vn.edu.ptit.shoe_shop.repository.ProductVariantRepository;
 import vn.edu.ptit.shoe_shop.repository.UserRepository;
 import vn.edu.ptit.shoe_shop.service.CheckoutService;
 import vn.edu.ptit.shoe_shop.service.ShippingService;

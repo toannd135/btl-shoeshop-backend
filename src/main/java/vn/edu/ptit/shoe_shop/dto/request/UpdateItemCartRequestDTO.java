@@ -1,6 +1,5 @@
 package vn.edu.ptit.shoe_shop.dto.request;
 
-import java.util.UUID;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

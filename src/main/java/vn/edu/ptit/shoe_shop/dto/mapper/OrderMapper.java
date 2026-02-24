@@ -45,6 +45,7 @@ public class OrderMapper {
                 .shippingFee(order.getShippingFee())
                 .finalPrice(order.getFinalPrice())
                 .status(order.getStatus().name())
+                .note(order.getNote())
                 .user(userInfo)
                 .items(items)
                 .build();

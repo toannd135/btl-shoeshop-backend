@@ -23,6 +23,7 @@ public class OrderResponse {
     private BigDecimal finalPrice;
     private String status;
 
+    private String note;
     // Chứa thông tin User rút gọn (Không password, không cart)
     private UserShortInfo user;
 
