@@ -3,6 +3,7 @@ package vn.edu.ptit.shoe_shop.service;
 import org.springframework.data.domain.Pageable;
 import vn.edu.ptit.shoe_shop.dto.request.UserCreateRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.request.UserUpdateRequestDTO;
+import vn.edu.ptit.shoe_shop.dto.request.auth.RegisterRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.request.search.UserSearchRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.response.UserResponseDTO;
 import vn.edu.ptit.shoe_shop.dto.response.page.UserPageResponseDTO;
@@ -18,4 +19,5 @@ public interface UserService {
     UserResponseDTO fetchUser(UUID id);
     UserPageResponseDTO search(UserSearchRequestDTO request, Pageable pageable);
     User getUserByUsernameOrEmail(String username);
+    String register(RegisterRequestDTO registerRequestDTO);
 }

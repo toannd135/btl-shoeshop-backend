@@ -14,4 +14,5 @@ public interface RoleRepository extends JpaRepository<Role, UUID>, QuerydslPredi
     Optional<Role> findByRoleId(UUID roleId);
     boolean existsByName(String name);
     boolean existsByCode(String code);
+    Optional<Role> findByName(String roleName);
 }

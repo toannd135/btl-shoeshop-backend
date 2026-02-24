@@ -89,8 +89,8 @@ public class User implements Serializable {
             else if(this.gender == GenderEnum.FEMALE) {
                 this.avatarImage = AvatarConstant.DEFAULT_AVATAR_FEMALE;
             }
-            else if(this.gender == GenderEnum.OTHER) {
-                this.avatarImage = AvatarConstant.DEFAULT_AVATAR_OTHER;
+            else {
+                this.avatarImage = AvatarConstant.DEFAULT_AVATAR;
             }
         }
         this.createdBy = String.valueOf(this.userId);
