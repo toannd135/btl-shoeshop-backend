@@ -12,7 +12,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import vn.edu.ptit.shoe_shop.constant.enums.OrderStatusEnum;
+import vn.edu.ptit.shoe_shop.common.enums.OrderStatusEnum;
 import vn.edu.ptit.shoe_shop.entity.Order;
 
 @Repository

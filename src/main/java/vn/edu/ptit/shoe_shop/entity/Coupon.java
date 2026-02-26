@@ -21,8 +21,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
-import vn.edu.ptit.shoe_shop.constant.enums.DiscountTypeEnum;
-import vn.edu.ptit.shoe_shop.constant.enums.StatusEnum;
+import vn.edu.ptit.shoe_shop.common.enums.DiscountTypeEnum;
+import vn.edu.ptit.shoe_shop.common.enums.StatusEnum;
+
 
 @Entity
 @Table(name = "coupons")

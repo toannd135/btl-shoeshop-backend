@@ -7,7 +7,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
-import vn.edu.ptit.shoe_shop.constant.enums.ProductStatusEnum;
+import vn.edu.ptit.shoe_shop.common.enums.ProductStatusEnum;
+import vn.edu.ptit.shoe_shop.common.exception.BusinessException;
+import vn.edu.ptit.shoe_shop.common.exception.IdInvalidException;
+import vn.edu.ptit.shoe_shop.common.exception.NotFoundException;
 import vn.edu.ptit.shoe_shop.dto.mapper.CartMapper;
 import vn.edu.ptit.shoe_shop.dto.request.AddVariantRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.request.UpdateItemCartRequestDTO;
@@ -16,9 +19,7 @@ import vn.edu.ptit.shoe_shop.dto.response.CartResponseDTO;
 import vn.edu.ptit.shoe_shop.entity.Cart;
 import vn.edu.ptit.shoe_shop.entity.CartItem;
 import vn.edu.ptit.shoe_shop.entity.ProductVariant;
-import vn.edu.ptit.shoe_shop.exception.BusinessException;
-import vn.edu.ptit.shoe_shop.exception.IdInvalidException;
-import vn.edu.ptit.shoe_shop.exception.NotFoundException;
+
 import vn.edu.ptit.shoe_shop.repository.CartIteamRepository;
 import vn.edu.ptit.shoe_shop.repository.CartRepository;
 import vn.edu.ptit.shoe_shop.repository.ProductVariantRepository;

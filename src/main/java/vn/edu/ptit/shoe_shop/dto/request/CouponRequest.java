@@ -3,8 +3,8 @@ package vn.edu.ptit.shoe_shop.dto.request;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
-import vn.edu.ptit.shoe_shop.constant.enums.DiscountTypeEnum;
-import vn.edu.ptit.shoe_shop.constant.enums.StatusEnum;
+import vn.edu.ptit.shoe_shop.common.enums.DiscountTypeEnum;
+import vn.edu.ptit.shoe_shop.common.enums.StatusEnum;
 
 import java.math.BigDecimal;
 import java.time.Instant;

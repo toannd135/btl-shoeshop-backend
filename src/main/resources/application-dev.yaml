@@ -1,0 +1,45 @@
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: always
+
+spring:
+  application:
+    name: shoes-shop
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/shoeshop
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+  data:
+    web:
+      pageable:
+        one-indexed-parameters: true
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 2000
+
+app:
+  cors:
+    allowed-origins: http://localhost:3000,http://localhost:5173
+  jwt:
+    base64-secret: qoAEABDke07+AVLepXB4aCMtsT0wMAqR5x2VFyldsnx6e75YQkJH2UcZKTjEyoNgG71SBCXfq5N6NVZxWOfsHQ==
+    access-token-validity-in-seconds: 900
+    refresh-token-validity-in-seconds: 2592000

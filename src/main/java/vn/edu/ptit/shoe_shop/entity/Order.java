@@ -23,7 +23,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
-import vn.edu.ptit.shoe_shop.constant.enums.OrderStatusEnum;
+import vn.edu.ptit.shoe_shop.common.enums.OrderStatusEnum;
 @Entity
 @Table(name = "orders")
 public class Order {

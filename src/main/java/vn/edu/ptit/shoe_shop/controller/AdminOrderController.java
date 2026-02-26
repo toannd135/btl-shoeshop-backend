@@ -12,7 +12,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import vn.edu.ptit.shoe_shop.constant.enums.OrderStatusEnum;
+
+import vn.edu.ptit.shoe_shop.common.enums.OrderStatusEnum;
 import vn.edu.ptit.shoe_shop.dto.request.UpdateOrderStatusRequest;
 import vn.edu.ptit.shoe_shop.dto.response.OrderResponse;
 import vn.edu.ptit.shoe_shop.service.AdminOrderService;

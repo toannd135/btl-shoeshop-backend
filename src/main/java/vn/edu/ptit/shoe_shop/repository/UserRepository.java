@@ -10,10 +10,18 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import vn.edu.ptit.shoe_shop.dto.UserCredentialDTO;
 import vn.edu.ptit.shoe_shop.dto.response.TopCustomerDto;
 import vn.edu.ptit.shoe_shop.entity.User;
 @Repository
 public interface UserRepository extends JpaRepository<User, UUID>{
+    boolean existsByEmail(String email);
+    boolean existsByUsername(String username);
+    Optional<User> findByEmail(String email);
+    Optional<User> findByUsername(String username);
+
+    @Query("SELECT new vn.edu.ptit.shoe_shop.dto.UserCredentialDTO(u.username, u.email) FROM User u")
+    List<UserCredentialDTO> findAllUserCredentials();
     Optional<User> findByUserId(UUID userId);
 
     // 1. Đếm tổng khách hàng (Giả sử bạn có RoleEnum.USER để phân biệt với ADMIN)
@@ -39,4 +47,5 @@ public interface UserRepository extends JpaRepository<User, UUID>{
                    "GROUP BY u.user_id, u.name, u.email, u.phone " +
                    "ORDER BY totalSpent DESC ", nativeQuery = true)
     List<TopCustomerDto> getTopSpendingCustomers(@Param("limit") int limit);
+
 }

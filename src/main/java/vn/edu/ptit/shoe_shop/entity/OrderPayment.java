@@ -16,8 +16,9 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
-import vn.edu.ptit.shoe_shop.constant.enums.PaymentMethodEnum;
-import vn.edu.ptit.shoe_shop.constant.enums.PaymentStatusEnum;
+import vn.edu.ptit.shoe_shop.common.enums.PaymentMethodEnum;
+import vn.edu.ptit.shoe_shop.common.enums.PaymentStatusEnum;
+
 
 @Entity
 @Table(name = "order_payments")

@@ -4,7 +4,7 @@ import java.sql.Date;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
-import vn.edu.ptit.shoe_shop.constant.enums.GenderEnum;
+import vn.edu.ptit.shoe_shop.common.enums.GenderEnum;
 
 @Getter
 public class UserRequestDTO {

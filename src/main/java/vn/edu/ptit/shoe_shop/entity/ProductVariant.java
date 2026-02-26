@@ -26,7 +26,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import vn.edu.ptit.shoe_shop.constant.enums.ProductStatusEnum;
+import vn.edu.ptit.shoe_shop.common.enums.ProductStatusEnum;
 
 @Entity
 @Table(name = "product_variants")

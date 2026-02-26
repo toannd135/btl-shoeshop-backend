@@ -3,7 +3,8 @@ package vn.edu.ptit.shoe_shop.dto.response;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-import vn.edu.ptit.shoe_shop.constant.enums.DiscountTypeEnum;
+import vn.edu.ptit.shoe_shop.common.enums.DiscountTypeEnum;
+
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;

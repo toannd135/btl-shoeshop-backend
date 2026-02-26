@@ -3,7 +3,7 @@ package vn.edu.ptit.shoe_shop.dto.request;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
-import vn.edu.ptit.shoe_shop.constant.enums.OrderStatusEnum;
+import vn.edu.ptit.shoe_shop.common.enums.OrderStatusEnum;
 
 @Setter
 @Getter
