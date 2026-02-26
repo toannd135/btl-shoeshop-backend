@@ -13,7 +13,7 @@ import vn.edu.ptit.shoe_shop.dto.request.ProductUpdateRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.response.ApiResponse;
 import vn.edu.ptit.shoe_shop.dto.response.ProductResponseDTO;
 import vn.edu.ptit.shoe_shop.service.ProductService;
-import vn.edu.ptit.shoe_shop.utils.annotation.ApiMessage;
+import vn.edu.ptit.shoe_shop.common.utils.annotation.ApiMessage;
 
 import java.util.List;
 import java.util.UUID;

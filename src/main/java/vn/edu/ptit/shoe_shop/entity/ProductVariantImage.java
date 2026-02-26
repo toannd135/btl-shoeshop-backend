@@ -5,9 +5,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.hibernate.annotations.JdbcTypeCode;
 import vn.edu.ptit.shoe_shop.common.Auditable;
-import vn.edu.ptit.shoe_shop.constant.StatusEnum;
 
-import java.io.Serializable;
 import java.sql.Types;
 import java.util.UUID;
 

@@ -3,9 +3,7 @@ package vn.edu.ptit.shoe_shop.common;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-import vn.edu.ptit.shoe_shop.constant.StatusEnum;
+import vn.edu.ptit.shoe_shop.common.enums.StatusEnum;
 import vn.edu.ptit.shoe_shop.entity.User;
 
 import java.time.Instant;

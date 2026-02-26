@@ -11,7 +11,7 @@ import vn.edu.ptit.shoe_shop.dto.response.ProductVariantImageResponseDTO;
 import vn.edu.ptit.shoe_shop.entity.Product;
 import vn.edu.ptit.shoe_shop.entity.ProductVariant;
 import vn.edu.ptit.shoe_shop.entity.ProductVariantImage;
-import vn.edu.ptit.shoe_shop.exception.ResourceNotFoundException;
+import vn.edu.ptit.shoe_shop.common.exception.ResourceNotFoundException;
 import vn.edu.ptit.shoe_shop.repository.ProductRepository;
 import vn.edu.ptit.shoe_shop.repository.ProductVariantImageRepository;
 import vn.edu.ptit.shoe_shop.repository.ProductVariantRepository;

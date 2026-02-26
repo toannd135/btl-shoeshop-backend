@@ -2,10 +2,9 @@ package vn.edu.ptit.shoe_shop.dto.request;
 
 
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import vn.edu.ptit.shoe_shop.constant.StatusEnum;
+import vn.edu.ptit.shoe_shop.common.enums.StatusEnum;
 
 @Getter
 @Setter

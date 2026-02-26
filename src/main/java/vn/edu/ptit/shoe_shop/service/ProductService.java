@@ -4,14 +4,13 @@ import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import vn.edu.ptit.shoe_shop.dto.request.ProductCreateRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.request.ProductUpdateRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.response.ProductResponseDTO;
 import vn.edu.ptit.shoe_shop.entity.Category;
 import vn.edu.ptit.shoe_shop.entity.Product;
-import vn.edu.ptit.shoe_shop.exception.ResourceNotFoundException;
+import vn.edu.ptit.shoe_shop.common.exception.ResourceNotFoundException;
 import vn.edu.ptit.shoe_shop.repository.CategoryRepository;
 import vn.edu.ptit.shoe_shop.repository.ProductRepository;
 

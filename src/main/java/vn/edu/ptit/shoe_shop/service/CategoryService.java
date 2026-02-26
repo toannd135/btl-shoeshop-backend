@@ -11,9 +11,9 @@ import vn.edu.ptit.shoe_shop.dto.request.CategoryUpdateRequestDTO;
 
 import vn.edu.ptit.shoe_shop.dto.response.CategoryResponseDTO;
 import vn.edu.ptit.shoe_shop.entity.Category;
-import vn.edu.ptit.shoe_shop.exception.BusinessException;
-import vn.edu.ptit.shoe_shop.exception.DuplicateResourceException;
-import vn.edu.ptit.shoe_shop.exception.ResourceNotFoundException;
+import vn.edu.ptit.shoe_shop.common.exception.BusinessException;
+import vn.edu.ptit.shoe_shop.common.exception.DuplicateResourceException;
+import vn.edu.ptit.shoe_shop.common.exception.ResourceNotFoundException;
 import vn.edu.ptit.shoe_shop.repository.CategoryRepository;
 
 import java.util.*;

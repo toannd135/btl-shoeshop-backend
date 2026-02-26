@@ -11,7 +11,7 @@ import vn.edu.ptit.shoe_shop.dto.request.ProductVariantCreateRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.request.ProductVariantUpdateRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.response.ProductVariantResponseDTO;
 import vn.edu.ptit.shoe_shop.service.ProductVariantService;
-import vn.edu.ptit.shoe_shop.utils.annotation.ApiMessage;
+import vn.edu.ptit.shoe_shop.common.utils.annotation.ApiMessage;
 
 import java.util.List;
 import java.util.UUID;

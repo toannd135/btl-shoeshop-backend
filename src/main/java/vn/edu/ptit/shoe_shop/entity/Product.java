@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import vn.edu.ptit.shoe_shop.common.Auditable;
-import vn.edu.ptit.shoe_shop.constant.GenderEnum;
+import vn.edu.ptit.shoe_shop.common.enums.GenderEnum;
 
 import java.sql.Types;
 import java.util.ArrayList;

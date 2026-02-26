@@ -2,8 +2,8 @@ package vn.edu.ptit.shoe_shop.dto.response;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import vn.edu.ptit.shoe_shop.constant.GenderEnum;
-import vn.edu.ptit.shoe_shop.constant.StatusEnum;
+import vn.edu.ptit.shoe_shop.common.enums.GenderEnum;
+import vn.edu.ptit.shoe_shop.common.enums.StatusEnum;
 
 import java.time.Instant;
 import java.util.UUID;
