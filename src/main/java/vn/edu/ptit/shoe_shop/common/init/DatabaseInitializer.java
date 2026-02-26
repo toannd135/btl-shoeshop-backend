@@ -130,6 +130,7 @@ public class DatabaseInitializer implements CommandLineRunner {
             List<Permission> allPermissions = new ArrayList<>();
             Role role = new Role();
             role.setName("ADMIN");
+            role.setCode("ROLE_ADMIN");
             role.setDescription("Admin full permission");
             role.setStatus(StatusEnum.ACTIVE);
             role.setPermissions(allPermissions);

@@ -42,57 +42,6 @@ public class User {
     @JdbcTypeCode(Types.VARCHAR)
     private UUID userId;
 
-
-     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "role_id", nullable = false)
-    private Role role;
-
-
-    @Column(nullable = false)
-    private String name;
-
-    private String avatar;
-
-    // quan he 1-1 voi cart
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false)
-    private Cart cart;
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Order> listOrder = new ArrayList<>();
-
-   
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getAvatar() {
-        return avatar;
-    }
-
-    public void setAvatar(String avatar) {
-        this.avatar = avatar;
-    }
-
-    public Cart getCart() {
-        return cart;
-    }
-
-    public void setCart(Cart cart) {
-        this.cart = cart;
-    }
-
-    public List<Order> getListOrder() {
-        return listOrder;
-    }
-
-    public void setListOrder(List<Order> listOrder) {
-        this.listOrder = listOrder;
-    }
-
     @Column(name = "first_name", nullable = false, length = 255)
     private String firstName;
 
@@ -137,7 +86,18 @@ public class User {
     @Column(name = "updatedBy")
     private String updatedBy;
 
-   
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "role_id", nullable = false)
+    private Role role;
+
+    // quan he 1-1 voi cart
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false)
+    private Cart cart;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Order> listOrder = new ArrayList<>();
+
+
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     @JsonIgnore
     private List<RefreshToken> refreshTokens;
@@ -297,5 +257,21 @@ public class User {
 
     public void setRefreshTokens(List<RefreshToken> refreshTokens) {
         this.refreshTokens = refreshTokens;
+    }
+
+    public Cart getCart() {
+        return cart;
+    }
+
+    public void setCart(Cart cart) {
+        this.cart = cart;
+    }
+
+    public List<Order> getListOrder() {
+        return listOrder;
+    }
+
+    public void setListOrder(List<Order> listOrder) {
+        this.listOrder = listOrder;
     }
 }
