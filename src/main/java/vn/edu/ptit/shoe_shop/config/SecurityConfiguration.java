@@ -79,10 +79,10 @@ public class SecurityConfiguration {
                         auth -> auth
                                 .requestMatchers(whiteList).permitAll()
 //                                .requestMatchers( "/api/v1/users/**").hasAnyRole(ADMIN.name())
-                                .requestMatchers("/api/v1/roles/**").hasRole(ADMIN.name())
-                                .requestMatchers("/api/v1/permissions/**").hasRole(ADMIN.name())
+//                                .requestMatchers("/api/v1/roles/**").hasRole(ADMIN.name())
+//                                .requestMatchers("/api/v1/permissions/**").hasRole(ADMIN.name())
                                 .anyRequest()
-                                .authenticated()
+                                .permitAll()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .sessionManagement(

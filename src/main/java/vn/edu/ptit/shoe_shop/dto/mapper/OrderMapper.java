@@ -19,7 +19,7 @@ public class OrderMapper {
         // Map User
         UserShortInfo userInfo = UserShortInfo.builder()
                 .userId(order.getUser().getUserId())
-                .name(order.getUser().getName())
+//                .name(order.getUser().getName())
                 .phone(order.getUser().getPhone())
                 .email(order.getUser().getEmail())
                 .build();

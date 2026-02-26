@@ -19,6 +19,9 @@ public class Permission implements Serializable {
     private static final long serialVersionUID = 1L;
 
 
+    public Permission(){}
+
+
     public Permission(String name, String apiPath, String method, String module) {
         this.name = name;
         this.apiPath = apiPath;
