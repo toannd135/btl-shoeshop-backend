@@ -12,17 +12,21 @@ import vn.edu.ptit.shoe_shop.common.exception.BadCredentialsException;
 import vn.edu.ptit.shoe_shop.common.utils.annotation.ApiMessage;
 import vn.edu.ptit.shoe_shop.dto.LoginResult;
 import vn.edu.ptit.shoe_shop.dto.request.auth.LoginRequestDTO;
+import vn.edu.ptit.shoe_shop.dto.request.auth.RegisterRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.response.auth.LoginResponseDTO;
 import vn.edu.ptit.shoe_shop.service.AuthService;
+import vn.edu.ptit.shoe_shop.service.UserService;
 
 @RestController
 @RequestMapping("/api/v1/auth")
 public class AuthController {
 
     private final AuthService authService;
+    private final UserService userService;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, UserService userService) {
         this.authService = authService;
+        this.userService = userService;
     }
 
     @Value("${app.jwt.refresh-token-validity-in-seconds}")
@@ -119,5 +123,12 @@ public class AuthController {
         return ResponseEntity.noContent()
                 .header(HttpHeaders.SET_COOKIE, deleteCookie.toString())
                 .build();
+    }
+
+    @PostMapping("/register")
+    @ApiMessage("Register successful")
+    public ResponseEntity<String> register(@Valid @RequestBody RegisterRequestDTO registerRequestDTO){
+        String newUser = this.userService.register(registerRequestDTO);
+        return ResponseEntity.ok().body("ok");
     }
 }

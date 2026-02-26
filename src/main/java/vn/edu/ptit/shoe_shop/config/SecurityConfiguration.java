@@ -56,6 +56,7 @@ public class SecurityConfiguration {
 
 
     String[] whiteList = {
+            "/api/v1/users/**",
             "/",
             "/api/v1/auth/login",
             "/api/v1/auth/register",
@@ -76,7 +77,7 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(
                         auth -> auth
                                 .requestMatchers(whiteList).permitAll()
-                                .requestMatchers( "/api/v1/users/**").hasAnyRole(ADMIN.name())
+//                                .requestMatchers( "/api/v1/users/**").hasAnyRole(ADMIN.name())
                                 .requestMatchers("/api/v1/roles/**").hasRole(ADMIN.name())
                                 .requestMatchers("/api/v1/permissions/**").hasRole(ADMIN.name())
                                 .anyRequest()

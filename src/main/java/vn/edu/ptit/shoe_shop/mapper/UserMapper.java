@@ -6,6 +6,7 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
 import vn.edu.ptit.shoe_shop.dto.request.UserCreateRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.request.UserUpdateRequestDTO;
+import vn.edu.ptit.shoe_shop.dto.request.auth.RegisterRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.response.UserResponseDTO;
 import vn.edu.ptit.shoe_shop.entity.Role;
 import vn.edu.ptit.shoe_shop.entity.User;
@@ -38,6 +39,19 @@ public interface UserMapper {
     @Mapping(target = "email", source = "email", qualifiedByName = "normalizeEmail")
     @Mapping(target = "phone", source = "phone", qualifiedByName = "normalizePhone")
     User toEntity(UserCreateRequestDTO dto);
+
+    @Mapping(target = "userId", ignore = true)
+    @Mapping(target = "password", ignore = true)
+    @Mapping(target = "role", ignore = true)
+    @Mapping(target = "status", ignore = true)
+    User registerDTOToUser(RegisterRequestDTO dto);
+
+
+
+
+
+
+
 
     @Named("normalizeName")
     default String normalizeName(String name) {

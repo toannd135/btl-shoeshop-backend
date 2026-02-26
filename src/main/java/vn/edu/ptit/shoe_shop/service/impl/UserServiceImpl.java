@@ -5,11 +5,16 @@ import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.edu.ptit.shoe_shop.common.constant.EmailPattern;
+import vn.edu.ptit.shoe_shop.common.constant.RedisKeyConstants;
+import vn.edu.ptit.shoe_shop.common.enums.RoleEnum;
 import vn.edu.ptit.shoe_shop.common.enums.StatusEnum;
+import vn.edu.ptit.shoe_shop.dto.request.auth.RegisterRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.request.search.UserSearchRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.response.page.UserPageResponseDTO;
 import vn.edu.ptit.shoe_shop.mapper.UserMapper;
@@ -37,12 +42,15 @@ public class UserServiceImpl implements UserService {
     private final RoleRepository roleRepository;
     private final UserRepositoryCustom userRepositoryCustom;
     private final PasswordEncoder passwordEncoder;
+    private final RedisTemplate redisTemplate;
+
     private static final Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
 
-    public UserServiceImpl(UserRepository userRepository, UserMapper userMapper,
+    public UserServiceImpl(UserRepository userRepository, UserMapper userMapper, RedisTemplate redisTemplate,
                            RoleRepository roleRepository, UserRepositoryCustom userRepositoryCustom, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
+        this.redisTemplate = redisTemplate;
         this.roleRepository = roleRepository;
         this.userRepositoryCustom = userRepositoryCustom;
         this.passwordEncoder = passwordEncoder;
@@ -191,6 +199,46 @@ public class UserServiceImpl implements UserService {
                 return new IdInvalidException("User not found");
             });
         }
+    }
+
+    @Override
+    @Transactional
+    public String register(RegisterRequestDTO registerRequestDTO) {
+        // kiem tra redis
+        if(Boolean.TRUE.equals(this.redisTemplate.opsForSet()
+                .isMember(RedisKeyConstants.EMAIL_SET, registerRequestDTO.getEmail()))) {
+            throw new IllegalStateException("Email already exists");
+        }
+        if(Boolean.TRUE.equals(this.redisTemplate.opsForSet()
+                .isMember(RedisKeyConstants.USERNAME_SET, registerRequestDTO.getUsername()))) {
+            throw new IllegalStateException("Username already exists");
+        }
+
+        // kiem tra database
+        if(this.userRepository.existsByEmail(registerRequestDTO.getEmail())) {
+            this.redisTemplate.opsForSet().add(RedisKeyConstants.EMAIL_SET, registerRequestDTO.getEmail());
+            throw new IllegalStateException("Email already exists");
+        }
+        if(this.userRepository.existsByUsername(registerRequestDTO.getUsername())) {
+            this.redisTemplate.opsForSet().add(RedisKeyConstants.USERNAME_SET, registerRequestDTO.getEmail());
+            throw new IllegalStateException("Username already exists");
+        }
+
+        User newUser = this.userMapper.registerDTOToUser(registerRequestDTO);
+        newUser.setStatus(StatusEnum.INACTIVE);
+        newUser.setPassword(this.passwordEncoder.encode(registerRequestDTO.getPassword()));
+        Role role = this.roleRepository.findByName(RoleEnum.USER.name())
+                .orElseThrow(() -> new IdInvalidException("Role not found"));
+        newUser.setRole(role);
+
+        this.userRepository.save(newUser);
+
+        this.redisTemplate.opsForSet().add(RedisKeyConstants.EMAIL_SET, newUser.getEmail());
+        this.redisTemplate.opsForSet().add(RedisKeyConstants.USERNAME_SET, newUser.getUsername());
+
+
+        //gui email
+        return "";
     }
 
 
