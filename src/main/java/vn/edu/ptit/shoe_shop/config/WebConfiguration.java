@@ -19,7 +19,8 @@ public class WebConfiguration {
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(Arrays.asList(
-                "https://shoeshopecommerce.dpdns.org"
+                "https://shoeshopecommerce.dpdns.org",
+                "http://localhost:5173/"
         ));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept"));

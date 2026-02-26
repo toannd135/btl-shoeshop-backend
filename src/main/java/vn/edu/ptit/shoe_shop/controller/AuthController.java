@@ -91,7 +91,7 @@ public class AuthController {
                 .secure(true)
                 .path("/")
                 .maxAge(Math.toIntExact(refreshTokenExpiration))
-                .sameSite("Lax")
+                .sameSite("Strict")
                 .build();
 
         return ResponseEntity.ok()
@@ -118,7 +118,7 @@ public class AuthController {
                 .secure(true)
                 .path("/")
                 .maxAge(0)
-                .sameSite("Lax")
+                .sameSite("Strict")
                 .build();
         return ResponseEntity.noContent()
                 .header(HttpHeaders.SET_COOKIE, deleteCookie.toString())

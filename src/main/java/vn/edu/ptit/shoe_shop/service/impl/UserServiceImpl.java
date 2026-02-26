@@ -6,12 +6,9 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import lombok.RequiredArgsConstructor;
-import vn.edu.ptit.shoe_shop.dto.request.UserRequestDTO;
 import org.springframework.transaction.annotation.Transactional;
 import vn.edu.ptit.shoe_shop.common.constant.EmailPattern;
 import vn.edu.ptit.shoe_shop.common.constant.RedisKeyConstants;
@@ -146,6 +143,9 @@ public class UserServiceImpl implements UserService {
                     log.debug("User not found with ID: {}", id);
                     return new IdInvalidException("User not found");
                 });
+        if(user.getRole().getName().equals(RoleEnum.ADMIN.name())) {
+            throw new IllegalStateException("cannot delete admin");
+        }
         user.setStatus(StatusEnum.DELETED);
         log.debug("User set status {} for user", user.getStatus());
         this.userRepository.save(user);
