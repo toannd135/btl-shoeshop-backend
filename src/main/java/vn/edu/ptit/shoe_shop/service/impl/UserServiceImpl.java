@@ -9,6 +9,9 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import lombok.RequiredArgsConstructor;
+import vn.edu.ptit.shoe_shop.dto.request.UserRequestDTO;
 import org.springframework.transaction.annotation.Transactional;
 import vn.edu.ptit.shoe_shop.common.constant.EmailPattern;
 import vn.edu.ptit.shoe_shop.common.constant.RedisKeyConstants;

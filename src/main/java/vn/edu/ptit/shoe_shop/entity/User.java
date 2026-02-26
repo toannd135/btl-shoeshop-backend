@@ -1,26 +1,41 @@
 package vn.edu.ptit.shoe_shop.entity;
 
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.*;
-
-import java.io.Serializable;
-import java.sql.Types;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.UUID;
-import org.hibernate.annotations.JdbcTypeCode;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Table;
 import vn.edu.ptit.shoe_shop.common.constant.AvatarConstant;
 import vn.edu.ptit.shoe_shop.common.enums.GenderEnum;
 import vn.edu.ptit.shoe_shop.common.enums.StatusEnum;
 
+import java.sql.Types;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+import org.hibernate.annotations.JdbcTypeCode;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(name = "users")
-public class User implements Serializable {
 
-    private static final long serialVersionUID = 1L;
-    
+public class User {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "user_id", columnDefinition = "CHAR(36)")
@@ -75,21 +90,26 @@ public class User implements Serializable {
     @JoinColumn(name = "role_id", nullable = false)
     private Role role;
 
+    // quan he 1-1 voi cart
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false)
+    private Cart cart;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Order> listOrder = new ArrayList<>();
+
+
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     @JsonIgnore
     private List<RefreshToken> refreshTokens;
 
-
     @PrePersist
     public void handleBeforeCreate() {
-        if(this.avatarImage == null || this.avatarImage.isEmpty()) {
-            if(this.gender == GenderEnum.MALE) {
+        if (this.avatarImage == null || this.avatarImage.isEmpty()) {
+            if (this.gender == GenderEnum.MALE) {
                 this.avatarImage = AvatarConstant.DEFAULT_AVATAR_MALE;
-            }
-            else if(this.gender == GenderEnum.FEMALE) {
+            } else if (this.gender == GenderEnum.FEMALE) {
                 this.avatarImage = AvatarConstant.DEFAULT_AVATAR_FEMALE;
-            }
-            else {
+            } else {
                 this.avatarImage = AvatarConstant.DEFAULT_AVATAR;
             }
         }
@@ -237,5 +257,21 @@ public class User implements Serializable {
 
     public void setRefreshTokens(List<RefreshToken> refreshTokens) {
         this.refreshTokens = refreshTokens;
+    }
+
+    public Cart getCart() {
+        return cart;
+    }
+
+    public void setCart(Cart cart) {
+        this.cart = cart;
+    }
+
+    public List<Order> getListOrder() {
+        return listOrder;
+    }
+
+    public void setListOrder(List<Order> listOrder) {
+        this.listOrder = listOrder;
     }
 }

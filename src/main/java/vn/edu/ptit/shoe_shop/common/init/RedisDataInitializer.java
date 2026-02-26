@@ -6,7 +6,6 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import vn.edu.ptit.shoe_shop.common.constant.RedisKeyConstants;
-import vn.edu.ptit.shoe_shop.common.constant.TokenConstants;
 import vn.edu.ptit.shoe_shop.dto.UserCredentialDTO;
 import vn.edu.ptit.shoe_shop.repository.UserRepository;
 

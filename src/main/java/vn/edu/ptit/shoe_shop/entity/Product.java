@@ -6,10 +6,31 @@ import org.hibernate.annotations.JdbcTypeCode;
 import vn.edu.ptit.shoe_shop.common.Auditable;
 import vn.edu.ptit.shoe_shop.common.enums.GenderEnum;
 
+import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.UpdateTimestamp;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import vn.edu.ptit.shoe_shop.common.enums.ProductStatusEnum;
 
 @Entity
 @Table(name ="products")
@@ -34,9 +55,13 @@ public class Product extends Auditable {
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String description;
-
+    @Column(name = "shoe_type",nullable = false)
+    private String shoeType;
     @Column(nullable = false)
-    private GenderEnum gender;
+    private String gender;
+    @Column(name = "base_price",precision = 15)
+    private BigDecimal basePrice;
+
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)

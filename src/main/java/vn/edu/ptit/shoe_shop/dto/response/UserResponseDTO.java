@@ -1,18 +1,23 @@
 package vn.edu.ptit.shoe_shop.dto.response;
 
+import java.sql.Date;
+
 import lombok.Getter;
 import lombok.Setter;
+import vn.edu.ptit.shoe_shop.common.enums.GenderEnum;
 
 
 @Getter
 @Setter
 public class UserResponseDTO {
+    private String name;
+    private Date birthOfDate;
+    private GenderEnum gender;
     private String userId;
     private String fullName;
     private String username;
     private String email;
     private String phone;
-    private String gender;
     private String dateOfBirth;
     private String avatarImage;
     private String status;

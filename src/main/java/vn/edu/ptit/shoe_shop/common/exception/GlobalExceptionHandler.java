@@ -95,6 +95,14 @@ public class GlobalExceptionHandler {
         res.setMessage(e.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(res);
     }
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<ApiResponse<Object>> handleResourceNotFoundException(NotFoundException e) {
+        ApiResponse<Object> res = new ApiResponse<>();
+        res.setStatusCode(HttpStatus.NOT_FOUND.value());
+        res.setError("Entity Not Found");
+        res.setMessage(e.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(res);
+    }
 
     @ExceptionHandler(DuplicateResourceException.class)
     public ResponseEntity<ApiResponse<Object>> handleDuplicateResourceException(DuplicateResourceException e) {
