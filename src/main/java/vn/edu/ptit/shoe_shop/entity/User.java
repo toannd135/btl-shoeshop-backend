@@ -1,18 +1,25 @@
 package vn.edu.ptit.shoe_shop.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+
+import java.io.Serializable;
 import java.sql.Types;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 import org.hibernate.annotations.JdbcTypeCode;
-import vn.edu.ptit.shoe_shop.constant.GenderEnum;
-import vn.edu.ptit.shoe_shop.constant.StatusEnum;
+import vn.edu.ptit.shoe_shop.common.constant.AvatarConstant;
+import vn.edu.ptit.shoe_shop.common.enums.GenderEnum;
+import vn.edu.ptit.shoe_shop.common.enums.StatusEnum;
 
 @Entity
 @Table(name = "users")
-public class User {
+public class User implements Serializable {
+
+    private static final long serialVersionUID = 1L;
     
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -68,8 +75,24 @@ public class User {
     @JoinColumn(name = "role_id", nullable = false)
     private Role role;
 
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<RefreshToken> refreshTokens;
+
+
     @PrePersist
     public void handleBeforeCreate() {
+        if(this.avatarImage == null || this.avatarImage.isEmpty()) {
+            if(this.gender == GenderEnum.MALE) {
+                this.avatarImage = AvatarConstant.DEFAULT_AVATAR_MALE;
+            }
+            else if(this.gender == GenderEnum.FEMALE) {
+                this.avatarImage = AvatarConstant.DEFAULT_AVATAR_FEMALE;
+            }
+            else if(this.gender == GenderEnum.OTHER) {
+                this.avatarImage = AvatarConstant.DEFAULT_AVATAR_OTHER;
+            }
+        }
         this.createdBy = String.valueOf(this.userId);
         this.createdAt = Instant.now();
         this.updatedAt = this.createdAt;
@@ -80,7 +103,7 @@ public class User {
 
     @PreUpdate
     public void handleBeforeUpdate() {
-        this.createdBy = String.valueOf(this.userId);
+        this.updatedBy = String.valueOf(this.userId);
         this.updatedAt = Instant.now();
     }
 
@@ -208,5 +231,11 @@ public class User {
         this.role = role;
     }
 
+    public List<RefreshToken> getRefreshTokens() {
+        return refreshTokens;
+    }
 
+    public void setRefreshTokens(List<RefreshToken> refreshTokens) {
+        this.refreshTokens = refreshTokens;
+    }
 }

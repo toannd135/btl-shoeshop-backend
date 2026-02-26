@@ -23,16 +23,15 @@ public class UploadImageFileImpl implements UploadImageFile {
     );
 
     @Override
-    public String uploadImage(MultipartFile file) throws IOException {
+    public String uploadImage(MultipartFile file, String folder ,UUID id) throws IOException {
 
         String baseName = getBaseName(file);
         String publicId = UUID.randomUUID() + "_" + baseName;
 
-        @SuppressWarnings("unchecked")
         Map<String, Object> result = cloudinary.uploader().upload(
                 file.getBytes(),
                 ObjectUtils.asMap(
-                        "folder", "my-app/images/products",
+                         "folder", "shoe_shop/" + folder + "/" + id,
                         "public_id", publicId,
                         "resource_type", "image",
                         "overwrite", true

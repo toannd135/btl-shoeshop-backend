@@ -3,8 +3,9 @@ package vn.edu.ptit.shoe_shop.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import org.hibernate.annotations.JdbcTypeCode;
-import vn.edu.ptit.shoe_shop.constant.StatusEnum;
+import vn.edu.ptit.shoe_shop.common.enums.StatusEnum;
 
+import java.io.Serializable;
 import java.sql.Types;
 import java.time.Instant;
 import java.util.List;
@@ -13,7 +14,10 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "permissions")
-public class Permission {
+public class Permission implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "permission_id", columnDefinition = "CHAR(36)")

@@ -1,5 +1,15 @@
 server:
   port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: always
+
 spring:
   application:
     name: shoes-shop
@@ -29,3 +39,20 @@ cloudinary:
   api-key: 368851143165857
   api-secret: E5etQ4Jq1lu9s_okchG5FUZVa3s
 
+
+  data:
+    web:
+      pageable:
+        one-indexed-parameters: true
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 2000
+
+app:
+  cors:
+    allowed-origins: http://localhost:3000,http://localhost:5173
+  jwt:
+    base64-secret: qoAEABDke07+AVLepXB4aCMtsT0wMAqR5x2VFyldsnx6e75YQkJH2UcZKTjEyoNgG71SBCXfq5N6NVZxWOfsHQ==
+    access-token-validity-in-seconds: 900
+    refresh-token-validity-in-seconds: 2592000

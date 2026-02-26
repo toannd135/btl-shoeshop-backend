@@ -41,7 +41,7 @@ public class ProductVariantImageService {
         ProductVariantImage image = ProductVariantImage.builder()
                 .productVariant(variant)
                 .build();
-        String imageURL = uploadImageFile.uploadImage(request.getImage());
+        String imageURL = uploadImageFile.uploadImage(request.getImage(),"variant_image",variantId);
         image.setImageURL(imageURL);
         ProductVariantImage primaryImage =
                 productVariantImageRepository.findByProductVariantAndIsPrimaryTrue(variant).orElse(null);
@@ -77,7 +77,7 @@ public class ProductVariantImageService {
                 .orElseThrow(() -> new ResourceNotFoundException("image not found"));
 
         if (request.getImage() != null) {
-            String imageURL = uploadImageFile.uploadImage(request.getImage());
+            String imageURL = uploadImageFile.uploadImage(request.getImage(),"variant_image",variantId);
             image.setImageURL(imageURL);
         }
 
