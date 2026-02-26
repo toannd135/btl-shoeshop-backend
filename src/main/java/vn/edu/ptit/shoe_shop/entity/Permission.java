@@ -18,6 +18,14 @@ public class Permission implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+
+    public Permission(String name, String apiPath, String method, String module) {
+        this.name = name;
+        this.apiPath = apiPath;
+        this.method = method;
+        this.module = module;
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "permission_id", columnDefinition = "CHAR(36)")

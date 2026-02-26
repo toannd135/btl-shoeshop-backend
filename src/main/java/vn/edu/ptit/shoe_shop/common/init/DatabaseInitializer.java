@@ -1,13 +1,23 @@
 package vn.edu.ptit.shoe_shop.common.init;
 
 import jakarta.transaction.Transactional;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Component;
+import vn.edu.ptit.shoe_shop.common.enums.RoleEnum;
+import vn.edu.ptit.shoe_shop.common.enums.StatusEnum;
 import vn.edu.ptit.shoe_shop.entity.Permission;
+import vn.edu.ptit.shoe_shop.entity.Role;
+import vn.edu.ptit.shoe_shop.entity.User;
+import vn.edu.ptit.shoe_shop.repository.PermissionRepository;
+import vn.edu.ptit.shoe_shop.repository.RoleRepository;
+import vn.edu.ptit.shoe_shop.repository.UserRepository;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class DatabaseDataInitializer implements CommandR {
+@Component
+public class DatabaseInitializer implements CommandLineRunner {
     private final PermissionRepository permissionRepository;
     private final RoleRepository roleRepository;
     private final UserRepository userRepository;
@@ -46,14 +56,14 @@ public class DatabaseDataInitializer implements CommandR {
             permissions.add(new Permission("Delete a permission", "/api/v1/permissions/{id}", "DELETE", "PERMISSIONS"));
             permissions.add(new Permission("Get a permissions", "/api/v1/permissions/{id}", "GET", "PERMISSIONS"));
             permissions.add(new Permission("Get all permissions", "/api/v1/permissions", "GET", "PERMISSIONS"));
-            // book
-            permissions.add(new Permission("Create a book", "/api/v1/books", "POST", "BOOKS"));
-            permissions.add(new Permission("Update a book", "/api/v1/books/{id}", "PUT", "BOOKS"));
-            permissions.add(new Permission("Delete a book", "/api/v1/books/{id}", "DELETE", "BOOKS"));
-            permissions.add(new Permission("Get a book", "/api/v1/books/{id}", "GET", "BOOKS"));
-            permissions.add(new Permission("Get all books", "/api/v1/books", "GET", "BOOKS"));
-            permissions.add(new Permission("Get a book by admin", "/api/v1/admin/books/{id}", "GET", "BOOKS"));
-            permissions.add(new Permission("Get all books by admin", "/api/v1/admin/books", "GET", "BOOKS"));
+            // products
+            permissions.add(new Permission("Create a product", "/api/v1/products", "POST", "PRODUCTS"));
+            permissions.add(new Permission("Update a product", "/api/v1/products/{id}", "PUT", "PRODUCTS"));
+            permissions.add(new Permission("Delete a product", "/api/v1/products/{id}", "DELETE", "PRODUCTS"));
+            permissions.add(new Permission("Get a products", "/api/v1/products/{id}", "GET", "PRODUCTS"));
+            permissions.add(new Permission("Get all products", "/api/v1/products", "GET", "PRODUCTS"));
+            permissions.add(new Permission("Get a products by admin", "/api/v1/admin/products/{id}", "GET", "PRODUCTS"));
+            permissions.add(new Permission("Get all products by admin", "/api/v1/admin/products", "GET", "PRODUCTS"));
             //category
             permissions.add(new Permission("Create a category", "/api/v1/categories", "POST", "CATEGORIES"));
             permissions.add(new Permission("Update a category", "/api/v1/categories/{id}", "PUT", "CATEGORIES"));
@@ -62,22 +72,7 @@ public class DatabaseDataInitializer implements CommandR {
             permissions.add(new Permission("Get all categories", "/api/v1/categories", "GET", "CATEGORIES"));
             permissions.add(new Permission("Get a category by admin", "/api/v1/admin/categories/{id}", "GET", "CATEGORIES"));
             permissions.add(new Permission("Get all categories by admin", "/api/v1/admin/categories", "GET", "CATEGORIES"));
-            // author
-            permissions.add(new Permission("Create a author", "/api/v1/authors", "POST", "AUTHORS"));
-            permissions.add(new Permission("Update a author", "/api/v1/authors/{id}", "PUT", "AUTHORS"));
-            permissions.add(new Permission("Delete a author", "/api/v1/authors/{id}", "DELETE", "AUTHORS"));
-            permissions.add(new Permission("Get a author", "/api/v1/authors/{id}", "GET", "AUTHORS"));
-            permissions.add(new Permission("Get all authors", "/api/v1/authors", "GET", "AUTHORS"));
-            permissions.add(new Permission("Get a author by admin", "/api/v1/admin/authors/{id}", "GET", "AUTHORS"));
-            permissions.add(new Permission("Get all authors by admin", "/api/v1/admin/authors", "GET", "AUTHORS"));
-            // publisher
-            permissions.add(new Permission("Create a publisher", "/api/v1/publishers", "POST", "PUBLISHERS"));
-            permissions.add(new Permission("Update a publisher", "/api/v1/publishers/{id}", "PUT", "PUBLISHERS"));
-            permissions.add(new Permission("Delete a publisher",  "/api/v1/publishers/{id}", "DELETE", "PUBLISHERS"));
-            permissions.add(new Permission("Get a publisher", "/api/v1/publishers/{id}", "GET", "PUBLISHERS"));
-            permissions.add(new Permission("Get all publishers", "/api/v1/publishers", "GET", "PUBLISHERS"));
-            permissions.add(new Permission("Get a publisher by admin", "/api/v1/admin/publishers/{id}", "GET", "PUBLISHERS"));
-            permissions.add(new Permission("Get all publishers by admin", "/api/v1/admin/publishers", "GET", "PUBLISHERS"));
+
             // address
             permissions.add(new Permission("Create a address", "/api/v1/addresses", "POST", "ADDRESSES"));
             permissions.add(new Permission("Update a address", "/api/v1/addresses/{id}", "PUT", "ADDRESSES"));
@@ -122,11 +117,11 @@ public class DatabaseDataInitializer implements CommandR {
             permissions.add(new Permission("Upload multi file to cloud", "/api/v1/cloudinary/upload-multiple", " POST", "FILES"));
             // review
             permissions.add(new Permission("Create review", "/api/v1/reviews", "POST", "REVIEWS"));
-            permissions.add(new Permission("Get active reviews by book ID", "/api/v1/reviews/book/{bookId}", "GET", "REVIEWS"));
+            permissions.add(new Permission("Get active reviews by products ID", "/api/v1/reviews/products/{productsId}", "GET", "REVIEWS"));
             permissions.add(new Permission("Update review", "/api/v1/reviews/{id}", "PUT", "REVIEWS"));
             permissions.add(new Permission("Soft delete review", "/api/v1/reviews/{id}", "DELETE", "REVIEWS"));
             // review for ADMIN
-            permissions.add(new Permission("Get all reviews by book (admin)", "/api/v1/admin/reviews/book/{bookId}", "GET", "REVIEWS"));
+            permissions.add(new Permission("Get all reviews by products (admin)", "/api/v1/admin/reviews/products/{productsId}", "GET", "REVIEWS"));
             permissions.add(new Permission("Hard delete review (admin)", "/api/v1/admin/reviews/{id}", "DELETE", "REVIEWS"));
 
             this.permissionRepository.saveAll(permissions);
@@ -143,10 +138,12 @@ public class DatabaseDataInitializer implements CommandR {
         if(countUser == 0) {
             User adminUser = new User();
             adminUser.setEmail("admin@gmail.com");
-            adminUser.setName("admin");
+            adminUser.setFirstName("admin");
+            adminUser.setLastName("admin");
+            adminUser.setUsername("admin123");
             adminUser.setPhone("0987654321");
             adminUser.setPassword(this.passwordEncoder.encode("123456"));
-            Role adminRole = this.roleRepository.findByName("ADMIN")
+            Role adminRole = this.roleRepository.findByName(RoleEnum.ADMIN.name())
                     .orElseThrow(() -> new IllegalStateException("role not found"));
             if(adminUser != null){
                 adminUser.setRole(adminRole);
