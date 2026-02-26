@@ -131,4 +131,5 @@ public class AuthController {
         String newUser = this.userService.register(registerRequestDTO);
         return ResponseEntity.ok().body("ok");
     }
+
 }

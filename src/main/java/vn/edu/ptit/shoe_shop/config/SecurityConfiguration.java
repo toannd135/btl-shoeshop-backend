@@ -74,6 +74,7 @@ public class SecurityConfiguration {
     ) throws Exception {
         http
                 .csrf(c -> c.disable())
+                .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(
                         auth -> auth
                                 .requestMatchers(whiteList).permitAll()
