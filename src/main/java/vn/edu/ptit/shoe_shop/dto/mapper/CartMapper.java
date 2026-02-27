@@ -23,7 +23,7 @@ public interface CartMapper {
     @Mapping(target = "color", source = "variant.color")
     @Mapping(
         target = "price",
-        expression = "java(item.getVariant().getPriceOverride() != null ? item.getVariant().getPriceOverride() : item.getVariant().getProduct().getBasePrice())"
+        expression = "java(item.getVariant().getBasePrice())"
     )
     @Mapping(
         target = "imageUrl",

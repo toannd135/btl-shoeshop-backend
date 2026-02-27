@@ -82,7 +82,7 @@ public class CheckoutServiceImpl implements CheckoutService {
             }
             
             // Cộng dồn tiền: Giá * Số lượng
-            BigDecimal lineTotal = variant.getProduct().getBasePrice()
+            BigDecimal lineTotal = variant.getBasePrice()
                     .multiply(BigDecimal.valueOf(item.getQuantity()));
             subTotal = subTotal.add(lineTotal);
         }
@@ -104,7 +104,7 @@ public class CheckoutServiceImpl implements CheckoutService {
                 // FIX LỖI: Phải có RoundingMode để tránh lỗi chia số lẻ vô hạn
                 discountAmount = subTotal.multiply(coupon.getDiscountValue())
                         .divide(new BigDecimal("100"), 0, RoundingMode.HALF_UP); // Làm tròn tiền VNĐ
-                
+
                 // FIX LỖI: Kiểm tra Max Discount (Giảm 10% nhưng tối đa 50k)
                 if (coupon.getMaxDiscount() != null && discountAmount.compareTo(coupon.getMaxDiscount()) > 0) {
                     discountAmount = coupon.getMaxDiscount();
@@ -113,7 +113,7 @@ public class CheckoutServiceImpl implements CheckoutService {
             } else if (coupon.getDiscountType() == DiscountTypeEnum.FIXED_AMOUNT) {
                 discountAmount = coupon.getDiscountValue();
             }
-            
+
             // Đảm bảo không giảm quá giá trị đơn hàng
             if (discountAmount.compareTo(subTotal) > 0) {
                 discountAmount = subTotal;
@@ -140,7 +140,7 @@ public class CheckoutServiceImpl implements CheckoutService {
             snapshotItem.setOrder(order);
             snapshotItem.setVariant(variant);
             snapshotItem.setQuantity(item.getQuantity());
-            snapshotItem.setPriceAtPurchase(variant.getProduct().getBasePrice());
+            snapshotItem.setPriceAtPurchase(variant.getBasePrice());
             
             // OPTION: Tính luôn thành tiền của từng item để dễ thống kê sau này
             // snapshotItem.setTotalPrice(snapshotItem.getPriceAtPurchase().multiply(BigDecimal.valueOf(item.getQuantity())));

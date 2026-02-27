@@ -1,5 +1,11 @@
 package vn.edu.ptit.shoe_shop.entity;
 
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import vn.edu.ptit.shoe_shop.common.Auditable;
+import vn.edu.ptit.shoe_shop.common.enums.GenderEnum;
+
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.sql.Types;
@@ -27,44 +33,43 @@ import lombok.Setter;
 import vn.edu.ptit.shoe_shop.common.enums.ProductStatusEnum;
 
 @Entity
-@Table(name = "products")
-@Setter
+@Table(name ="products")
 @Getter
-@AllArgsConstructor
+@Setter
 @NoArgsConstructor
-public class Product {
+@AllArgsConstructor
+@Builder
+public class Product extends Auditable {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "product_id", columnDefinition = "CHAR(36)")
     @JdbcTypeCode(Types.VARCHAR)
-    @Column(name = "product_id")
     private UUID productId;
-    
+
+    @Column(nullable = false, unique = true)
     private String name;
+
+    @Column(nullable = false)
     private String brand;
+
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String description;
-    @Column(name = "shoe_type",nullable = false)
-    private String shoeType;
 
-    private String gender;
-    @Column(name = "base_price",precision = 15)
-    private BigDecimal basePrice;
-    @Enumerated(EnumType.STRING)
-    private ProductStatusEnum status;
-    @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
-    private Timestamp createdAt;
+    @Column(nullable = false)
+    private GenderEnum gender;
 
-    @UpdateTimestamp
-    @Column(name = "updated_at")
-    private Timestamp updatedAt;
+    private String imageUrl;
 
-    // 1 product co the co nhieu bien the
-    @OneToMany(mappedBy = "product",cascade = CascadeType.ALL,orphanRemoval = true)
-    private List<ProductVariant> listProductVariants = new ArrayList<>();
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id", nullable = false)
+    private Category category;
 
-    // 1 product co the co nhieu anh
-    @OneToMany(mappedBy = "product",cascade = CascadeType.ALL,orphanRemoval = true)
-    private List<ProductImage> listProductImages = new ArrayList<>();
-    
+    @OneToMany(
+            mappedBy = "product",
+            fetch = FetchType.LAZY,
+            cascade = CascadeType.PERSIST
+    )
+    private List<ProductVariant> productVariants = new ArrayList<>();
 
 }

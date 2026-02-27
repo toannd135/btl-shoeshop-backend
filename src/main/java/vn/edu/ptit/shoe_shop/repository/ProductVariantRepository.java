@@ -5,10 +5,19 @@ import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-
+import vn.edu.ptit.shoe_shop.entity.Product;
 import vn.edu.ptit.shoe_shop.entity.ProductVariant;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
 @Repository
-public interface ProductVariantRepository extends JpaRepository<ProductVariant,UUID> {
+public interface ProductVariantRepository extends JpaRepository<ProductVariant, UUID> {
+
+    List<ProductVariant> findByProduct(Product product);
+
+    Optional<ProductVariant> findByProductVariantIdAndProduct(UUID id, Product product);
+
     Optional<ProductVariant> findByProductVariantId(UUID variantId);
 }
