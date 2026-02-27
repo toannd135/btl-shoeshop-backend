@@ -12,10 +12,13 @@ import vn.edu.ptit.shoe_shop.common.enums.GenderEnum;
 @Setter
 public class UserResponseDTO {
     private String userId;
+    private String firstName;
+    private String lastName;
     private String fullName;
     private String username;
     private String email;
     private String phone;
+    private String gender;
     private LocalDate dateOfBirth;
     private String avatarImage;
     private String status;
@@ -29,6 +32,7 @@ public class UserResponseDTO {
     @Getter
     @Setter
     public static class UserRoleResponseDTO {
+        private String roleId;
         private String name;
         private String code;
     }

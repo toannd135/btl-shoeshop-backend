@@ -103,6 +103,10 @@ public class AuthServiceImpl implements AuthService {
                     return new IdInvalidException("User not found");
                 });
 
+        if (accessToken != null && !accessToken.isEmpty()) {
+            revokeAccessToken(accessToken);
+        }
+
         // check token db
         RefreshToken refreshTokenEntity = this.refreshTokenRepository.findByUserUserIdAndDeviceId(userId, deviceId)
                 .orElseThrow(() -> new BadCredentialsException("Refresh token session not found"));

@@ -13,12 +13,14 @@ import vn.edu.ptit.shoe_shop.entity.User;
 
 @Mapper(componentModel = "spring")
 public interface UserMapper {
+//    @Mapping(target = "firstName", source = "firstName")
+//    @Mapping(target = "lastName", source = "lastName")
+//    @Mapping(target = "fullName", source = "fullName")
+//    @Mapping(target = "gender", source = "gender")
     @Mapping(target = "dateOfBirth", source = "dateOfBirth", dateFormat = "dd-MM-yyyy")
     @Mapping(target = "createdAt", dateFormat = "yyyy-MM-dd HH:mm:ss")
     @Mapping(target = "updatedAt", dateFormat = "yyyy-MM-dd HH:mm:ss")
     UserResponseDTO toResponseDTO(User user);
-
-    UserResponseDTO.UserRoleResponseDTO mapRoleToRoleResponse(Role role);
 
     @Mapping(target = "userId", ignore = true)
     @Mapping(target = "email", ignore = true)

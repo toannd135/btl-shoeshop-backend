@@ -65,19 +65,18 @@ public class AuthController {
     @PostMapping("/refresh-token")
     @ApiMessage("Refresh token successful")
     public ResponseEntity<LoginResponseDTO> refreshToken(
-            @RequestHeader(HttpHeaders.AUTHORIZATION) String bearerToken,
-            @CookieValue(TokenConstants.REFRESH_TOKEN) String refreshToken) {
+            @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String bearerToken,
+            @CookieValue(value = TokenConstants.REFRESH_TOKEN, required = false) String refreshToken) {
 
         if (refreshToken.equals(TokenConstants.FAKE_TOKEN)) {
             throw new BadCredentialsException("Invalid refresh token");
         }
-
-        if(!StringUtils.hasText(bearerToken) || !bearerToken.startsWith("Bearer ")){
-            throw new BadCredentialsException("Missing or invalid Authorization header");
+        if (refreshToken == null) {
+            throw new BadCredentialsException("Refresh token missing");
         }
-        String accessToken = bearerToken.substring(7);
-        if (refreshToken.equals(TokenConstants.FAKE_TOKEN)) {
-            throw new BadCredentialsException("Invalid refresh token");
+        String accessToken = null;
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
+            accessToken = bearerToken.substring(7);
         }
 
         LoginResult res = this.authService.getNewToken(refreshToken, accessToken);
@@ -140,13 +139,10 @@ public class AuthController {
             userService.verifyUser(token);
             return new ModelAndView("registerConfirmationSuscessfully");
         } catch (TokenExpiredOrUsedException e) {
-            // Khi refresh, token biến mất khỏi Redis -> rơi vào đây
-            // Bạn có thể coi đây là "Thành công" nhưng hiển thị lời nhắn khác
             ModelAndView mav = new ModelAndView("registerConfirmationSuscessfully");
             mav.addObject("message", "Tài khoản của bạn đã được xác thực trước đó.");
             return mav;
         } catch (Exception e) {
-            // Các lỗi thực sự khác (token bậy bạ, lỗi DB...)
             return new ModelAndView("registerConfirmationFail");
         }
     }
