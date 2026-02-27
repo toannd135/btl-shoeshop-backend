@@ -53,7 +53,7 @@ public class ProductController {
     @ApiMessage("Product updated successfully")
     public ResponseEntity<ProductResponseDTO> updateProduct(
             @PathVariable UUID id,
-            @RequestBody @Valid ProductUpdateRequestDTO requestDTO) throws IOException {
+            @ModelAttribute @Valid ProductUpdateRequestDTO requestDTO) throws IOException {
 
         ProductResponseDTO res = productService.update(id, requestDTO);
         return ResponseEntity.ok().body(res);

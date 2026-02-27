@@ -104,7 +104,7 @@ public class CheckoutServiceImpl implements CheckoutService {
                 // FIX LỖI: Phải có RoundingMode để tránh lỗi chia số lẻ vô hạn
                 discountAmount = subTotal.multiply(coupon.getDiscountValue())
                         .divide(new BigDecimal("100"), 0, RoundingMode.HALF_UP); // Làm tròn tiền VNĐ
-                
+
                 // FIX LỖI: Kiểm tra Max Discount (Giảm 10% nhưng tối đa 50k)
                 if (coupon.getMaxDiscount() != null && discountAmount.compareTo(coupon.getMaxDiscount()) > 0) {
                     discountAmount = coupon.getMaxDiscount();
@@ -113,7 +113,7 @@ public class CheckoutServiceImpl implements CheckoutService {
             } else if (coupon.getDiscountType() == DiscountTypeEnum.FIXED_AMOUNT) {
                 discountAmount = coupon.getDiscountValue();
             }
-            
+
             // Đảm bảo không giảm quá giá trị đơn hàng
             if (discountAmount.compareTo(subTotal) > 0) {
                 discountAmount = subTotal;
