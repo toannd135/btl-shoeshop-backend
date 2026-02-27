@@ -27,6 +27,9 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
+
+  cache:
+    type: redis
   data:
     web:
       pageable:

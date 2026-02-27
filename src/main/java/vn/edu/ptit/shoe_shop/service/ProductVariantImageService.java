@@ -4,6 +4,10 @@ import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import vn.edu.ptit.shoe_shop.dto.request.ProductVariantImageCreateRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.request.ProductVariantImageUpdateRequestDTO;
@@ -31,6 +35,20 @@ public class ProductVariantImageService {
     ProductRepository productRepository;
     UploadImageFile uploadImageFile;
 
+    @Caching(
+            put = {
+                    @CachePut(
+                            value = "variantImages",
+                            key = "#productId + '_' + #variantId + '_' + #result.imageId"
+                    )
+            },
+            evict = {
+                    @CacheEvict(
+                            value = "variantImages",
+                            key = "'variant_' + #productId + '_' + #variantId"
+                    )
+            }
+    )
     public ProductVariantImageResponseDTO create(UUID productId,
                                                  UUID variantId,
                                                  ProductVariantImageCreateRequestDTO request) throws IOException {
@@ -64,7 +82,20 @@ public class ProductVariantImageService {
         productVariantImageRepository.save(image);
         return toResponse(image);
     }
-
+    @Caching(
+            put = {
+                    @CachePut(
+                            value = "variantImages",
+                            key = "#productId + '_' + #variantId + '_' + #imageId"
+                    )
+            },
+            evict = {
+                    @CacheEvict(
+                            value = "variantImages",
+                            key = "'variant_' + #productId + '_' + #variantId"
+                    )
+            }
+    )
     public ProductVariantImageResponseDTO update(UUID productId,
                                                  UUID variantId,
                                                  UUID imageId,
@@ -102,7 +133,10 @@ public class ProductVariantImageService {
         productVariantImageRepository.save(image);
         return toResponse(image);
     }
-
+    @Cacheable(
+            value = "variantImages",
+            key = "'variant_' + #productId + '_' + #variantId"
+    )
     public List<ProductVariantImageResponseDTO> getAllImage(UUID productId,
                                                             UUID variantId) {
         Product product = productRepository.findById(productId)
@@ -113,7 +147,16 @@ public class ProductVariantImageService {
 
         return images.stream().map(this::toResponse).toList();
     }
-
+    @Caching(evict = {
+            @CacheEvict(
+                    value = "variantImages",
+                    key = "#productId + '_' + #variantId + '_' + #imageId"
+            ),
+            @CacheEvict(
+                    value = "variantImages",
+                    key = "'variant_' + #productId + '_' + #variantId"
+            )
+    })
     public void deleteImage(UUID productId, UUID variantId, UUID imageId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found"));

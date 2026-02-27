@@ -5,6 +5,10 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import vn.edu.ptit.shoe_shop.dto.request.CategoryCreateRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.request.CategoryUpdateRequestDTO;
@@ -25,6 +29,14 @@ public class CategoryService {
 
     CategoryRepository categoryRepository;
 
+    @Caching(
+            put = {
+                    @CachePut(value = "categories", key = "#result.categoryId")
+            },
+            evict = {
+                    @CacheEvict(value = "categories", key = "'all'")
+            }
+    )
     public CategoryResponseDTO create(CategoryCreateRequestDTO request) {
 
         if (categoryRepository.existsByCategoryName(request.getCategoryName())) {
@@ -50,7 +62,14 @@ public class CategoryService {
 
         return toResponse(saved);
     }
-
+    @Caching(
+            put = {
+                    @CachePut(value = "categories", key = "#id")
+            },
+            evict = {
+                    @CacheEvict(value = "categories", key = "'all'")
+            }
+    )
     public CategoryResponseDTO update(UUID id, CategoryUpdateRequestDTO request) {
 
         Category category = categoryRepository.findById(id)
@@ -86,18 +105,24 @@ public class CategoryService {
         return toResponse(updated);
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "categories", key = "#id"),
+            @CacheEvict(value = "categories", key = "'all'")
+    })
     public void delete(UUID id) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
         categoryRepository.delete(category);
     }
 
+    @Cacheable(value = "categories", key = "#id")
     public CategoryResponseDTO getById(UUID id) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
         return toResponse(category);
     }
 
+    @Cacheable(value = "categories")
     public List<CategoryResponseDTO> getAll() {
         return categoryRepository.findAll()
                 .stream()
