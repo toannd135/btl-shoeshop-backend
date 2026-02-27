@@ -3,8 +3,11 @@ import jakarta.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
@@ -18,6 +21,8 @@ import vn.edu.ptit.shoe_shop.dto.request.auth.RegisterRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.response.auth.LoginResponseDTO;
 import vn.edu.ptit.shoe_shop.service.AuthService;
 import vn.edu.ptit.shoe_shop.service.UserService;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -71,9 +76,9 @@ public class AuthController {
         if (refreshToken.equals(TokenConstants.FAKE_TOKEN)) {
             throw new BadCredentialsException("Invalid refresh token");
         }
-        if (refreshToken == null) {
-            throw new BadCredentialsException("Refresh token missing");
-        }
+//        if (refreshToken == null) {
+//            throw new BadCredentialsException("Refresh token missing");
+//        }
         String accessToken = null;
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
             accessToken = bearerToken.substring(7);
@@ -103,8 +108,8 @@ public class AuthController {
     @PostMapping("/logout")
     @ApiMessage("Logout successful")
     public ResponseEntity<Void> logout(
-            @RequestHeader(HttpHeaders.AUTHORIZATION) String bearerToken,
-            @CookieValue(TokenConstants.REFRESH_TOKEN) String refreshToken) {
+            @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String bearerToken,
+            @CookieValue(value = TokenConstants.REFRESH_TOKEN, required = false) String refreshToken) {
 
         if(!StringUtils.hasText(bearerToken) || !bearerToken.startsWith("Bearer ")){
             throw new BadCredentialsException("Missing or invalid Authorization header");
@@ -130,7 +135,7 @@ public class AuthController {
     @ApiMessage("Register successful")
     public ResponseEntity<String> register(@Valid @RequestBody RegisterRequestDTO registerRequestDTO){
         String newUser = this.userService.register(registerRequestDTO);
-        return ResponseEntity.ok().body("ok");
+        return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
     }
 
     @GetMapping("/verify")
@@ -145,5 +150,13 @@ public class AuthController {
         } catch (Exception e) {
             return new ModelAndView("registerConfirmationFail");
         }
+    }
+
+    @GetMapping("/user-info")
+    public ResponseEntity<?> getUserInfo(@AuthenticationPrincipal OAuth2User principal) {
+        if (principal == null) {
+            return ResponseEntity.status(401).body("Unauthorized");
+        }
+        return ResponseEntity.ok(principal.getAttributes());
     }
 }

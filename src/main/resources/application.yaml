@@ -17,7 +17,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/shoeshop
     username: root
-    password: Trungtrung2005@
+    password: 123456
     driver-class-name: com.mysql.cj.jdbc.Driver
   servlet:
     multipart:
@@ -32,11 +32,6 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
 
-cloudinary:
-  cloud-name: dljrbdc51
-  api-key: 368851143165857
-  api-secret: E5etQ4Jq1lu9s_okchG5FUZVa3s
-
 
   data:
     web:
@@ -46,6 +41,17 @@ cloudinary:
       host: localhost
       port: 6379
       timeout: 2000
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${CLIENT_ID_GOOGLE}
+            client-secret: ${CLIENT_SECRET_GOOGLE}
+            scope:
+              - profile
+              - email
   mail:
     host: smtp.gmail.com
     port: 587
@@ -61,6 +67,11 @@ cloudinary:
           ssl:
             trust: smtp.gmail.com
 
+cloudinary:
+  cloud-name: dljrbdc51
+  api-key: 368851143165857
+  api-secret: E5etQ4Jq1lu9s_okchG5FUZVa3s
+
 app:
   cors:
     allowed-origins: http://localhost:3000,http://localhost:5173
@@ -68,3 +79,4 @@ app:
     base64-secret: qoAEABDke07+AVLepXB4aCMtsT0wMAqR5x2VFyldsnx6e75YQkJH2UcZKTjEyoNgG71SBCXfq5N6NVZxWOfsHQ==
     access-token-validity-in-seconds: 900
     refresh-token-validity-in-seconds: 2592000
+

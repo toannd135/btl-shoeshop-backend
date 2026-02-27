@@ -19,7 +19,6 @@ public interface UserRepository extends JpaRepository<User, UUID>{
     boolean existsByUsername(String username);
     Optional<User> findByEmail(String email);
     Optional<User> findByUsername(String username);
-
     @Query("SELECT new vn.edu.ptit.shoe_shop.dto.UserCredentialDTO(u.username, u.email) FROM User u")
     List<UserCredentialDTO> findAllUserCredentials();
     Optional<User> findByUserId(UUID userId);

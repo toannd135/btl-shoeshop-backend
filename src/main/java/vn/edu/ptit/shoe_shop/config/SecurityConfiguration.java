@@ -26,24 +26,16 @@ import static vn.edu.ptit.shoe_shop.common.enums.RoleEnum.ADMIN;
 public class SecurityConfiguration {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
 
-    public SecurityConfiguration(JwtAuthenticationFilter jwtAuthenticationFilter) {
+    public SecurityConfiguration(JwtAuthenticationFilter jwtAuthenticationFilter, OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.oAuth2LoginSuccessHandler = oAuth2LoginSuccessHandler;
     }
-    @Bean
-    public BCryptPasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
 
     @Bean
     public UserDetailsService userDetailsService(UserService userService) {
         return new CustomUserDetailService(userService);
-    }
-
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
-        return authenticationConfiguration.getAuthenticationManager();
     }
 
     @Bean
@@ -56,8 +48,10 @@ public class SecurityConfiguration {
 
 
     String[] whiteList = {
-            "/api/v1/users/**",
             "/",
+            "/login/**",
+            "/oauth2/**",
+            "/api/v1/auth/refresh-token",
             "/api/v1/auth/login",
             "/api/v1/auth/register",
             "/api/v1/auth/verify",
@@ -78,17 +72,20 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(
                         auth -> auth
                                 .requestMatchers(whiteList).permitAll()
-//                                .requestMatchers( "/api/v1/users/**").hasAnyRole(ADMIN.name())
-//                                .requestMatchers("/api/v1/roles/**").hasRole(ADMIN.name())
-//                                .requestMatchers("/api/v1/permissions/**").hasRole(ADMIN.name())
+                                .requestMatchers( "/api/v1/users/**").hasAnyRole(ADMIN.name())
+                                .requestMatchers("/api/v1/roles/**").hasRole(ADMIN.name())
+                                .requestMatchers("/api/v1/permissions/**").hasRole(ADMIN.name())
                                 .anyRequest()
-                                .permitAll()
+                                .authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .sessionManagement(
-                        session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                        session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 )
                 .formLogin(form -> form.disable())
+                .oauth2Login(oauth2 -> oauth2
+                        .successHandler(oAuth2LoginSuccessHandler)
+                )
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter))
                         .authenticationEntryPoint(customAuthenticationEntryPoint)

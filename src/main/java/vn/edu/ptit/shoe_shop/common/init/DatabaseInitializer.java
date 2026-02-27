@@ -4,6 +4,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import vn.edu.ptit.shoe_shop.common.enums.ProviderEnum;
 import vn.edu.ptit.shoe_shop.common.enums.RoleEnum;
 import vn.edu.ptit.shoe_shop.common.enums.StatusEnum;
 import vn.edu.ptit.shoe_shop.entity.Permission;
@@ -143,6 +144,7 @@ public class DatabaseInitializer implements CommandLineRunner {
             adminUser.setLastName("admin");
             adminUser.setUsername("admin123");
             adminUser.setPhone("0987654321");
+            adminUser.setProvider(ProviderEnum.SERVER);
             adminUser.setPassword(this.passwordEncoder.encode("Admin123@"));
             Role adminRole = this.roleRepository.findByName(RoleEnum.ADMIN.name())
                     .orElseThrow(() -> new IllegalStateException("role not found"));

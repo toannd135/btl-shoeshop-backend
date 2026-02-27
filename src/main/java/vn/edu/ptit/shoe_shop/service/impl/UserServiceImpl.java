@@ -236,11 +236,9 @@ public class UserServiceImpl implements UserService {
 
         // kiem tra database
         if(this.userRepository.existsByEmail(registerRequestDTO.getEmail())) {
-            this.redisService.addToSet(RedisKeyConstants.EMAIL_SET, registerRequestDTO.getEmail());
             throw new IllegalStateException("Email already exists");
         }
         if(this.userRepository.existsByUsername(registerRequestDTO.getUsername())) {
-            this.redisService.addToSet(RedisKeyConstants.USERNAME_SET, registerRequestDTO.getEmail());
             throw new IllegalStateException("Username already exists");
         }
 
@@ -258,7 +256,7 @@ public class UserServiceImpl implements UserService {
         this.redisService.addToSet(RedisKeyConstants.USERNAME_SET, newUser.getUsername());
         setRandomTTL("users:usernames", 24 * 60);
         setRandomTTL("users:emails", 24 * 60);
-        return null;
+        return "Registration successful. Please check your email to verify your account";
     }
 
     private void setRandomTTL(String key, long baseMinutes) {

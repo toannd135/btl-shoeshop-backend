@@ -18,6 +18,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Table;
 import vn.edu.ptit.shoe_shop.common.constant.AvatarConstant;
 import vn.edu.ptit.shoe_shop.common.enums.GenderEnum;
+import vn.edu.ptit.shoe_shop.common.enums.ProviderEnum;
 import vn.edu.ptit.shoe_shop.common.enums.StatusEnum;
 
 import java.sql.Types;
@@ -51,14 +52,18 @@ public class User {
     @Column(name = "email", updatable = false, nullable = false, unique = true)
     private String email;
 
-    @Column(name = "phone", nullable = false, length = 10)
+    @Column(name = "phone", length = 10)
     private String phone;
 
     @Column(name = "username", nullable = false, length = 255, unique = true)
     private String username;
 
-    @Column(name = "password", nullable = false)
+    @Column(name = "password")
     private String password;
+
+    @Column(name = "provider")
+    @Enumerated(EnumType.STRING)
+    private ProviderEnum provider;
 
     @Column(name = "gender")
     @Enumerated(EnumType.STRING)
@@ -90,7 +95,6 @@ public class User {
     @JoinColumn(name = "role_id", nullable = false)
     private Role role;
 
-    // quan he 1-1 voi cart
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false)
     private Cart cart;
 
@@ -273,5 +277,13 @@ public class User {
 
     public void setListOrder(List<Order> listOrder) {
         this.listOrder = listOrder;
+    }
+
+    public ProviderEnum getProvider() {
+        return provider;
+    }
+
+    public void setProvider(ProviderEnum provider) {
+        this.provider = provider;
     }
 }

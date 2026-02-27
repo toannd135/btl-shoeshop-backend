@@ -1,4 +1,5 @@
 package vn.edu.ptit.shoe_shop.common.enums;
 
-public class Provider {
+public enum ProviderEnum {
+    SERVER, GOOGLE, GITHUB
 }
