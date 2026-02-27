@@ -42,7 +42,7 @@ public class ProductVariantImageService {
                 .productVariant(variant)
                 .build();
         String imageURL = uploadImageFile.uploadImage(request.getImage(),"variant_image",variantId);
-        image.setImageURL(imageURL);
+        image.setImageUrl(imageURL);
         ProductVariantImage primaryImage =
                 productVariantImageRepository.findByProductVariantAndIsPrimaryTrue(variant).orElse(null);
         if (primaryImage == null) {
@@ -78,7 +78,7 @@ public class ProductVariantImageService {
 
         if (request.getImage() != null) {
             String imageURL = uploadImageFile.uploadImage(request.getImage(),"variant_image",variantId);
-            image.setImageURL(imageURL);
+            image.setImageUrl(imageURL);
         }
 
         if (Boolean.TRUE.equals(request.getIsPrimary())) {
@@ -127,7 +127,7 @@ public class ProductVariantImageService {
     private ProductVariantImageResponseDTO toResponse(ProductVariantImage image) {
         return ProductVariantImageResponseDTO.builder()
                 .productVariantId(image.getProductVariant().getProductVariantId())
-                .imageURL(image.getImageURL())
+                .imageURL(image.getImageUrl())
                 .isPrimary(image.getIsPrimary())
 
                 .status(image.getStatus())

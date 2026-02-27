@@ -82,7 +82,7 @@ public class CheckoutServiceImpl implements CheckoutService {
             }
             
             // Cộng dồn tiền: Giá * Số lượng
-            BigDecimal lineTotal = variant.getProduct().getBasePrice()
+            BigDecimal lineTotal = variant.getBasePrice()
                     .multiply(BigDecimal.valueOf(item.getQuantity()));
             subTotal = subTotal.add(lineTotal);
         }
@@ -140,7 +140,7 @@ public class CheckoutServiceImpl implements CheckoutService {
             snapshotItem.setOrder(order);
             snapshotItem.setVariant(variant);
             snapshotItem.setQuantity(item.getQuantity());
-            snapshotItem.setPriceAtPurchase(variant.getProduct().getBasePrice());
+            snapshotItem.setPriceAtPurchase(variant.getBasePrice());
             
             // OPTION: Tính luôn thành tiền của từng item để dễ thống kê sau này
             // snapshotItem.setTotalPrice(snapshotItem.getPriceAtPurchase().multiply(BigDecimal.valueOf(item.getQuantity())));

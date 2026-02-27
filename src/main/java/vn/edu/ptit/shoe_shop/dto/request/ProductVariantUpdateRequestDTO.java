@@ -6,6 +6,8 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 import vn.edu.ptit.shoe_shop.common.enums.StatusEnum;
 
+import java.math.BigDecimal;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -13,9 +15,9 @@ import vn.edu.ptit.shoe_shop.common.enums.StatusEnum;
 public class ProductVariantUpdateRequestDTO {
     String color;
     String sku;
-    Double size;
+    BigDecimal size;
     Integer quantity;
     @Min(1)
-    Integer basePrice;
+    BigDecimal basePrice;
     StatusEnum status;
 }

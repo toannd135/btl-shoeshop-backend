@@ -11,15 +11,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import org.hibernate.annotations.JdbcTypeCode;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -31,7 +27,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import vn.edu.ptit.shoe_shop.common.enums.ProductStatusEnum;
 
 @Entity
 @Table(name ="product_variants")
@@ -54,26 +49,21 @@ public class ProductVariant extends Auditable {
     private String sku;
 
     @Column(nullable = false)
-    private Double size;
+    private BigDecimal size;
 
     @Column(nullable = false)
     private Integer quantity;
 
     @Column(nullable = false)
-    private Integer basePrice;
+    private BigDecimal basePrice;
 
     @ManyToOne(cascade = {CascadeType.DETACH,CascadeType.MERGE,CascadeType.REFRESH,CascadeType.PERSIST})
-    @JoinColumn(name = "product_id")
-    // 1 bien the product co the la nhieu cartitem
+    @JoinColumn(name = "product_id", nullable = false)
+    private Product product;
+
     @JsonIgnore
     @OneToMany(mappedBy = "variant", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CartItem> cartItems = new ArrayList<>();
-
-    // nhieu bien the co the thuoc ve 1 product
-    @JsonIgnore
-    @ManyToOne
-    @JoinColumn(name = "product_id", nullable = false)
-    private Product product;
 
     @OneToMany(
             mappedBy = "productVariant",
@@ -81,10 +71,8 @@ public class ProductVariant extends Auditable {
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
-    private List<ProductVariantImage> productVariantImages = new ArrayList<>();
-    // 1 product_variant co the co nhieu anh
-    @OneToMany(mappedBy = "productVariant", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ProductImage> listProductVariantImages = new ArrayList<>();
+    private List<ProductVariantImage> listProductVariantImages = new ArrayList<>();
+
 
     @OneToMany(mappedBy = "variant", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> listOrderItems = new ArrayList<>();

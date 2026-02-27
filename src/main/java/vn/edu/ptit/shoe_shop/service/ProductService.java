@@ -13,7 +13,9 @@ import vn.edu.ptit.shoe_shop.entity.Product;
 import vn.edu.ptit.shoe_shop.common.exception.ResourceNotFoundException;
 import vn.edu.ptit.shoe_shop.repository.CategoryRepository;
 import vn.edu.ptit.shoe_shop.repository.ProductRepository;
+import vn.edu.ptit.shoe_shop.service.Cloudinary.UploadImageFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
@@ -24,8 +26,9 @@ import java.util.UUID;
 public class ProductService {
     ProductRepository productRepository;
     CategoryRepository categoryRepository;
+    UploadImageFile uploadImageFile;
 
-    public ProductResponseDTO create(ProductCreateRequestDTO request) {
+    public ProductResponseDTO create(ProductCreateRequestDTO request) throws IOException {
         Category category = null;
         if (request.getCategoryId() != null) {
             category = categoryRepository.findById(request.getCategoryId()).orElseThrow(
@@ -38,7 +41,10 @@ public class ProductService {
                 .category(category)
                 .gender(request.getGender())
                 .build();
-
+        if (request.getImage() != null) {
+            String imageUrl = uploadImageFile.uploadImage(request.getImage(),"variant_image",product.getProductId());
+            product.setImageUrl(imageUrl);
+        }
         if (request.getStatus() != null) {
             product.setStatus(request.getStatus());
         }
@@ -47,7 +53,7 @@ public class ProductService {
         return toResponse(savedProduct);
     }
 
-    public ProductResponseDTO update(UUID id, ProductUpdateRequestDTO request) {
+    public ProductResponseDTO update(UUID id, ProductUpdateRequestDTO request) throws IOException {
         Product product = productRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Product not found"));
         if (request.getCategoryId() != null) {
@@ -66,6 +72,10 @@ public class ProductService {
         }
         if (request.getBrand() != null) {
             product.setBrand(request.getBrand());
+        }
+        if (request.getImage() != null) {
+            String imageUrl = uploadImageFile.uploadImage(request.getImage(),"variant_image",product.getProductId());
+            product.setImageUrl(imageUrl);
         }
         if (request.getStatus() != null) {
             product.setStatus(request.getStatus());
@@ -101,9 +111,9 @@ public class ProductService {
                 .brand(product.getBrand())
                 .gender(product.getGender())
                 .description(product.getDescription())
-                .status(product.getStatus())
+                .imageUrl(product.getImageUrl())
                 .categoryId(product.getCategory() != null ? product.getCategory().getCategoryId() : null)
-
+                .status(product.getStatus())
                 .createdAt(product.getCreatedAt())
                 .updatedAt(product.getUpdatedAt())
                 .build();

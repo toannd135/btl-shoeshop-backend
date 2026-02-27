@@ -24,7 +24,7 @@ public class ProductVariantImage extends Auditable {
     @JdbcTypeCode(Types.VARCHAR)
     UUID imageId;
 
-    String imageURL;
+    String imageUrl;
 
     Boolean isPrimary;
 

@@ -55,13 +55,11 @@ public class Product extends Auditable {
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String description;
-    @Column(name = "shoe_type",nullable = false)
-    private String shoeType;
-    @Column(nullable = false)
-    private String gender;
-    @Column(name = "base_price",precision = 15)
-    private BigDecimal basePrice;
 
+    @Column(nullable = false)
+    private GenderEnum gender;
+
+    private String imageUrl;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)

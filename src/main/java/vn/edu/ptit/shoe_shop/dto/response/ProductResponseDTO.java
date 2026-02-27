@@ -21,6 +21,7 @@ public class ProductResponseDTO {
     String description;
     UUID categoryId;
     GenderEnum gender;
+    String imageUrl;
 
     StatusEnum status;
     Instant createdAt;

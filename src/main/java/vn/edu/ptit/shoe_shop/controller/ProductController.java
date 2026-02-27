@@ -15,6 +15,7 @@ import vn.edu.ptit.shoe_shop.dto.response.ProductResponseDTO;
 import vn.edu.ptit.shoe_shop.service.ProductService;
 import vn.edu.ptit.shoe_shop.common.utils.annotation.ApiMessage;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
@@ -42,7 +43,7 @@ public class ProductController {
     @PostMapping
     @ApiMessage("Product created successfully")
     public ResponseEntity<ProductResponseDTO> createProduct(
-            @RequestBody @Valid ProductCreateRequestDTO requestDTO) {
+            @ModelAttribute @Valid ProductCreateRequestDTO requestDTO) throws IOException {
 
         ProductResponseDTO res = productService.create(requestDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(res);
@@ -52,7 +53,7 @@ public class ProductController {
     @ApiMessage("Product updated successfully")
     public ResponseEntity<ProductResponseDTO> updateProduct(
             @PathVariable UUID id,
-            @RequestBody @Valid ProductUpdateRequestDTO requestDTO) {
+            @RequestBody @Valid ProductUpdateRequestDTO requestDTO) throws IOException {
 
         ProductResponseDTO res = productService.update(id, requestDTO);
         return ResponseEntity.ok().body(res);

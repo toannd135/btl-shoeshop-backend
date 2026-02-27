@@ -3,6 +3,7 @@ package vn.edu.ptit.shoe_shop.dto.request;
 import jakarta.validation.constraints.Min;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import org.springframework.web.multipart.MultipartFile;
 import vn.edu.ptit.shoe_shop.common.enums.GenderEnum;
 import vn.edu.ptit.shoe_shop.common.enums.StatusEnum;
 
@@ -22,6 +23,8 @@ public class ProductUpdateRequestDTO {
     UUID categoryId;
 
     GenderEnum gender;
+
+    MultipartFile image;
 
     StatusEnum status;
 }

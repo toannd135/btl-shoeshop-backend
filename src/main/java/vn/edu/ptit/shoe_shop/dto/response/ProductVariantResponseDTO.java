@@ -5,6 +5,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 import vn.edu.ptit.shoe_shop.common.enums.StatusEnum;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -20,9 +21,9 @@ public class ProductVariantResponseDTO {
     UUID productVariantId;
     String sku;
     String color;
-    Double size;
+    BigDecimal size;
     Integer quantity;
-    Integer basePrice;
+    BigDecimal basePrice;
     StatusEnum status;
 
     Instant createdAt;
