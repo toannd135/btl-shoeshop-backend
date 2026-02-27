@@ -7,8 +7,10 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
 import vn.edu.ptit.shoe_shop.common.constant.TokenConstants;
 import vn.edu.ptit.shoe_shop.common.exception.BadCredentialsException;
+import vn.edu.ptit.shoe_shop.common.exception.TokenExpiredOrUsedException;
 import vn.edu.ptit.shoe_shop.common.utils.annotation.ApiMessage;
 import vn.edu.ptit.shoe_shop.dto.LoginResult;
 import vn.edu.ptit.shoe_shop.dto.request.auth.LoginRequestDTO;
@@ -52,7 +54,7 @@ public class AuthController {
                 .secure(true)
                 .path("/")
                 .maxAge(Math.toIntExact(refreshTokenExpiration))
-                .sameSite("Lax")
+                .sameSite("Strict")
                 .build();
 
         return ResponseEntity.ok()
@@ -132,4 +134,20 @@ public class AuthController {
         return ResponseEntity.ok().body("ok");
     }
 
+    @GetMapping("/verify")
+    public ModelAndView verifyAccount(@RequestParam("token") String token) {
+        try {
+            userService.verifyUser(token);
+            return new ModelAndView("registerConfirmationSuscessfully");
+        } catch (TokenExpiredOrUsedException e) {
+            // Khi refresh, token biến mất khỏi Redis -> rơi vào đây
+            // Bạn có thể coi đây là "Thành công" nhưng hiển thị lời nhắn khác
+            ModelAndView mav = new ModelAndView("registerConfirmationSuscessfully");
+            mav.addObject("message", "Tài khoản của bạn đã được xác thực trước đó.");
+            return mav;
+        } catch (Exception e) {
+            // Các lỗi thực sự khác (token bậy bạ, lỗi DB...)
+            return new ModelAndView("registerConfirmationFail");
+        }
+    }
 }

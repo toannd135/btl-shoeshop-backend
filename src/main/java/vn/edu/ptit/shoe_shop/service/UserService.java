@@ -20,4 +20,5 @@ public interface UserService {
     UserPageResponseDTO search(UserSearchRequestDTO request, Pageable pageable);
     User getUserByUsernameOrEmail(String username);
     String register(RegisterRequestDTO registerRequestDTO);
+    String verifyUser(String token);
 }
