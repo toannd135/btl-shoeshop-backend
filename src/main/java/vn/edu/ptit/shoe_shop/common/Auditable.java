@@ -4,22 +4,22 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import vn.edu.ptit.shoe_shop.common.enums.StatusEnum;
-import vn.edu.ptit.shoe_shop.entity.User;
+import vn.edu.ptit.shoe_shop.common.utils.security.SecurityUtils;
 
+import java.io.Serializable;
 import java.time.Instant;
+import java.util.UUID;
 
 @MappedSuperclass
 @Getter
 @Setter
-public abstract class Auditable {
+public abstract class Auditable implements Serializable {
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "created_by", updatable = false)
-    protected User createdBy;
+    @Column(name = "created_by", updatable = false)
+    protected UUID createdBy;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "updated_by")
-    protected User updatedBy;
+    @Column(name = "updated_by")
+    protected UUID updatedBy;
 
     @Column(updatable = false)
     protected Instant createdAt;
@@ -28,21 +28,25 @@ public abstract class Auditable {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    StatusEnum status ;
+    protected StatusEnum status;
 
     @PrePersist
     protected void onCreate() {
+        UUID userId = SecurityUtils.getCurrentUserId();
+
+        this.createdBy = userId;
+        this.updatedBy = userId;
+        this.createdAt = Instant.now();
+        this.updatedAt = Instant.now();
 
         if (status == null) {
             status = StatusEnum.ACTIVE;
         }
-        this.createdAt = Instant.now();
-        this.updatedAt = Instant.now();
     }
 
     @PreUpdate
     protected void onUpdate() {
+        this.updatedBy = SecurityUtils.getCurrentUserId();
         this.updatedAt = Instant.now();
     }
 }
-

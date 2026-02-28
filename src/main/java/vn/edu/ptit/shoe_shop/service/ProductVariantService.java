@@ -5,6 +5,10 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import vn.edu.ptit.shoe_shop.dto.request.ProductVariantCreateRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.request.ProductVariantUpdateRequestDTO;
@@ -27,6 +31,10 @@ public class ProductVariantService {
     ProductVariantRepository productVariantRepository;
     ProductRepository productRepository;
 
+    @Cacheable(
+            value = "productVariants",
+            key = "#productId + '_' + #variantId"
+    )
     public ProductVariantResponseDTO getProductVariant(UUID productId, UUID variantId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with productId: " + productId));
@@ -47,7 +55,20 @@ public class ProductVariantService {
                 .toList();
     }
 
-
+    @Caching(
+            put = {
+                    @CachePut(
+                            value = "productVariants",
+                            key = "#productId + '_' + #variantId"
+                    )
+            },
+            evict = {
+                    @CacheEvict(
+                            value = "productVariants",
+                            key = "'product_' + #productId"
+                    )
+            }
+    )
     public ProductVariantResponseDTO updateProductVariant(UUID productId,
                                                           UUID variantId,
                                                           ProductVariantUpdateRequestDTO request) {
@@ -81,7 +102,16 @@ public class ProductVariantService {
 
         return toResponse(variant);
     }
-
+    @Caching(evict = {
+            @CacheEvict(
+                    value = "productVariants",
+                    key = "#productId + '_' + #variantId"
+            ),
+            @CacheEvict(
+                    value = "productVariants",
+                    key = "'product_' + #productId"
+            )
+    })
     public void deleteProductVariant(UUID productId, UUID variantId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with productId: " + productId));
@@ -93,6 +123,20 @@ public class ProductVariantService {
         productVariantRepository.delete(variant);
     }
 
+    @Caching(
+            put = {
+                    @CachePut(
+                            value = "productVariants",
+                            key = "#result.productId + '_' + #result.productVariantId"
+                    )
+            },
+            evict = {
+                    @CacheEvict(
+                            value = "productVariants",
+                            key = "'product_' + #result.productId"
+                    )
+            }
+    )
     public ProductVariantResponseDTO addProductVariant(UUID productId, ProductVariantCreateRequestDTO request) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() ->

@@ -6,9 +6,11 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 @Component
@@ -49,5 +51,14 @@ public class SecurityUtils {
         return authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority);
     }
 
+    public static UUID getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !(authentication.getPrincipal() instanceof Jwt jwt)) {
+            return null;
+        }
+
+        return UUID.fromString(jwt.getSubject());
+    }
 
 }

@@ -6,6 +6,7 @@ import lombok.experimental.FieldDefaults;
 import org.hibernate.annotations.JdbcTypeCode;
 import vn.edu.ptit.shoe_shop.common.Auditable;
 
+import java.io.Serializable;
 import java.sql.Types;
 import java.util.Set;
 import java.util.UUID;
@@ -29,7 +30,7 @@ public class Category extends Auditable {
     @Column(nullable = false, unique = true)
     String categoryName;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
     Category parent;
 
