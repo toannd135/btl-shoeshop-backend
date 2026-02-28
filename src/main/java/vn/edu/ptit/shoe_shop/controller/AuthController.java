@@ -1,4 +1,5 @@
 package vn.edu.ptit.shoe_shop.controller;
+
 import jakarta.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -76,9 +77,9 @@ public class AuthController {
         if (refreshToken.equals(TokenConstants.FAKE_TOKEN)) {
             throw new BadCredentialsException("Invalid refresh token");
         }
-//        if (refreshToken == null) {
-//            throw new BadCredentialsException("Refresh token missing");
-//        }
+        // if (refreshToken == null) {
+        // throw new BadCredentialsException("Refresh token missing");
+        // }
         String accessToken = null;
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
             accessToken = bearerToken.substring(7);
@@ -111,7 +112,7 @@ public class AuthController {
             @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String bearerToken,
             @CookieValue(value = TokenConstants.REFRESH_TOKEN, required = false) String refreshToken) {
 
-        if(!StringUtils.hasText(bearerToken) || !bearerToken.startsWith("Bearer ")){
+        if (!StringUtils.hasText(bearerToken) || !bearerToken.startsWith("Bearer ")) {
             throw new BadCredentialsException("Missing or invalid Authorization header");
         }
         String accessToken = bearerToken.substring(7);
@@ -133,9 +134,11 @@ public class AuthController {
 
     @PostMapping("/register")
     @ApiMessage("Register successful")
-    public ResponseEntity<String> register(@Valid @RequestBody RegisterRequestDTO registerRequestDTO){
+    public ResponseEntity<Map<String, String>> register(@Valid @RequestBody RegisterRequestDTO registerRequestDTO) {
         String newUser = this.userService.register(registerRequestDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
+        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
+                "message", "Registration successful",
+                "user", newUser));
     }
 
     @GetMapping("/verify")
