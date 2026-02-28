@@ -101,6 +101,9 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Order> listOrder = new ArrayList<>();
 
+    @OneToMany(mappedBy = "user",  fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<Address> addresses;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     @JsonIgnore
@@ -285,5 +288,13 @@ public class User {
 
     public void setProvider(ProviderEnum provider) {
         this.provider = provider;
+    }
+
+    public List<Address> getAddresses() {
+        return addresses;
+    }
+
+    public void setAddresses(List<Address> addresses) {
+        this.addresses = addresses;
     }
 }

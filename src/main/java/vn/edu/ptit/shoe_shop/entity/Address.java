@@ -58,11 +58,13 @@ public class Address implements Serializable {
     @Column(name = "updatedBy")
     private String updatedBy;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @PrePersist
     public void handleBeforeCreate() {
-        // thieu created by theo email hoac userid
-
+        this.createdBy = String.valueOf(user.getUserId());
         this.createdAt = Instant.now();
         this.updatedAt = this.createdAt;
         if (this.status == null) {
