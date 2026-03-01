@@ -123,9 +123,6 @@ public class User {
         this.createdBy = String.valueOf(this.userId);
         this.createdAt = Instant.now();
         this.updatedAt = this.createdAt;
-        if (this.status == null) {
-            this.status = StatusEnum.ACTIVE;
-        }
     }
 
     @PreUpdate

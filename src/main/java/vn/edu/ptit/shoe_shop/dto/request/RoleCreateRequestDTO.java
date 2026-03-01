@@ -8,7 +8,7 @@ import java.util.UUID;
 public class RoleCreateRequestDTO {
     private String name;
     private String code;
-
+    private String status;
     private List<PermissionRoleCreateRequestDTO> permissions;
 
     @Getter

@@ -6,7 +6,6 @@ import lombok.Getter;
 
 @Getter
 public class RoleUpdateRequestDTO {
-    private String description;
     private String status;
 
     private List<RolePermissionUpdateRequestDTO> permissions;

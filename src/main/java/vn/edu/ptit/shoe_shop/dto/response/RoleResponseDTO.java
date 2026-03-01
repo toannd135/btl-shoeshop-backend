@@ -12,7 +12,6 @@ public class RoleResponseDTO {
     private String name;
     private String code;
     private String status;
-    private String description;
     private String createdAt;
     private String updatedAt;
 
