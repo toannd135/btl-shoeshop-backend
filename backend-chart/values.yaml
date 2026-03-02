@@ -55,8 +55,10 @@ healthCheck:
 
 redis:
   enabled: true
-  image: 
-    tag: "7.2"
+  image:
+    repository: redis        # Chuyển sang dùng Official image cho ổn định
+    tag: "7.2"               # Bản này chắc chắn có /bin/bash
+    pullPolicy: IfNotPresent
   architecture: standalone
   auth:
     enabled: true
