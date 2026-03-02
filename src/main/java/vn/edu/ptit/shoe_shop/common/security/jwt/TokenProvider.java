@@ -1,4 +1,4 @@
-package vn.edu.ptit.shoe_shop.common.utils.security.jwt;
+package vn.edu.ptit.shoe_shop.common.security.jwt;
 
 import com.nimbusds.jose.util.Base64;
 import org.slf4j.Logger;
@@ -13,7 +13,7 @@ import vn.edu.ptit.shoe_shop.common.constant.JwtConstants;
 import vn.edu.ptit.shoe_shop.common.constant.TokenConstants;
 import vn.edu.ptit.shoe_shop.common.enums.ProviderEnum;
 import vn.edu.ptit.shoe_shop.entity.User;
-import vn.edu.ptit.shoe_shop.service.CustomUserDetail;
+import vn.edu.ptit.shoe_shop.common.security.service.CustomUserDetail;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;

@@ -13,8 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import vn.edu.ptit.shoe_shop.common.constant.JwtConstants;
 import vn.edu.ptit.shoe_shop.common.exception.BadCredentialsException;
 import vn.edu.ptit.shoe_shop.common.exception.IdInvalidException;
-import vn.edu.ptit.shoe_shop.common.utils.security.SecurityUtils;
-import vn.edu.ptit.shoe_shop.common.utils.security.jwt.TokenProvider;
+import vn.edu.ptit.shoe_shop.common.security.jwt.TokenProvider;
 import vn.edu.ptit.shoe_shop.dto.LoginResult;
 import vn.edu.ptit.shoe_shop.dto.request.auth.LoginRequestDTO;
 import vn.edu.ptit.shoe_shop.entity.RefreshToken;
@@ -22,7 +21,7 @@ import vn.edu.ptit.shoe_shop.entity.User;
 import vn.edu.ptit.shoe_shop.repository.RefreshTokenRepository;
 import vn.edu.ptit.shoe_shop.repository.UserRepository;
 import vn.edu.ptit.shoe_shop.service.AuthService;
-import vn.edu.ptit.shoe_shop.service.CustomUserDetail;
+import vn.edu.ptit.shoe_shop.common.security.service.CustomUserDetail;
 import vn.edu.ptit.shoe_shop.service.RedisService;
 
 import java.time.Duration;

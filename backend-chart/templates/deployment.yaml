@@ -2,77 +2,53 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "backend-chart.fullname" . }}
-  labels:
-    {{- include "backend-chart.labels" . | nindent 4 }}
+  labels: {{ include "backend-chart.selectorLabels" . | nindent 4 }}
 spec:
-  {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
-  {{- end }}
   selector:
-    matchLabels:
-      {{- include "backend-chart.selectorLabels" . | nindent 6 }}
-  template:
+    matchLabels: {{ include "backend-chart.selectorLabels" . | nindent 6 }}
+  template: 
     metadata:
-      {{- with .Values.podAnnotations }}
-      annotations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      labels:
-        {{- include "backend-chart.labels" . | nindent 8 }}
-        {{- with .Values.podLabels }}
-        {{- toYaml . | nindent 8 }}
-        {{- end }}
+      labels: {{ include "backend-chart.selectorLabels" . | nindent 8 }}
     spec:
-      {{- with .Values.imagePullSecrets }}
-      imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      serviceAccountName: {{ include "backend-chart.serviceAccountName" . }}
-      {{- with .Values.podSecurityContext }}
-      securityContext:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
       containers:
-        - name: {{ .Chart.Name }}
-          {{- with .Values.securityContext }}
-          securityContext:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
-          ports:
-            - name: http
-              containerPort: {{ .Values.service.port }}
-              protocol: TCP
-          {{- with .Values.livenessProbe }}
-          livenessProbe:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-          {{- with .Values.readinessProbe }}
-          readinessProbe:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-          {{- with .Values.resources }}
-          resources:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-          {{- with .Values.volumeMounts }}
-          volumeMounts:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-      {{- with .Values.volumes }}
+      - name: {{ .Chart.Name }}
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        envFrom:
+        - secretRef:
+            name: {{ include "backend-chart.fullname" . }}-database-connection 
+
+        ports:
+          - containerPort: 8080
+            name: {{ .Values.service.name  }}
+
+        {{- if .Values.healthCheck.enable }}
+        livenessProbe: {{- toYaml .Values.healthCheck.livenessProbe  | nindent 12 }}
+        readinessProbe: {{- toYaml .Values.healthCheck.readinessProbe  | nindent 12 }}
+        {{- end }}
+
+        resources: {{- toYaml .Values.resources | nindent 12 }}
+
+
+        volumeMounts:
+        - name: application-config-volume
+          mountPath: /run/config/application.yaml
+          subPath: application.yaml
+
       volumes:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+      - name: application-config-volume
+        configMap: 
+          name: {{ include "backend-chart.fullname" . }}-configmap
+
       {{- with .Values.nodeSelector }}
-      nodeSelector:
-        {{- toYaml . | nindent 8 }}
+      nodeSelector: {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.affinity }}
-      affinity:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+
       {{- with .Values.tolerations }}
-      tolerations:
-        {{- toYaml . | nindent 8 }}
+      tolerations: {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      {{- with .Values.affinity }}
+      affinity: {{- toYaml . | nindent 8 }}
       {{- end }}

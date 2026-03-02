@@ -16,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import vn.edu.ptit.shoe_shop.common.constant.TokenConstants;
 import vn.edu.ptit.shoe_shop.common.enums.ProviderEnum;
 import vn.edu.ptit.shoe_shop.common.exception.IdInvalidException;
-import vn.edu.ptit.shoe_shop.common.utils.security.jwt.TokenProvider;
+import vn.edu.ptit.shoe_shop.common.security.jwt.TokenProvider;
 import vn.edu.ptit.shoe_shop.entity.Role;
 import vn.edu.ptit.shoe_shop.entity.User;
 import vn.edu.ptit.shoe_shop.repository.RoleRepository;

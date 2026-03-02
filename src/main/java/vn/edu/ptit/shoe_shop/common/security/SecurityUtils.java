@@ -1,4 +1,4 @@
-package vn.edu.ptit.shoe_shop.common.utils.security;
+package vn.edu.ptit.shoe_shop.common.security;
 
 
 import org.springframework.security.core.Authentication;

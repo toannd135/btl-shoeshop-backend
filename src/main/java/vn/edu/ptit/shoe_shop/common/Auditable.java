@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import vn.edu.ptit.shoe_shop.common.enums.StatusEnum;
-import vn.edu.ptit.shoe_shop.common.utils.security.SecurityUtils;
+import vn.edu.ptit.shoe_shop.common.security.SecurityUtils;
 
 import java.io.Serializable;
 import java.time.Instant;
