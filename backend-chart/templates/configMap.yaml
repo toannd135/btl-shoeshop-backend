@@ -9,13 +9,16 @@ data:
       port: 8080
 
     management:
-    endpoints:
-      web:
-        exposure:
-          include: health, info
-    endpoint:
+      endpoints:
+        web:
+          exposure:
+            include: health, info
+      endpoint:
+        health:
+          show-details: always
       health:
-        show-details: always
+        redis:
+          enabled: false
 
     spring:
       application:
