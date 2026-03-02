@@ -8,7 +8,7 @@ image:
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""  
-resources: {}
+
 
 
 service:
@@ -42,17 +42,21 @@ healthCheck:
     httpGet:
       path: /actuator/health
       port: 8080
+      scheme: HTTPS
     initialDelaySeconds: 200
     periodSeconds: 5
   readinessProbe:
     httpGet:
       path: /actuator/health
       port: 8080
+      scheme: HTTPS
     initialDelaySeconds: 150
     periodSeconds: 10
 
 redis:
   enabled: true
+  image: 
+    tag: "7.2"
   architecture: standalone
   auth:
     enabled: true
