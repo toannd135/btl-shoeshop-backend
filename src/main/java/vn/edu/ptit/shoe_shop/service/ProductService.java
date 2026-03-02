@@ -4,16 +4,16 @@ import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import vn.edu.ptit.shoe_shop.dto.request.ProductCreateRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.request.ProductUpdateRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.response.ProductResponseDTO;
@@ -29,8 +29,12 @@ import vn.edu.ptit.shoe_shop.service.Cloudinary.UploadImageFile;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -40,12 +44,8 @@ public class ProductService {
     ProductRepository productRepository;
     CategoryRepository categoryRepository;
     UploadImageFile uploadImageFile;
+    RedisTemplate<String, Object> redisTemplate;
 
-    @Caching(evict = {
-            @CacheEvict(value = "products", allEntries = true),
-            @CacheEvict(value = "products_page", allEntries = true),
-            @CacheEvict(value = "product_search", allEntries = true)
-    })
     public ProductResponseDTO create(ProductCreateRequestDTO request) throws IOException {
         Category category = null;
         if (request.getCategoryId() != null) {
@@ -68,16 +68,11 @@ public class ProductService {
         }
         Product savedProduct = productRepository.save(product);
 
+        invalidateProductCache(savedProduct.getProductId());
+
         return toResponse(savedProduct);
     }
 
-    @Caching(
-            put = @CachePut(value = "products", key = "#id"),
-            evict = {
-                    @CacheEvict(value = "products_page", allEntries = true),
-                    @CacheEvict(value = "product_search", allEntries = true)
-            }
-    )
     public ProductResponseDTO update(UUID id, ProductUpdateRequestDTO request) throws IOException {
         Product product = productRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Product not found"));
@@ -106,25 +101,44 @@ public class ProductService {
             product.setStatus(request.getStatus());
         }
         Product saved = productRepository.save(product);
+        invalidateProductCache(saved.getProductId());
         return toResponse(saved);
     }
 
-    @Caching(evict = {
-            @CacheEvict(value = "products", key = "#id"),
-            @CacheEvict(value = "products_page", allEntries = true),
-            @CacheEvict(value = "product_search", allEntries = true)
-    })
+
     public void delete(UUID id) {
         Product product = productRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Product not found"));
         productRepository.delete(product);
+        invalidateProductCache(id);
     }
 
-    @Cacheable(value = "products", key = "#id")
     public ProductResponseDTO getById(UUID id) {
-        Product product = productRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("Product not found"));
-        return toResponse(product);
+
+        String cacheKey = "products::" + id;
+
+        // 1. Check cache
+        ProductResponseDTO cached =
+                (ProductResponseDTO) redisTemplate.opsForValue().get(cacheKey);
+
+        if (cached != null) {
+            return cached;
+        }
+
+        // 2. Query DB
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+
+        ProductResponseDTO response = toResponse(product);
+
+        // 3. Set cache
+        redisTemplate.opsForValue().set(
+                cacheKey,
+                response,
+                randomTtl(Duration.ofMinutes(10))
+        );
+
+        return response;
     }
 
     public List<ProductResponseDTO> getAll() {
@@ -135,19 +149,6 @@ public class ProductService {
 
     }
 
-    @Cacheable(
-            value = "product_search",
-            key = "T(String).format('%s-%s-%s-%s-%s-%s-%s-%s',"
-                    + "#keyword ?: '',"
-                    + "#minPrice ?: 0,"
-                    + "#maxPrice ?: 0,"
-                    + "#sizes ?: '[]',"
-                    + "#colors ?: '[]',"
-                    + "#pageable.pageNumber,"
-                    + "#pageable.pageSize,"
-                    + "(#pageable.sort.isUnsorted() ? 'default' : #pageable.sort.toString()))",
-            unless = "#result.items.isEmpty()"
-    )
     public ProductPageResponseDTO search(
             String keyword,
             BigDecimal minPrice,
@@ -161,7 +162,34 @@ public class ProductService {
             int pageNum = (pageable == null) ? 0 : pageable.getPageNumber();
             pageable = PageRequest.of(pageNum, 5);
         }
+        List<BigDecimal> sortedSizes = sizes == null ? List.of() :
+                sizes.stream().sorted().toList();
 
+        List<String> sortedColors = colors == null ? List.of() :
+                colors.stream().sorted().toList();
+
+        String cacheKey = String.format("%s-%s-%s-%s-%s-%s-%s-%s",
+                keyword != null ? keyword : "",
+                minPrice != null ? minPrice : 0,
+                maxPrice != null ? maxPrice : 0,
+                sortedSizes,
+                sortedColors,
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                pageable.getSort().isUnsorted()
+                        ? "default"
+                        : pageable.getSort().toString()
+        );
+
+        String redisKey = "product_search::" + cacheKey;
+
+        // 1. TRY CACHE
+        ProductPageResponseDTO cached =
+                (ProductPageResponseDTO) redisTemplate.opsForValue().get(redisKey);
+
+        if (cached != null) {
+            return cached;
+        }
         Specification<Product> spec = Specification.allOf(
                 ProductSpecs.keyword(keyword),
                 ProductSpecs.priceBetween(minPrice, maxPrice),
@@ -183,22 +211,42 @@ public class ProductService {
         response.setTotal(page.getTotalElements());
         response.setPages(page.getTotalPages());
 
+        // 3. SET CACHE
+        if (!response.getItems().isEmpty()) {
+
+            redisTemplate.opsForValue().set(
+                    redisKey,
+                    response,
+                    randomTtl(Duration.ofMinutes(5))
+            );
+
+            redisTemplate.opsForSet()
+                    .add("product_search:index", redisKey);
+        }
+
         return response;
     }
 
-    @Cacheable(
-            value = "products_page",
-            key = "#pageable != null ? " +
-                    "#pageable.pageNumber + '-' + " +
-                    "#pageable.pageSize + '-' + " +
-                    "(#pageable.sort.isUnsorted() ? 'default' : #pageable.sort) : " +
-                    "'0-10-default'",
-            unless = "#result.items.isEmpty()"
-    )
     public ProductPageResponseDTO getPage(Pageable pageable) {
 
         Pageable pageableToUse = normalizePageable(pageable);
 
+        String cacheKey =
+                pageableToUse.getPageNumber() + "-" +
+                        pageableToUse.getPageSize() + "-" +
+                        (pageableToUse.getSort().isUnsorted()
+                                ? "default"
+                                : pageableToUse.getSort().toString());
+
+        String redisKey = "products_page::" + cacheKey;
+
+        // 1. TRY CACHE
+        ProductPageResponseDTO cached =
+                (ProductPageResponseDTO) redisTemplate.opsForValue().get(redisKey);
+
+        if (cached != null) {
+            return cached;
+        }
         Page<Product> page = productRepository.findAll(pageableToUse);
 
         List<ProductResponseDTO> items = page.getContent()
@@ -212,6 +260,19 @@ public class ProductService {
         response.setPageSize(page.getSize());
         response.setTotal(page.getTotalElements());
         response.setPages(page.getTotalPages());
+
+        // 3. SET CACHE TTL SO LE
+        if (!response.getItems().isEmpty()) {
+
+            redisTemplate.opsForValue().set(
+                    redisKey,
+                    response,
+                    randomTtl(Duration.ofMinutes(10))
+            );
+
+            redisTemplate.opsForSet()
+                    .add("products_page:index", redisKey);
+        }
         return response;
     }
 
@@ -232,6 +293,54 @@ public class ProductService {
 
         return PageRequest.of(page, size, sort);
     }
+
+    private void invalidateProductCache(UUID productId) {
+
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+
+                        // 1. xóa cache chi tiết
+                        redisTemplate.delete("products::" + productId);
+
+                        // 2. xóa page cache
+                        Set<Object> pageKeys =
+                                redisTemplate.opsForSet().members("products_page:index");
+
+                        if (pageKeys != null && !pageKeys.isEmpty()) {
+                            redisTemplate.delete(
+                                    pageKeys.stream()
+                                            .map(Object::toString)
+                                            .collect(Collectors.toSet())
+                            );
+                        }
+
+                        redisTemplate.delete("products_page:index");
+
+                        // 3. xóa search cache
+                        Set<Object> searchKeys =
+                                redisTemplate.opsForSet().members("product_search:index");
+
+                        if (searchKeys != null && !searchKeys.isEmpty()) {
+                            redisTemplate.delete(
+                                    searchKeys.stream()
+                                            .map(Object::toString)
+                                            .collect(Collectors.toSet())
+                            );
+                        }
+
+                        redisTemplate.delete("product_search:index");
+                    }
+                }
+        );
+    }
+
+    private Duration randomTtl(Duration time) {
+        long jitter = ThreadLocalRandom.current().nextLong(30, 180);
+        return time.plusSeconds(jitter);
+    }
+
     private ProductResponseDTO toResponse(Product product) {
         return ProductResponseDTO.builder()
                 .productId(product.getProductId())

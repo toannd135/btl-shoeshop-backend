@@ -4,11 +4,7 @@ import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.Caching;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import vn.edu.ptit.shoe_shop.dto.request.ProductVariantCreateRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.request.ProductVariantUpdateRequestDTO;
@@ -20,8 +16,10 @@ import vn.edu.ptit.shoe_shop.common.exception.ResourceNotFoundException;
 import vn.edu.ptit.shoe_shop.repository.ProductRepository;
 import vn.edu.ptit.shoe_shop.repository.ProductVariantRepository;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 @Transactional
@@ -30,45 +28,69 @@ import java.util.UUID;
 public class ProductVariantService {
     ProductVariantRepository productVariantRepository;
     ProductRepository productRepository;
+    RedisTemplate<String, Object> redisTemplate;
 
-    @Cacheable(
-            value = "productVariants",
-            key = "#productId + '_' + #variantId"
-    )
     public ProductVariantResponseDTO getProductVariant(UUID productId, UUID variantId) {
+
+        String key = variantKey(productId, variantId);
+
+        Object cached = redisTemplate.opsForValue().get(key);
+
+        if (cached != null) {
+            if (NULL_MARKER.equals(cached)) {
+                throw new ResourceNotFoundException("ProductVariant not found");
+            }
+            return (ProductVariantResponseDTO) cached;
+        }
+
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found with productId: " + productId));
-        ;
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+
         ProductVariant variant = productVariantRepository
                 .findByProductVariantIdAndProduct(variantId, product)
-                .orElseThrow(() -> new ResourceNotFoundException("ProductVariant not found with variantId: " + variantId));
+                .orElseThrow(() -> {
+                    redisTemplate.opsForValue().set(key, NULL_MARKER, NULL_TTL);
+                    return new ResourceNotFoundException("ProductVariant not found");
+                });
 
-        return toResponse(variant);
+        ProductVariantResponseDTO response = toResponse(variant);
+
+        redisTemplate.opsForValue().set(key, response, randomTtl(VARIANT_TTL));
+
+        return response;
     }
 
     public List<ProductVariantResponseDTO> getAllProductVariant(UUID productId) {
+
+        String listKey = variantListKey(productId);
+
+        Object cached = redisTemplate.opsForValue().get(listKey);
+
+        if (cached != null) {
+            @SuppressWarnings("unchecked")
+            List<ProductVariantResponseDTO> result =
+                    (List<ProductVariantResponseDTO>) cached;
+            return result;
+        }
+
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + productId));
-        List<ProductVariant> variants = productVariantRepository.findByProduct(product);
-        return variants.stream()
-                .map(this::toResponse)
-                .toList();
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+
+        List<ProductVariantResponseDTO> result =
+                productVariantRepository.findByProduct(product)
+                        .stream()
+                        .map(this::toResponse)
+                        .toList();
+
+        redisTemplate.opsForValue().set(
+                listKey,
+                result,
+                randomTtl(VARIANT_TTL)
+        );
+
+        return result;
     }
 
-    @Caching(
-            put = {
-                    @CachePut(
-                            value = "productVariants",
-                            key = "#productId + '_' + #variantId"
-                    )
-            },
-            evict = {
-                    @CacheEvict(
-                            value = "productVariants",
-                            key = "'product_' + #productId"
-                    )
-            }
-    )
     public ProductVariantResponseDTO updateProductVariant(UUID productId,
                                                           UUID variantId,
                                                           ProductVariantUpdateRequestDTO request) {
@@ -100,18 +122,17 @@ public class ProductVariantService {
         }
         productVariantRepository.save(variant);
 
-        return toResponse(variant);
+        ProductVariantResponseDTO response = toResponse(variant);
+
+        redisTemplate.opsForValue().set(
+                variantKey(productId, variantId),
+                response,
+                randomTtl(VARIANT_TTL)
+        );
+        redisTemplate.delete(variantListKey(productId));
+        return response;
     }
-    @Caching(evict = {
-            @CacheEvict(
-                    value = "productVariants",
-                    key = "#productId + '_' + #variantId"
-            ),
-            @CacheEvict(
-                    value = "productVariants",
-                    key = "'product_' + #productId"
-            )
-    })
+
     public void deleteProductVariant(UUID productId, UUID variantId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with productId: " + productId));
@@ -121,22 +142,11 @@ public class ProductVariantService {
                         "ProductVariant not found for product with variantId: " + variantId
                 ));
         productVariantRepository.delete(variant);
+
+        redisTemplate.delete("productVariants::" + productId + "_" + variantId);
+        redisTemplate.delete(variantListKey(productId));
     }
 
-    @Caching(
-            put = {
-                    @CachePut(
-                            value = "productVariants",
-                            key = "#result.productId + '_' + #result.productVariantId"
-                    )
-            },
-            evict = {
-                    @CacheEvict(
-                            value = "productVariants",
-                            key = "'product_' + #result.productId"
-                    )
-            }
-    )
     public ProductVariantResponseDTO addProductVariant(UUID productId, ProductVariantCreateRequestDTO request) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() ->
@@ -157,10 +167,28 @@ public class ProductVariantService {
             variant.setStatus(request.getStatus());
         }
         productVariantRepository.save(variant);
+        // xóa list cache
+        redisTemplate.delete(variantListKey(productId));
 
+        // xóa null cache
+        redisTemplate.delete(variantKey(productId, variant.getProductVariantId()));
         return toResponse(variant);
     }
 
+    private static final Duration VARIANT_TTL = Duration.ofMinutes(2);
+    private static final String NULL_MARKER = "NULL";
+    private static final Duration NULL_TTL = Duration.ofSeconds(30);
+    private Duration randomTtl(Duration base) {
+        long jitter = ThreadLocalRandom.current().nextLong(30, 120);
+        return base.plusSeconds(jitter);
+    }
+    private String variantKey(UUID productId, UUID variantId) {
+        return "productVariants::" + productId + "_" + variantId;
+    }
+
+    private String variantListKey(UUID productId) {
+        return "productVariants::product_" + productId;
+    }
     private ProductVariantResponseDTO toResponse(ProductVariant productVariant) {
         return ProductVariantResponseDTO.builder()
                 .productId(productVariant.getProduct().getProductId())

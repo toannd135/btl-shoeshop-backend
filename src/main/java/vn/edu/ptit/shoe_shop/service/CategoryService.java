@@ -29,14 +29,7 @@ public class CategoryService {
 
     CategoryRepository categoryRepository;
 
-    @Caching(
-            put = {
-                    @CachePut(value = "categories", key = "#result.categoryId")
-            },
-            evict = {
-                    @CacheEvict(value = "categories", key = "'all'")
-            }
-    )
+    @CachePut(value = "categories", key = "#result.categoryId", unless = "#result == null")
     public CategoryResponseDTO create(CategoryCreateRequestDTO request) {
 
         if (categoryRepository.existsByCategoryName(request.getCategoryName())) {
@@ -62,14 +55,7 @@ public class CategoryService {
 
         return toResponse(saved);
     }
-    @Caching(
-            put = {
-                    @CachePut(value = "categories", key = "#id")
-            },
-            evict = {
-                    @CacheEvict(value = "categories", key = "'all'")
-            }
-    )
+    @CachePut(value = "categories", key = "#id", unless = "#result == null")
     public CategoryResponseDTO update(UUID id, CategoryUpdateRequestDTO request) {
 
         Category category = categoryRepository.findById(id)
@@ -105,10 +91,7 @@ public class CategoryService {
         return toResponse(updated);
     }
 
-    @Caching(evict = {
-            @CacheEvict(value = "categories", key = "#id"),
-            @CacheEvict(value = "categories", key = "'all'")
-    })
+    @CacheEvict(value = "categories", key = "#id")
     public void delete(UUID id) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
@@ -122,7 +105,6 @@ public class CategoryService {
         return toResponse(category);
     }
 
-    @Cacheable(value = "categories")
     public List<CategoryResponseDTO> getAll() {
         return categoryRepository.findAll()
                 .stream()

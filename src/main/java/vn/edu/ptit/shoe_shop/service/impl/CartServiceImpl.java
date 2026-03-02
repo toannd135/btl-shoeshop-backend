@@ -11,7 +11,7 @@ import vn.edu.ptit.shoe_shop.common.enums.ProductStatusEnum;
 import vn.edu.ptit.shoe_shop.common.exception.BusinessException;
 import vn.edu.ptit.shoe_shop.common.exception.IdInvalidException;
 import vn.edu.ptit.shoe_shop.common.exception.NotFoundException;
-import vn.edu.ptit.shoe_shop.dto.mapper.CartMapper;
+import vn.edu.ptit.shoe_shop.mapper.CartMapper;
 import vn.edu.ptit.shoe_shop.dto.request.AddVariantRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.request.UpdateItemCartRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.response.ApiResponse;
