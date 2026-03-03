@@ -1,11 +1,10 @@
-package ptit.edu.vn.bookshop.dto.request.auth;
+package vn.edu.ptit.shoe_shop.dto.request.auth;
 
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
-import lombok.Setter;
 
 @Getter
 public class ResetPasswordRequestDTO {

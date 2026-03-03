@@ -1,4 +1,4 @@
-package ptit.edu.vn.bookshop.dto.request.auth;
+package vn.edu.ptit.shoe_shop.dto.request.auth;
 
 
 import jakarta.validation.constraints.*;

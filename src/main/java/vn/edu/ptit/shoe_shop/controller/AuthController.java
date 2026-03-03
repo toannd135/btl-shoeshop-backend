@@ -17,8 +17,7 @@ import vn.edu.ptit.shoe_shop.common.exception.BadCredentialsException;
 import vn.edu.ptit.shoe_shop.common.exception.TokenExpiredOrUsedException;
 import vn.edu.ptit.shoe_shop.common.utils.annotation.ApiMessage;
 import vn.edu.ptit.shoe_shop.dto.LoginResult;
-import vn.edu.ptit.shoe_shop.dto.request.auth.LoginRequestDTO;
-import vn.edu.ptit.shoe_shop.dto.request.auth.RegisterRequestDTO;
+import vn.edu.ptit.shoe_shop.dto.request.auth.*;
 import vn.edu.ptit.shoe_shop.dto.response.auth.LoginResponseDTO;
 import vn.edu.ptit.shoe_shop.service.AuthService;
 import vn.edu.ptit.shoe_shop.service.UserService;
@@ -162,4 +161,27 @@ public class AuthController {
         }
         return ResponseEntity.ok(principal.getAttributes());
     }
+
+    @PostMapping("/forgot-password")
+    @ApiMessage("Request password reset")
+    public ResponseEntity<String> forgotPassword(@Valid @RequestBody ForgotPasswordRequestDTO forgotPasswordRequestDTO) {
+        String response = this.authService.forgotPassword(forgotPasswordRequestDTO);
+        return ResponseEntity.ok().body(response);
+    }
+
+    @PostMapping("/verify-otp")
+    @ApiMessage("OTP verification")
+    public ResponseEntity<String> otpVerification(@Valid @RequestBody OtpVerificationRequestDTO request) {
+        String response = this.authService.otpVerification(request.getOtp());
+        return ResponseEntity.ok().body(response);
+
+    }
+
+    @PostMapping("/reset-password")
+    @ApiMessage("Reset password")
+    public ResponseEntity<String> resetPassword(@Valid @RequestBody ResetPasswordRequestDTO request) {
+        String response = this.authService.resetPassword(request.getNewPassword(), request.getConfirmNewPassword(), request.getResetToken());
+        return ResponseEntity.ok().body(response);
+    }
+
 }

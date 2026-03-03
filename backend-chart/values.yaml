@@ -1,4 +1,4 @@
-replicaCount: 3
+replicaCount: 2
 
 image:
   repository: toannd135/shoeshop-backend
@@ -7,17 +7,16 @@ image:
 
 imagePullSecrets: []
 nameOverride: ""
-fullnameOverride: ""  
-resources: {}
+fullnameOverride: ""
 
 
 service:
-  port: 80 
-  targetPort: 8080 
+  port: 80
+  targetPort: 8080
   type: LoadBalancer
 
 secret:
-  dbHost: db-shoeshop-database-chart
+  dbHost: argocd-database-database-chart
   dbPort: "3306"
   dbName: "shoeshop"
   dbUsername: "dbshoeshop"
@@ -52,22 +51,9 @@ healthCheck:
     periodSeconds: 5
 
 redis:
-  enabled: true
-  architecture: standalone
-  auth:
-    enabled: true
-    password: "123456"
-  
-  master:
-    resources:
-      requests:
-        cpu: 100m
-        memory: 128Mi
-      limits:
-        cpu: 200m
-        memory: 256Mi 
+  enabled: false
 
-    persistence:
-      enabled: true
-      size: 1Gi 
-      storageClass: "standard"
+externalRedis:
+  host: "argocd-redis-master"
+  port: 6379
+  password: "123456"

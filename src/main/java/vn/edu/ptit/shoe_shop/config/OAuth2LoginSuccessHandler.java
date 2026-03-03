@@ -17,14 +17,17 @@ import vn.edu.ptit.shoe_shop.common.constant.TokenConstants;
 import vn.edu.ptit.shoe_shop.common.enums.ProviderEnum;
 import vn.edu.ptit.shoe_shop.common.exception.IdInvalidException;
 import vn.edu.ptit.shoe_shop.common.security.jwt.TokenProvider;
+import vn.edu.ptit.shoe_shop.entity.RefreshToken;
 import vn.edu.ptit.shoe_shop.entity.Role;
 import vn.edu.ptit.shoe_shop.entity.User;
+import vn.edu.ptit.shoe_shop.repository.RefreshTokenRepository;
 import vn.edu.ptit.shoe_shop.repository.RoleRepository;
 import vn.edu.ptit.shoe_shop.repository.UserRepository;
 import vn.edu.ptit.shoe_shop.service.RedisService;
 import vn.edu.ptit.shoe_shop.service.UserService;
 
 import java.io.IOException;
+import java.time.Instant;
 
 
 @Component
@@ -35,14 +38,16 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final UserService userService;
+    private final RefreshTokenRepository refreshTokenRepository;
     public OAuth2LoginSuccessHandler(@Lazy TokenProvider tokenProvider, RedisService redisService,
-                                    UserRepository userRepository, RoleRepository roleRepository,
-                                    UserService userService) {
+                                     UserRepository userRepository, RoleRepository roleRepository,
+                                     UserService userService, RefreshTokenRepository refreshTokenRepository, RefreshTokenRepository refreshTokenRepository1) {
         this.tokenProvider = tokenProvider;
         this.redisService = redisService;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.userService = userService;
+        this.refreshTokenRepository = refreshTokenRepository1;
     }
 
     @Value("${app.jwt.access-token-validity-in-seconds}")
@@ -57,44 +62,78 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
 
                                         Authentication authentication) throws IOException, ServletException {
 
-        OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
-        String email = oAuth2User.getAttribute("email");
-        User user = this.userRepository.findByEmail(email).orElseGet(User::new);
+        try {
+            OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
+            String email = oAuth2User.getAttribute("email");
+            User user = this.userRepository.findByEmail(email).orElse(null);
 
-        user.setEmail(email);
-        user.setFirstName(oAuth2User.getAttribute("given_name"));
-        user.setLastName(oAuth2User.getAttribute("family_name"));
-        user.setAvatarImage(oAuth2User.getAttribute("picture"));
-        user.setProvider(ProviderEnum.GOOGLE);
-        String username = email.split("@")[0];
-        user.setUsername(username);
-        Role role = this.roleRepository.findByCode("ROLE_USER")
-                .orElseThrow(() -> new IdInvalidException("role not found"));
-        user.setRole(role);
+            if (user == null) {
+                user = new User();
+                user.setEmail(email);
 
-        this.userRepository.save(user);
+                String givenName = oAuth2User.getAttribute("given_name");
+                String familyName = oAuth2User.getAttribute("family_name");
+                String name = oAuth2User.getAttribute("name");
 
-        String accessToken = this.tokenProvider.createAccessTokenForOAuth2(user, oAuth2User, "google_oauth2");
-        String refreshToken = this.tokenProvider.createRefreshTokenForOAuth2(user, oAuth2User, "google_oauth2");
+                if (givenName != null) {
+                    user.setFirstName(givenName);
+                } else {
+                    user.setFirstName(name != null ? name : "Google");
+                }
+                user.setLastName(familyName != null ? familyName : "");
 
-        Jwt decodeToken = this.tokenProvider.checkValidRefreshToken(refreshToken);
-        String jtiFromRefreshToken = decodeToken.getId();
+                user.setAvatarImage(oAuth2User.getAttribute("picture"));
+                user.setProvider(ProviderEnum.GOOGLE);
 
-        this.redisService.storeRefreshToken(user.getUserId(), "google_oauth2", jtiFromRefreshToken);
+                String username = email.split("@")[0];
+                user.setUsername(username);
+                user.setPassword("GOOGLE_SSO_ACCOUNT");
 
-        ResponseCookie refreshTokenCookie = ResponseCookie.from(TokenConstants.REFRESH_TOKEN, refreshToken)
-                .httpOnly(true)
-                .secure(true)
-                .path("/")
-                .maxAge(Math.toIntExact(refreshTokenExpiration))
-                .sameSite("Strict")
-                .build();
+                Role role = this.roleRepository.findByCode("ROLE_USER")
+                        .orElseThrow(() -> new IdInvalidException("role not found"));
+                user.setRole(role);
+                user.setStatus(vn.edu.ptit.shoe_shop.common.enums.StatusEnum.ACTIVE);
 
-        response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
+                user = this.userRepository.save(user);
+            } else {
+                user.setAvatarImage(oAuth2User.getAttribute("picture"));
+                user.setProvider(ProviderEnum.GOOGLE);
+                this.userRepository.save(user);
+            }
 
-        String targetUrl = "http://localhost:5173/oauth2/redirect?token=" + accessToken;
-        getRedirectStrategy().sendRedirect(request, response, targetUrl);
+            String accessToken = this.tokenProvider.createAccessTokenForOAuth2(user, oAuth2User, "google_oauth2");
+            String refreshToken = this.tokenProvider.createRefreshTokenForOAuth2(user, oAuth2User, "google_oauth2");
 
+            Jwt decodeToken = this.tokenProvider.checkValidRefreshToken(refreshToken);
+            String jtiFromRefreshToken = decodeToken.getId();
+
+            this.redisService.storeRefreshToken(user.getUserId(),jtiFromRefreshToken, "google_oauth2");
+
+            RefreshToken tokenEntity = this.refreshTokenRepository.findByUserUserIdAndDeviceId(user.getUserId(), "google_oauth2")
+                    .orElse(new RefreshToken());
+            tokenEntity.setToken(refreshToken);
+            tokenEntity.setExpiryDate(Instant.now().plusSeconds(refreshTokenExpiration));
+            tokenEntity.setDeviceId("google_oauth2");
+            tokenEntity.setRevoked(false);
+            tokenEntity.setUser(user);
+            this.refreshTokenRepository.save(tokenEntity);
+
+            ResponseCookie refreshTokenCookie = ResponseCookie.from(TokenConstants.REFRESH_TOKEN, refreshToken)
+                    .httpOnly(true)
+                    .secure(true)
+                    .path("/")
+                    .maxAge(Math.toIntExact(refreshTokenExpiration))
+                    .sameSite("Lax")
+                    .build();
+
+            response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
+
+            String targetUrl = "http://localhost:5173/oauth2/redirect?token=" + accessToken;
+            getRedirectStrategy().sendRedirect(request, response, targetUrl);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 }

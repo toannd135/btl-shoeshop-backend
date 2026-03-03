@@ -15,6 +15,7 @@ import vn.edu.ptit.shoe_shop.common.exception.BadCredentialsException;
 import vn.edu.ptit.shoe_shop.common.exception.IdInvalidException;
 import vn.edu.ptit.shoe_shop.common.security.jwt.TokenProvider;
 import vn.edu.ptit.shoe_shop.dto.LoginResult;
+import vn.edu.ptit.shoe_shop.dto.request.auth.ForgotPasswordRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.request.auth.LoginRequestDTO;
 import vn.edu.ptit.shoe_shop.entity.RefreshToken;
 import vn.edu.ptit.shoe_shop.entity.User;
@@ -156,6 +157,21 @@ public class AuthServiceImpl implements AuthService {
 
         // thu hoi access token
         revokeAccessToken(accessToken);
+    }
+
+    @Override
+    public String forgotPassword(ForgotPasswordRequestDTO forgotPasswordRequestDTO) {
+
+    }
+
+    @Override
+    public String otpVerification(String otp) {
+        return "";
+    }
+
+    @Override
+    public String resetPassword(String newPassword, String confirmNewPassword, String resetToken) {
+        return "";
     }
 
     private void revokeAccessToken(String accessToken) {
