@@ -35,27 +35,7 @@ resources:
     memory: "512Mi"
     cpu: "500m"
 
-healthCheck:
-  enable: true
-  livenessProbe:
-    httpGet:
-      path: /actuator/health
-      port: 8080
-      scheme: HTTPS
-    initialDelaySeconds: 200
-    periodSeconds: 20
-    successThreshold: 1
-    timeoutSeconds: 5
-  readinessProbe:
-    httpGet:
-      path: /actuator/health
-      port: 8080
-      scheme: HTTPS
-    initialDelaySeconds: 140
-    failureThreshold: 3
-    periodSeconds: 10
-    successThreshold: 1
-    timeoutSeconds: 5
+
 redis:
   enabled: false
 
@@ -64,3 +44,24 @@ externalRedis:
   port: "6379"
   password: "123456"
   timeToLive: "3000"
+
+
+healthCheck:
+  enable: true
+  livenessProbe:
+    httpGet:
+      path: /actuator/health/liveness
+      port: 8080
+      scheme: HTTP
+    initialDelaySeconds: 200
+    periodSeconds: 20
+    timeoutSeconds: 5
+
+  readinessProbe:
+    httpGet:
+      path: /actuator/health/readiness
+      port: 8080
+      scheme: HTTP
+    initialDelaySeconds: 140
+    periodSeconds: 10
+    timeoutSeconds: 5
