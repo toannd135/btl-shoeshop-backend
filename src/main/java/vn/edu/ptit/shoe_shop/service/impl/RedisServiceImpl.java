@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import vn.edu.ptit.shoe_shop.common.constant.TokenConstants;
 import vn.edu.ptit.shoe_shop.service.RedisService;
 
+import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -102,6 +103,25 @@ public class RedisServiceImpl implements RedisService {
     @Override
     public void deleteVerificationToken(String token) {
         this.redisTemplate.delete(TokenConstants.VERIFY_PREFIX + token);
+    }
+
+
+    public String generateAndSaveOTP(String email, long ttl) {
+        String otp = String.format("%06d", new Random().nextInt(999999));
+        String key = "otp:forgot-password:" + email;
+        this.redisTemplate.opsForValue().set(key, otp, 3, TimeUnit.MINUTES);
+        return otp;
+    }
+
+    @Override
+    public String getOtp(String email) {
+        String key = "otp:forgot-password:" + email;
+        return this.redisTemplate.opsForValue().get(key).toString();
+    }
+
+    @Override
+    public void deleteOtp(String otp) {
+
     }
 
     private String buildRefreshTokenKey(UUID userId, String deviceId) {

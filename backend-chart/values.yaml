@@ -56,5 +56,6 @@ redis:
 
 externalRedis:
   host: "argocd-redis-master"
-  port: 6379
+  port: "6379"
   password: "123456"
+  timeToLive: "3000"

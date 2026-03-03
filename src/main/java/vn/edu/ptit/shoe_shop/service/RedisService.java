@@ -18,4 +18,7 @@ public interface RedisService {
     void storeVerificationToken(String key, UUID userId, Long ttlSeconds);
     String getUserIdFromVerificationToken(String token);
     void deleteVerificationToken(String token);
+    String generateAndSaveOTP(String email, long ttl);
+    String getOtp(String otp);
+    void deleteOtp(String otp) ;
 }

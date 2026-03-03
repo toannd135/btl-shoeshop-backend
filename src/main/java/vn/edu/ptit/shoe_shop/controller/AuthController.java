@@ -18,6 +18,7 @@ import vn.edu.ptit.shoe_shop.common.exception.TokenExpiredOrUsedException;
 import vn.edu.ptit.shoe_shop.common.utils.annotation.ApiMessage;
 import vn.edu.ptit.shoe_shop.dto.LoginResult;
 import vn.edu.ptit.shoe_shop.dto.request.auth.*;
+import vn.edu.ptit.shoe_shop.dto.response.ForgotPasswordResponseDTO;
 import vn.edu.ptit.shoe_shop.dto.response.auth.LoginResponseDTO;
 import vn.edu.ptit.shoe_shop.service.AuthService;
 import vn.edu.ptit.shoe_shop.service.UserService;
@@ -164,8 +165,8 @@ public class AuthController {
 
     @PostMapping("/forgot-password")
     @ApiMessage("Request password reset")
-    public ResponseEntity<String> forgotPassword(@Valid @RequestBody ForgotPasswordRequestDTO forgotPasswordRequestDTO) {
-        String response = this.authService.forgotPassword(forgotPasswordRequestDTO);
+    public ResponseEntity<ForgotPasswordResponseDTO> forgotPassword(@Valid @RequestBody ForgotPasswordRequestDTO forgotPasswordRequestDTO) {
+        ForgotPasswordResponseDTO  response = this.authService.forgotPassword(forgotPasswordRequestDTO);
         return ResponseEntity.ok().body(response);
     }
 
@@ -180,7 +181,7 @@ public class AuthController {
     @PostMapping("/reset-password")
     @ApiMessage("Reset password")
     public ResponseEntity<String> resetPassword(@Valid @RequestBody ResetPasswordRequestDTO request) {
-        String response = this.authService.resetPassword(request.getNewPassword(), request.getConfirmNewPassword(), request.getResetToken());
+        String response = this.authService.resetPassword(request);
         return ResponseEntity.ok().body(response);
     }
 
