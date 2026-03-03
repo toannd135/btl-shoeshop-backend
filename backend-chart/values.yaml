@@ -7,17 +7,16 @@ image:
 
 imagePullSecrets: []
 nameOverride: ""
-fullnameOverride: ""  
-
+fullnameOverride: ""
 
 
 service:
-  port: 80 
-  targetPort: 8080 
+  port: 80
+  targetPort: 8080
   type: LoadBalancer
 
 secret:
-  dbHost: db-shoeshop-database-chart
+  dbHost: argocd-database-database-chart
   dbPort: "3306"
   dbName: "shoeshop"
   dbUsername: "dbshoeshop"
@@ -30,11 +29,11 @@ secret:
 
 resources:
   requests:
-    memory: "384Mi" 
-    cpu: "100m"         
+    memory: "256Mi"
+    cpu: "250m"
   limits:
-    memory: "768Mi" 
-    cpu: "1000m"
+    memory: "512Mi"
+    cpu: "500m"
 
 healthCheck:
   enable: true
@@ -42,38 +41,20 @@ healthCheck:
     httpGet:
       path: /actuator/health
       port: 8080
-      scheme: HTTPS
-    initialDelaySeconds: 200
-    periodSeconds: 5
+
+    initialDelaySeconds: 60
+    periodSeconds: 10
   readinessProbe:
     httpGet:
       path: /actuator/health
       port: 8080
-      scheme: HTTPS
-    initialDelaySeconds: 150
-    periodSeconds: 10
+    initialDelaySeconds: 30
+    periodSeconds: 5
 
 redis:
-  enabled: true
-  image:
-    repository: redis
-    tag: "7.2"
-    pullPolicy: IfNotPresent
-  architecture: standalone
-  auth:
-    enabled: true
-    password: "123456"
-  
-  master:
-    resources:
-      requests:
-        cpu: 100m
-        memory: 128Mi
-      limits:
-        cpu: 200m
-        memory: 256Mi 
+  enabled: false
 
-    persistence:
-      enabled: true
-      size: 1Gi 
-      storageClass: "standard"
+externalRedis:
+  host: "argocd-redis-master"
+  port: 6379
+  password: "123456"

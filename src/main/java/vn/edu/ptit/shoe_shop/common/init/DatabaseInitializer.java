@@ -145,6 +145,7 @@ public class DatabaseInitializer implements CommandLineRunner {
             adminUser.setUsername("admin123");
             adminUser.setPhone("0987654321");
             adminUser.setProvider(ProviderEnum.SERVER);
+            adminUser.setStatus(StatusEnum.ACTIVE);
             adminUser.setPassword(this.passwordEncoder.encode("Admin123@"));
             Role adminRole = this.roleRepository.findByName(RoleEnum.ADMIN.name())
                     .orElseThrow(() -> new IllegalStateException("role not found"));

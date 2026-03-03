@@ -96,7 +96,7 @@ public class TokenProvider {
         //header
         JwsHeader jwtHeader = JwsHeader.with(JwtConstants.Header.ALGORITHM).build();
         //payload
-        Map<String, Object> extraClaims = buildCustomForOAuth2Claims(oAuth2User, deviceId,TokenConstants.ACCESS_TOKEN);
+        Map<String, Object> extraClaims = buildCustomForOAuth2Claims(user, oAuth2User, deviceId,TokenConstants.ACCESS_TOKEN);
         Instant now = Instant.now();
         Instant validity = now.plus(this.accessTokenExpiration, ChronoUnit.SECONDS);
         String jti = UUID.randomUUID().toString();
@@ -119,9 +119,9 @@ public class TokenProvider {
         //header
         JwsHeader jwtHeader = JwsHeader.with(JwtConstants.Header.ALGORITHM).build();
         //payload
-        Map<String, Object> extraClaims = buildCustomForOAuth2Claims(oAuth2User, deviceId,TokenConstants.REFRESH_TOKEN);
+        Map<String, Object> extraClaims = buildCustomForOAuth2Claims(user, oAuth2User, deviceId,TokenConstants.REFRESH_TOKEN);
         Instant now = Instant.now();
-        Instant validity = now.plus(this.accessTokenExpiration, ChronoUnit.SECONDS);
+        Instant validity = now.plus(this.refreshTokenExpiration, ChronoUnit.SECONDS);
         String jti = UUID.randomUUID().toString();
 
         JwtClaimsSet jwtPayLoad = JwtClaimsSet.builder()
@@ -189,10 +189,10 @@ public class TokenProvider {
         return extraClaims;
     }
 
-    private Map<String, Object> buildCustomForOAuth2Claims(OAuth2User auth2User, String deviceId, String tokenType) {
-        String firstName = auth2User.getAttribute("give_name");
+    private Map<String, Object> buildCustomForOAuth2Claims(User user, OAuth2User auth2User, String deviceId, String tokenType) {
+        String firstName = auth2User.getAttribute("given_name");
         String lastName = auth2User.getAttribute("family_name");
-        String role = "ROLE_USER";
+        String role = user.getRole().getCode();
         String email = auth2User.getAttribute("email");
 
         Map<String, Object> extraClaims = new HashMap<>();
@@ -200,6 +200,7 @@ public class TokenProvider {
         extraClaims.put(JwtConstants.Claims.LAST_NAME, lastName);
         extraClaims.put(JwtConstants.Claims.ROLE, role);
         extraClaims.put(JwtConstants.Claims.EMAIL, email);
+        extraClaims.put(JwtConstants.Claims.USERNAME, user.getUsername());
         extraClaims.put(JwtConstants.Claims.TOKEN_TYPE, tokenType);
         extraClaims.put(JwtConstants.Claims.PROVIDER, ProviderEnum.GOOGLE);
         extraClaims.put(JwtConstants.Claims.DEVICE_ID, deviceId);
