@@ -69,6 +69,10 @@ public class SecurityConfiguration {
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(
                         auth -> auth
+                                .requestMatchers(
+                                        "/actuator/health",
+                                        "/actuator/health/**"
+                                ).permitAll()
                                 .requestMatchers(whiteList).permitAll()
                                 .requestMatchers( "/api/v1/users/**").hasAnyRole(ADMIN.name())
                                 .requestMatchers("/api/v1/roles/**").hasRole(ADMIN.name())

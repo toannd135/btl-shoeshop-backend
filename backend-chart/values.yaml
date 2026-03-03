@@ -52,7 +52,7 @@ healthCheck:
     httpGet:
       path: /actuator/health/liveness
       port: 8080
-      scheme: HTTP
+      scheme: HTTPS
     initialDelaySeconds: 200
     periodSeconds: 20
     timeoutSeconds: 5
@@ -61,7 +61,7 @@ healthCheck:
     httpGet:
       path: /actuator/health/readiness
       port: 8080
-      scheme: HTTP
+      scheme: HTTPS
     initialDelaySeconds: 140
     periodSeconds: 10
     timeoutSeconds: 5
