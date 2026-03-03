@@ -16,7 +16,7 @@ service:
   type: LoadBalancer
 
 secret:
-  dbHost: argocd-database-database-chart
+  dbHost: "argocd-database-database-chart.shoeshop-data.svc.cluster.local"
   dbPort: "3306"
   dbName: "shoeshop"
   dbUsername: "dbshoeshop"
@@ -55,7 +55,7 @@ redis:
   enabled: false
 
 externalRedis:
-  host: "argocd-redis-master"
+  host: "argocd-redis-master.shoeshop-data.svc.cluster.local"
   port: "6379"
   password: "123456"
   timeToLive: "3000"
