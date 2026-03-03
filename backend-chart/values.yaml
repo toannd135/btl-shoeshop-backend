@@ -2,7 +2,7 @@ replicaCount: 2
 
 image:
   repository: toannd135/shoeshop-backend
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
   tag: "v1.1.5"
 
 imagePullSecrets: []
@@ -52,7 +52,7 @@ healthCheck:
     httpGet:
       path: /actuator/health/liveness
       port: 8080
-      scheme: HTTPS
+      scheme: HTTP
     initialDelaySeconds: 200
     periodSeconds: 20
     timeoutSeconds: 5
@@ -61,7 +61,7 @@ healthCheck:
     httpGet:
       path: /actuator/health/readiness
       port: 8080
-      scheme: HTTPS
+      scheme: HTTP
     initialDelaySeconds: 140
     periodSeconds: 10
     timeoutSeconds: 5
