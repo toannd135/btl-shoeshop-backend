@@ -11,6 +11,6 @@ public interface AuthService {
     LoginResult getNewToken(String refreshToken, String accessToken);
     void logout(String refreshToken, String accessToken);
     ForgotPasswordResponseDTO forgotPassword(ForgotPasswordRequestDTO forgotPasswordRequestDTO);
-    String otpVerification(String otp);
+    String otpVerification(String otp, String email);
     String resetPassword(ResetPasswordRequestDTO resetPasswordRequestDTO);
 }

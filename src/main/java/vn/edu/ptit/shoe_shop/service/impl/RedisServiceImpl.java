@@ -120,8 +120,27 @@ public class RedisServiceImpl implements RedisService {
     }
 
     @Override
-    public void deleteOtp(String otp) {
+    public void deleteOtp(String email) {
+        String key = "otp:forgot-password:" + email;
+        this.redisTemplate.delete(key);
+    }
 
+    @Override
+    public void storeResetToken(String email, String token) {
+        String key = "reset-password:" + email;
+        this.redisTemplate.opsForValue().set(key, token, 5, TimeUnit.MINUTES);
+    }
+
+    @Override
+    public String getResetToken(String email) {
+        String key = "reset-password:" + email;
+        return this.redisTemplate.opsForValue().get(key).toString();
+    }
+
+    @Override
+    public void deleteResetToken(String email) {
+        String key = "reset-password:" + email;
+        this.redisTemplate.delete(key);
     }
 
     private String buildRefreshTokenKey(UUID userId, String deviceId) {

@@ -16,4 +16,6 @@ public class OtpVerificationRequestDTO {
             message = "OTP must contain only digits"
     )
     private String otp;
+
+    private String email;
 }

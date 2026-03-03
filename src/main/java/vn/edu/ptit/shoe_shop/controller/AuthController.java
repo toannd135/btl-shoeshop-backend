@@ -173,7 +173,7 @@ public class AuthController {
     @PostMapping("/verify-otp")
     @ApiMessage("OTP verification")
     public ResponseEntity<String> otpVerification(@Valid @RequestBody OtpVerificationRequestDTO request) {
-        String response = this.authService.otpVerification(request.getOtp());
+        String response = this.authService.otpVerification(request.getOtp(), request.getEmail());
         return ResponseEntity.ok().body(response);
 
     }

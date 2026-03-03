@@ -7,11 +7,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.edu.ptit.shoe_shop.common.constant.JwtConstants;
-import vn.edu.ptit.shoe_shop.common.constant.RedisKeyConstants;
 import vn.edu.ptit.shoe_shop.common.enums.ProviderEnum;
 import vn.edu.ptit.shoe_shop.common.enums.StatusEnum;
 import vn.edu.ptit.shoe_shop.common.exception.BadCredentialsException;
@@ -36,7 +36,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 import java.util.UUID;
 
 @Service
@@ -48,6 +47,9 @@ public class AuthServiceImpl implements AuthService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final UserService userService;
     private final EmailService emailService;
+    private final PasswordEncoder passwordEncoder;
+
+
     private final Logger log = LoggerFactory.getLogger(AuthServiceImpl.class);
 
     @Value("${app.jwt.refresh-token-validity-in-seconds}")
@@ -55,7 +57,7 @@ public class AuthServiceImpl implements AuthService {
 
     public AuthServiceImpl(AuthenticationManager authenticationManager, TokenProvider tokenProvider,UserService userService
             , UserRepository userRepository, RedisService redisService, RefreshTokenRepository refreshTokenRepository
-            , EmailService emailService) {
+            , EmailService emailService, PasswordEncoder passwordEncoder) {
         this.authenticationManager = authenticationManager;
         this.tokenProvider = tokenProvider;
         this.userRepository = userRepository;
@@ -63,6 +65,7 @@ public class AuthServiceImpl implements AuthService {
         this.refreshTokenRepository = refreshTokenRepository;
         this.userService = userService;
         this.emailService = emailService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -190,7 +193,7 @@ public class AuthServiceImpl implements AuthService {
 
         Map<String, Object> variables = new HashMap<>();
         variables.put("otp", otp);
-        emailService.sendEmailFromTemplateSync(
+        this.emailService.sendEmailFromTemplateSync(
                 user.getEmail(),
                 "OTP for Password Reset",
                 "otpVerify",
@@ -200,13 +203,45 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public String otpVerification(String otp) {
-        return null;
+    public String otpVerification(String otp, String email) {
+        String otpInRedis = this.redisService.getOtp(email);
+        if(otpInRedis == null) {
+            throw new IllegalArgumentException("Otp time out");
+        }
+        if(!otpInRedis.equals(otp)) {
+            throw new IllegalArgumentException("Otp not matching");
+        }
+        String resetTokenValue = UUID.randomUUID().toString();
+        this.redisService.storeResetToken(email, resetTokenValue);
+        return resetTokenValue;
     }
 
     @Override
     public String resetPassword(ResetPasswordRequestDTO resetPasswordRequestDTO) {
-        return "";
+        String newPassword = resetPasswordRequestDTO.getNewPassword();
+        String confirmNewPassword = resetPasswordRequestDTO.getConfirmNewPassword();
+        if(!newPassword.equals(confirmNewPassword)) {
+            throw new IllegalArgumentException("Password not match");
+        }
+        String email = resetPasswordRequestDTO.getEmail();
+        String tokenInRedis = this.redisService.getResetToken(email);
+        if(!tokenInRedis.equals(resetPasswordRequestDTO.getResetToken())) {
+            throw  new IllegalArgumentException("token expired");
+        }
+        User user = this.userService.getUserByUsernameOrEmail(email);
+        user.setPassword(this.passwordEncoder.encode(newPassword));
+        this.userRepository.save(user);
+        this.redisService.deleteResetToken(user.getEmail());
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("username", user.getUsername());
+        emailService.sendEmailFromTemplateSync(
+                user.getEmail(),
+                "Password Changed Successfully",
+                "resetPasswordNotifition",
+                variables
+        );
+
+        return "Password has been reset successfully. An email confirmation has been sent.";
     }
 
     private void revokeAccessToken(String accessToken) {

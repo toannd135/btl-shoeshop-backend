@@ -28,6 +28,8 @@ public class ResetPasswordRequestDTO {
     )
     private String resetToken;
 
+    private String email;
+
     @AssertTrue(message = "New password and confirm password must match")
     public boolean isPasswordMatching() {
         if (newPassword == null || confirmNewPassword == null) {

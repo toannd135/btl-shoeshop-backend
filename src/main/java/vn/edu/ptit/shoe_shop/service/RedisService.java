@@ -19,6 +19,9 @@ public interface RedisService {
     String getUserIdFromVerificationToken(String token);
     void deleteVerificationToken(String token);
     String generateAndSaveOTP(String email, long ttl);
-    String getOtp(String otp);
-    void deleteOtp(String otp) ;
+    String getOtp(String email);
+    void deleteOtp(String email) ;
+    void storeResetToken(String email, String token);
+    String getResetToken(String email);
+    void deleteResetToken(String email);
 }
