@@ -161,7 +161,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public String forgotPassword(ForgotPasswordRequestDTO forgotPasswordRequestDTO) {
-
+        return null;
     }
 
     @Override

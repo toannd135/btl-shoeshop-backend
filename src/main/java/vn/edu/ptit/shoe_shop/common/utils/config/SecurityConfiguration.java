@@ -16,6 +16,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import vn.edu.ptit.shoe_shop.common.security.service.CustomUserDetailService;
 import vn.edu.ptit.shoe_shop.service.UserService;
 
+import static vn.edu.ptit.shoe_shop.common.enums.RoleEnum.ADMIN;
+
 @Configuration
 @EnableMethodSecurity(securedEnabled = true)
 public class SecurityConfiguration {
@@ -67,11 +69,11 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(
                         auth -> auth
                                 .requestMatchers(whiteList).permitAll()
-//                                .requestMatchers( "/api/v1/users/**").hasAnyRole(ADMIN.name())
-//                                .requestMatchers("/api/v1/roles/**").hasRole(ADMIN.name())
-//                                .requestMatchers("/api/v1/permissions/**").hasRole(ADMIN.name())
+                                .requestMatchers( "/api/v1/users/**").hasAnyRole(ADMIN.name())
+                                .requestMatchers("/api/v1/roles/**").hasRole(ADMIN.name())
+                                .requestMatchers("/api/v1/permissions/**").hasRole(ADMIN.name())
                                 .anyRequest()
-                                .permitAll()
+                                .authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .sessionManagement(
