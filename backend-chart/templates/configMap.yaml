@@ -7,7 +7,12 @@ data:
   application.yaml: |
     server:
       port: 8080
-
+      ssl:
+        enabled: true
+        key-store: ${SSL_KEY_STORE}
+        key-store-password: ${SSL_KEY_STORE_PASSWORD} 
+        key-store-type: ${SSL_KEY_STORE_TYPE} 
+        key-alias: ${SSL_KEY_STORE_ALIAS} 
     management:
       endpoints:
         web:
@@ -43,6 +48,8 @@ data:
       jpa:
         hibernate:
           ddl-auto: update
+          naming:
+            physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
         show-sql: false
         properties:
           hibernate:

@@ -16,6 +16,10 @@ service:
   type: LoadBalancer
 
 secret:
+  sslKey: "classpath:keystore.p12"
+  sslKeyPassword: "123456"
+  sslKeyType: "PKCS12"
+  sslKeyAlias: "tomcat"
   dbHost: "argocd-database-database-chart.shoeshop-data.svc.cluster.local"
   dbPort: "3306"
   dbName: "shoeshop"
@@ -29,11 +33,11 @@ secret:
 
 resources:
   requests:
-    memory: "256Mi"
-    cpu: "250m"
-  limits:
     memory: "512Mi"
-    cpu: "500m"
+    cpu: "300m"
+  limits:
+    memory: "1024Mi"
+    cpu: "1000m"
 
 
 redis:
@@ -52,16 +56,15 @@ healthCheck:
     httpGet:
       path: /actuator/health/liveness
       port: 8080
-      scheme: HTTP
-    initialDelaySeconds: 200
+      scheme: HTTPS
+    initialDelaySeconds: 180
     periodSeconds: 20
     timeoutSeconds: 5
-
   readinessProbe:
     httpGet:
       path: /actuator/health/readiness
       port: 8080
-      scheme: HTTP
+      scheme: HTTPS
     initialDelaySeconds: 140
     periodSeconds: 10
     timeoutSeconds: 5
