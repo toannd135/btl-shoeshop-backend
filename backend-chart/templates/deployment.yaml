@@ -14,12 +14,11 @@ spec:
       containers:
       - name: {{ .Chart.Name }}
         image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
-        args: ["--spring.config.location=optional:classpath:/,file:/run/config/application.yaml"]
         imagePullPolicy: {{ .Values.image.pullPolicy }}
 
         env:
-        - name: JAVA_OPTS
-          value: "-Xmx450m -Xms256m"
+        - name: JAVA_TOOL_OPTIONS
+          value: "-Xmx450m -Xms256m -Dspring.config.location=optional:classpath:/,file:/run/config/application.yaml"
 
         envFrom:
         - secretRef:
