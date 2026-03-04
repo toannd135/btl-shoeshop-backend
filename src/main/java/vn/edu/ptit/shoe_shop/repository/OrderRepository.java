@@ -17,6 +17,7 @@ import vn.edu.ptit.shoe_shop.entity.Order;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order,UUID> {
+    Optional<Order> findByOrderId(UUID orderId);
     // 1. Lấy tất cả lịch sử đơn hàng của 1 user (Có phân trang)
     Page<Order> findAllByUser_UserIdOrderByCreatedAtDesc(UUID userId, Pageable pageable);
 
