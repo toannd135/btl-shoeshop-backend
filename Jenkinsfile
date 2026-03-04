@@ -101,38 +101,38 @@ pipeline {
             }
         }
         stage('Push Config Changes') {
-        steps {
-            script {
-                echo "Pushing changes to config repository..."
-                
-                dir('config-repo') {
+            steps {
+                script {
+                    echo "Pushing changes to config repository..."
                     
-                    def gitStatus = sh(
-                        script: 'git status --porcelain',
-                        returnStdout: true
-                    ).trim()
-                    
-                    if (gitStatus) {
-                        echo "Changes detected, committing and pushing..."
+                    dir('config-repo') {
                         
-                        sh """
-                            git add .
-                            git commit -m " Update image version to ${env.TAG_NAME}
+                        def gitStatus = sh(
+                            script: 'git status --porcelain',
+                            returnStdout: true
+                        ).trim()
+                        
+                        if (gitStatus) {
+                            echo "Changes detected, committing and pushing..."
                             
-                            - Updated helm-values/values-prod.yaml
-                            - Image: ${env.IMAGE_NAME}:${env.TAG_NAME}
-                            - Build: ${env.BUILD_NUMBER}
-                            - Jenkins Job: ${env.JOB_NAME}"
-                        """
-                        
-                        // Push with credentials
-                        withCredentials([gitUsernamePassword(credentialsId: env.GITHUB_CREDENTIALS, gitToolName: 'Default')]) {
-                            sh 'git push origin main'
+                            sh """
+                                git add .
+                                git commit -m " Update image version to ${env.TAG_NAME}
+                                
+                                - Updated helm-values/values-prod.yaml
+                                - Image: ${env.IMAGE_NAME}:${env.TAG_NAME}
+                                - Build: ${env.BUILD_NUMBER}
+                                - Jenkins Job: ${env.JOB_NAME}"
+                            """
+                            
+                            withCredentials([gitUsernamePassword(credentialsId: env.GITHUB_CREDENTIALS, gitToolName: 'Default')]) {
+                                sh 'git push origin main'
+                            }
+                            
+                            echo " Config changes pushed successfully!"
+                        } else {
+                            echo " No changes detected in config repo"
                         }
-                        
-                        echo " Config changes pushed successfully!"
-                    } else {
-                        echo " No changes detected in config repo"
                     }
                 }
             }
