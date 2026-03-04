@@ -6,7 +6,7 @@ pipeline {
     environment {
         IMAGE_NAME = "toannd135/shoeshop-backend"
         DOCKER_CREDENTIALS = 'dockerhub-credentials'
-        GITHUB_CREDENTIALS = 'github-token'
+        GITHUB_CREDENTIALS = 'my-github'
         CONFIG_REPO_URL = "https://github.com/toannd135/btl-shoeshop-backend.git"
     }
     stages {
