@@ -113,7 +113,7 @@ pipeline {
             steps {
                 script {
                     dir('config-repo') {
-                        def tagName = env.TAG_NAME
+                        def tagName = env.IMAGE_TAG
                         echo "Updating with tag: ${tagName}"
                         
                         sh """
@@ -142,10 +142,10 @@ pipeline {
                             
                             sh """
                                 git add .
-                                git commit -m " Update image version to ${env.TAG_NAME}
+                                git commit -m " Update image version to ${env.IMAGE_TAG}
                                 
                                 - Updated helm-values/values-prod.yaml
-                                - Image: ${env.IMAGE_NAME}:${env.TAG_NAME}
+                                - Image: ${env.IMAGE_NAME}:${env.IMAGE_TAG}
                                 - Build: ${env.BUILD_NUMBER}
                                 - Jenkins Job: ${env.JOB_NAME}"
                             """
