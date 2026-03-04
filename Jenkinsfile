@@ -84,6 +84,31 @@ pipeline {
                 }
             }
         }
+        stage('Clone Config Repo') {
+            steps {
+                script {
+                    echo " Cloning config repository..."
+                    
+                    
+                    sh 'mkdir -p config-repo'
+                    
+                    dir('config-repo') {
+                    
+                        withCredentials([gitUsernamePassword(credentialsId: env.GITHUB_CREDENTIALS, gitToolName: 'Default')]) {
+                            sh """
+                                git clone ${env.CONFIG_REPO_URL} .
+                                git config user.email "nguyenductoan123@gmail.com"
+                                git config user.name "Jenkins CI/CD Backend"
+                            """
+                        }
+                        
+                        echo " Config repo cloned successfully!"
+                        sh 'ls -la'
+                    }
+                }
+            }
+        }
+        
         stage('Update Helm Manifest') {
             steps {
                 script {
@@ -92,7 +117,7 @@ pipeline {
                         echo "Updating with tag: ${tagName}"
                         
                         sh """
-                            sed -i 's/^  tag:.*/  tag: "${tagName}"/' backend-chart/values.yaml
+                            sed -i 's/^  tag:.*/  tag: "${tagName}"/' backend-chart/values.yaml"
                         """
                         
                         sh "grep 'tag:' backend-chart/values.yaml
