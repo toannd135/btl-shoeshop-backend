@@ -13,4 +13,4 @@ WORKDIR /run
 RUN apk add --no-cache wget
 COPY --from=build /app/target/*.jar /run/app.jar
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "/run/app.jar"]
+CMD ["java", "-jar", "/run/app.jar"]
