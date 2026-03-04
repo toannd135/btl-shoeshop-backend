@@ -63,7 +63,7 @@ healthCheck:
       scheme: HTTP
     initialDelaySeconds: 140
     periodSeconds: 10
-    timeoutSeconds: 5\
+    timeoutSeconds: 5
 
 # ssl: ""
   # sslKey: "classpath:keystore.p12"
