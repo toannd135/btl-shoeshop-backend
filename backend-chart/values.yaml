@@ -2,7 +2,7 @@ replicaCount: 2
 
 image:
   repository: toannd135/shoeshop-backend
-  pullPolicy: Always
+  pullPolicy: IfNotPresent
   tag: "v1.1.5"
 
 imagePullSecrets: []
@@ -16,10 +16,6 @@ service:
   type: LoadBalancer
 
 secret:
-  sslKey: "classpath:keystore.p12"
-  sslKeyPassword: "123456"
-  sslKeyType: "PKCS12"
-  sslKeyAlias: "tomcat"
   dbHost: "argocd-database-database-chart.shoeshop-data.svc.cluster.local"
   dbPort: "3306"
   dbName: "shoeshop"
@@ -67,4 +63,10 @@ healthCheck:
       scheme: HTTPS
     initialDelaySeconds: 140
     periodSeconds: 10
-    timeoutSeconds: 5
+    timeoutSeconds: 5\
+
+# ssl: ""
+  # sslKey: "classpath:keystore.p12"
+  # sslKeyPassword: "123456"
+  # sslKeyType: "PKCS12"
+  # sslKeyAlias: "tomcat"
