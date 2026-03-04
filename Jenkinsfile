@@ -84,6 +84,59 @@ pipeline {
                 }
             }
         }
+        stage('Update Helm Manifest') {
+            steps {
+                script {
+                    dir('config-repo') {
+                        def tagName = env.TAG_NAME
+                        echo "Updating with tag: ${tagName}"
+                        
+                        sh """
+                            sed -i 's/^  tag:.*/  tag: "${tagName}"/' values.yaml
+                        """
+                        
+                        sh "grep 'tag:' values.yaml"
+                    }
+                }
+            }
+        }
+        stage('Push Config Changes') {
+        steps {
+            script {
+                echo "Pushing changes to config repository..."
+                
+                dir('config-repo') {
+                    
+                    def gitStatus = sh(
+                        script: 'git status --porcelain',
+                        returnStdout: true
+                    ).trim()
+                    
+                    if (gitStatus) {
+                        echo "Changes detected, committing and pushing..."
+                        
+                        sh """
+                            git add .
+                            git commit -m " Update image version to ${env.TAG_NAME}
+                            
+                            - Updated helm-values/values-prod.yaml
+                            - Image: ${env.IMAGE_NAME}:${env.TAG_NAME}
+                            - Build: ${env.BUILD_NUMBER}
+                            - Jenkins Job: ${env.JOB_NAME}"
+                        """
+                        
+                        // Push with credentials
+                        withCredentials([gitUsernamePassword(credentialsId: env.GITHUB_CREDENTIALS, gitToolName: 'Default')]) {
+                            sh 'git push origin main'
+                        }
+                        
+                        echo " Config changes pushed successfully!"
+                    } else {
+                        echo " No changes detected in config repo"
+                    }
+                }
+            }
+        }
     }
     post {
         always {
