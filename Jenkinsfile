@@ -92,10 +92,10 @@ pipeline {
                         echo "Updating with tag: ${tagName}"
                         
                         sh """
-                            sed -i 's/^  tag:.*/  tag: "${tagName}"/' values.yaml
+                            sed -i 's/^  tag:.*/  tag: "${tagName}"/' backend-chart/values.yaml
                         """
                         
-                        sh "grep 'tag:' values.yaml"
+                        sh "grep 'tag:' backend-chart/values.yaml
                     }
                 }
             }
