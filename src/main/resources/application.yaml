@@ -2,7 +2,7 @@ server:
   port: 8080
 
   ssl:
-    enabled: true
+    enabled: false
     key-store: classpath:keystore.p12
     key-store-password: "123456"
     key-store-type: PKCS12
@@ -24,7 +24,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/shoeshop
     username: root
-    password: 123456
+    password: Thanhmessi
     driver-class-name: com.mysql.cj.jdbc.Driver
   servlet:
     multipart:
