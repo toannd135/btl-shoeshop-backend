@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.edu.ptit.shoe_shop.common.constant.EmailPattern;
 import vn.edu.ptit.shoe_shop.common.constant.RedisKeyConstants;
+import vn.edu.ptit.shoe_shop.common.enums.ProviderEnum;
 import vn.edu.ptit.shoe_shop.common.enums.RoleEnum;
 import vn.edu.ptit.shoe_shop.common.enums.StatusEnum;
 import vn.edu.ptit.shoe_shop.common.exception.TokenExpiredOrUsedException;
@@ -244,6 +245,7 @@ public class UserServiceImpl implements UserService {
 
         User newUser = this.userMapper.registerDTOToUser(registerRequestDTO);
         newUser.setStatus(StatusEnum.INACTIVE);
+        newUser.setProvider(ProviderEnum.SERVER);
         newUser.setPassword(this.passwordEncoder.encode(registerRequestDTO.getPassword()));
         Role role = this.roleRepository.findByName(RoleEnum.USER.name())
                 .orElseThrow(() -> new IdInvalidException("Role not found"));

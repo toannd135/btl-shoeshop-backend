@@ -1,4 +1,4 @@
-replicaCount: 2
+replicaCount: 3
 
 image:
   repository: toannd135/shoeshop-backend
@@ -48,6 +48,14 @@ externalRedis:
 
 healthCheck:
   enable: true
+  startupProbe:
+    httpGet:
+      path: /actuator/health
+      port: 8080
+      scheme: HTTP
+    failureThreshold: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
   livenessProbe:
     httpGet:
       path: /actuator/health/liveness
