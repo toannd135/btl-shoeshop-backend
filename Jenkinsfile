@@ -10,8 +10,8 @@ pipeline {
         CONFIG_REPO_URL = "https://github.com/toannd135/btl-shoeshop-backend.git"
     }
     stages {
-        stage ('Agent information') {
-            steps {
+        stage ('Agent information') {                                   
+            steps {                                                                                             
                 echo " Running on agent: ${env.NODE_NAME}"
                 echo " Workspace: ${env.WORKSPACE}"
                 sh 'whoami'

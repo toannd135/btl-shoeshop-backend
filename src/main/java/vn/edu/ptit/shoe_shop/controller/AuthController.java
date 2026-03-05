@@ -134,7 +134,7 @@ public class AuthController {
 
     @PostMapping("/register")
     @ApiMessage("Register successful")
-    public ResponseEntity<Map<String, String>> register(@Valid @RequestBody RegisterRequestDTO registerRequestDTO) {
+    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequestDTO registerRequestDTO) {
         String newUser = this.userService.register(registerRequestDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
                 "message", "Registration successful",
@@ -172,17 +172,17 @@ public class AuthController {
 
     @PostMapping("/verify-otp")
     @ApiMessage("OTP verification")
-    public ResponseEntity<String> otpVerification(@Valid @RequestBody OtpVerificationRequestDTO request) {
+    public ResponseEntity<?> otpVerification(@Valid @RequestBody OtpVerificationRequestDTO request) {
         String response = this.authService.otpVerification(request.getOtp(), request.getEmail());
-        return ResponseEntity.ok().body(response);
+        return ResponseEntity.ok().body(Map.of("message", response));
 
     }
 
     @PostMapping("/reset-password")
     @ApiMessage("Reset password")
-    public ResponseEntity<String> resetPassword(@Valid @RequestBody ResetPasswordRequestDTO request) {
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordRequestDTO request) {
         String response = this.authService.resetPassword(request);
-        return ResponseEntity.ok().body(response);
+        return ResponseEntity.ok().body(Map.of("message", response));
     }
 
 }
