@@ -79,16 +79,16 @@ public class User {
     @Enumerated(EnumType.STRING)
     private StatusEnum status;
 
-    @Column(name = "createdAt", nullable = false)
+    @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
-    @Column(name = "createdBy", nullable = false)
+    @Column(name = "created_by", nullable = false)
     private String createdBy;
 
-    @Column(name = "updatedAt")
+    @Column(name = "updated_at")
     private Instant updatedAt;
 
-    @Column(name = "updatedBy")
+    @Column(name = "updated_by")
     private String updatedBy;
 
     @ManyToOne(fetch = FetchType.LAZY)
