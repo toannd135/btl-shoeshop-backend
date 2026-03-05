@@ -3,7 +3,7 @@ replicaCount: 2
 image:
   repository: toannd135/shoeshop-backend
   pullPolicy: IfNotPresent
-  tag: "18cfc4c"
+  tag: "a1a2b2c"
 
 imagePullSecrets: []
 nameOverride: ""
