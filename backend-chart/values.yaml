@@ -1,4 +1,4 @@
-replicaCount: 3
+replicaCount: 1
 
 image:
   repository: toannd135/shoeshop-backend
@@ -13,7 +13,7 @@ fullnameOverride: ""
 service:
   port: 80
   targetPort: 8080
-  type: LoadBalancer
+  type: ClusterIP
 
 secret:
   dbHost: "argocd-database-database-chart.shoeshop-data.svc.cluster.local"

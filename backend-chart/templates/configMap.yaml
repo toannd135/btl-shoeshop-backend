@@ -100,8 +100,6 @@ data:
       api-secret: E5etQ4Jq1lu9s_okchG5FUZVa3s
 
     app:
-      cors:
-        allowed-origins: http://localhost:3000,http://localhost:5173
       jwt:
         base64-secret: ${SECRET_BASE64}
         access-token-validity-in-seconds: ${AT_TIME}
