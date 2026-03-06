@@ -54,6 +54,7 @@ public class AuthController {
         user.setUsername(res.getUser().getUsername());
         user.setFullName(res.getUser().getFullName());
         user.setRoleCode(res.getUser().getRoleCode());
+        user.setAvatarImage(res.getUser().getAvatarImage());
 
         ResponseCookie refreshTokenCookie = ResponseCookie.from(TokenConstants.REFRESH_TOKEN, res.getRefreshToken())
                 .httpOnly(true)
@@ -92,6 +93,7 @@ public class AuthController {
         user.setUsername(res.getUser().getUsername());
         user.setFullName(res.getUser().getFullName());
         user.setRoleCode(res.getUser().getRoleCode());
+        user.setAvatarImage(res.getUser().getAvatarImage());
 
         ResponseCookie refreshTokenCookie = ResponseCookie.from(TokenConstants.REFRESH_TOKEN, res.getRefreshToken())
                 .httpOnly(true)

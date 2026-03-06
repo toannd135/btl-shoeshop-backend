@@ -265,6 +265,7 @@ public class AuthServiceImpl implements AuthService {
         uRes.setUsername(user.getUsername());
         uRes.setFullName(user.getFirstName() + " " + user.getLastName());
         uRes.setRoleCode(user.getRole().getCode());
+        uRes.setAvatarImage(user.getAvatarImage());
         res.setUser(uRes);
         res.setAccessToken(at);
         res.setRefreshToken(rt);
