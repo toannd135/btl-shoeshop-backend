@@ -75,9 +75,9 @@ public class AuthController {
             @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String bearerToken,
             @CookieValue(value = TokenConstants.REFRESH_TOKEN, required = false) String refreshToken) {
 
-        if (refreshToken.equals(TokenConstants.FAKE_TOKEN)) {
-            throw new BadCredentialsException("Invalid refresh token");
-        }
+//        if (refreshToken.equals(TokenConstants.FAKE_TOKEN)) {
+//            throw new BadCredentialsException("Invalid refresh token");
+//        }
         // if (refreshToken == null) {
         // throw new BadCredentialsException("Refresh token missing");
         // }
@@ -118,9 +118,9 @@ public class AuthController {
             throw new BadCredentialsException("Missing or invalid Authorization header");
         }
         String accessToken = bearerToken.substring(7);
-        if (refreshToken.equals(TokenConstants.FAKE_TOKEN)) {
-            throw new BadCredentialsException("Invalid refresh token");
-        }
+//        if (refreshToken.equals(TokenConstants.FAKE_TOKEN)) {
+//            throw new BadCredentialsException("Invalid refresh token");
+//        }
         this.authService.logout(refreshToken, accessToken);
         ResponseCookie deleteCookie = ResponseCookie.from(TokenConstants.REFRESH_TOKEN, "")
                 .httpOnly(true)
