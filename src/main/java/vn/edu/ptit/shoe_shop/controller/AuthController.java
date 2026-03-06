@@ -74,7 +74,7 @@ public class AuthController {
     public ResponseEntity<LoginResponseDTO> refreshToken(
             @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String bearerToken,
             @CookieValue(value = TokenConstants.REFRESH_TOKEN, required = false) String refreshToken) {
-                
+
         if (refreshToken.equals(TokenConstants.FAKE_TOKEN)) {
             throw new BadCredentialsException("Invalid refresh token");
         }
@@ -174,16 +174,17 @@ public class AuthController {
 
     @PostMapping("/verify-otp")
     @ApiMessage("OTP verification")
-    public ResponseEntity<Map<String, String>> otpVerification(@Valid @RequestBody OtpVerificationRequestDTO request) {
+    public ResponseEntity<String> otpVerification(@Valid @RequestBody OtpVerificationRequestDTO request) {
         String response = this.authService.otpVerification(request.getOtp(), request.getEmail());
-        return ResponseEntity.ok().body(Map.of("response", response));
+        return ResponseEntity.ok().body(response);
+
     }
 
     @PostMapping("/reset-password")
     @ApiMessage("Reset password")
-    public ResponseEntity<Map<String, String>> resetPassword(@Valid @RequestBody ResetPasswordRequestDTO request) {
+    public ResponseEntity<String> resetPassword(@Valid @RequestBody ResetPasswordRequestDTO request) {
         String response = this.authService.resetPassword(request);
-        return ResponseEntity.ok().body(Map.of("response", response));
+        return ResponseEntity.ok().body(response);
     }
 
 }

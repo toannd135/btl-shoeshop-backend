@@ -26,14 +26,14 @@ spec:
 
         ports:
           - containerPort: 8080
-            name: {{ .Values.service.name  }}
+            name: http
 
         {{- if .Values.healthCheck.enable }}
-        livenessProbe: {{- toYaml .Values.healthCheck.livenessProbe  | nindent 12 }}
-        readinessProbe: {{- toYaml .Values.healthCheck.readinessProbe  | nindent 12 }}
+        livenessProbe: {{- toYaml .Values.healthCheck.livenessProbe  | nindent 10 }}
+        readinessProbe: {{- toYaml .Values.healthCheck.readinessProbe  | nindent 10 }}
         {{- end }}
 
-        resources: {{- toYaml .Values.resources | nindent 12 }}
+        resources: {{- toYaml .Values.resources | nindent 10 }}
 
 
         volumeMounts:
