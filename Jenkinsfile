@@ -151,6 +151,7 @@ pipeline {
                             """
                             
                             withCredentials([gitUsernamePassword(credentialsId: env.GITHUB_CREDENTIALS, gitToolName: 'Default')]) {
+                                sh "git pull origin main --rebase"
                                 sh 'git push origin main'
                             }
                             
