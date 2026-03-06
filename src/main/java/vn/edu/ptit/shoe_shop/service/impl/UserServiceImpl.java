@@ -302,4 +302,5 @@ public class UserServiceImpl implements UserService {
         return "Account verified successfully";
     }
 
+    
 }

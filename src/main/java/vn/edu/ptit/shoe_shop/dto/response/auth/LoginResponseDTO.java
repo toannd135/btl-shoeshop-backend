@@ -22,6 +22,7 @@ public class LoginResponseDTO {
         private String fullName;
         private String username;
         private String roleCode;
+        private String avatarImage;
     }
 
 }

@@ -89,4 +89,6 @@ public class UserController {
                 userPageResponseDTO.getPages());
         return ResponseEntity.ok().body(userPageResponseDTO);
     }
+
+    
 }
