@@ -40,7 +40,7 @@ public class WebConfiguration implements WebMvcConfigurer {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(Arrays.asList(
                 "http://www.shoeshopecommerce.dpdns.org",
-                "http://shoeshopecommerce.dpdns.org",
+                "https://shoeshopecommerce.dpdns.org",
                 "http://localhost:5173/"
         ));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
