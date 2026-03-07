@@ -9,8 +9,6 @@ import lombok.Setter;
 @Setter
 @Getter
 public class AddVariantRequestDTO {
-    @NotBlank(message = "Thiếu id của người dùng!")
-    private String userId;
     @NotBlank(message = "Thiếu id của sản phẩm!")
     private String variantId;
     @NotNull(message = "Thiếu số lượng sản phẩm!")

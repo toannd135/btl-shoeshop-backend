@@ -1,4 +1,5 @@
 package vn.edu.ptit.shoe_shop.controller;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import vn.edu.ptit.shoe_shop.common.utils.security.SecurityUtils;
 import vn.edu.ptit.shoe_shop.dto.request.AddVariantRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.request.UpdateItemCartRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.response.ApiResponse;
@@ -22,28 +24,31 @@ import vn.edu.ptit.shoe_shop.service.CartService;
 @RequiredArgsConstructor
 public class CartController {
     private final CartService cartService;
+
+
     @GetMapping("")
-    public ResponseEntity<CartResponseDTO>getCart(){
-        String id="123e4567-e89b-12d3-a456-426614174000";
+    public ResponseEntity<CartResponseDTO> getCart() {
+        String id = SecurityUtils.getCurrentUserId().toString();
         System.out.println("UserId ne:" + id);
-        CartResponseDTO cartResponseDTO=this.cartService.getMyCart(id);
+        CartResponseDTO cartResponseDTO = this.cartService.getMyCart(id);
         return ResponseEntity.status(HttpStatus.OK).body(cartResponseDTO);
     }
+
     @PostMapping("")
-    public ResponseEntity<ApiResponse<?>> addVariantToCart(@RequestBody @Valid AddVariantRequestDTO requestDTO)
-    {
-        ApiResponse<Object> apiResponse = this.cartService.addProductVariantToCart(requestDTO);
+    public ResponseEntity<ApiResponse<?>> addVariantToCart(@RequestBody @Valid AddVariantRequestDTO requestDTO) {
+        String id = SecurityUtils.getCurrentUserId().toString();
+        ApiResponse<Object> apiResponse = this.cartService.addProductVariantToCart(id,requestDTO);
         return ResponseEntity.status(apiResponse.getStatusCode()).body(apiResponse);
     }
+
     @PostMapping("/update-quantity-item")
-    public ResponseEntity<Void> updateQuantityItem(@RequestBody @Valid UpdateItemCartRequestDTO requestDTO)
-    {
+    public ResponseEntity<Void> updateQuantityItem(@RequestBody @Valid UpdateItemCartRequestDTO requestDTO) {
         this.cartService.updateQuantityItem(requestDTO);
         return ResponseEntity.noContent().build();
     }
+
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteItemFromCart(@PathVariable String id)
-    {
+    public ResponseEntity<Void> deleteItemFromCart(@PathVariable String id) {
         this.cartService.deleteItemFromCart(id);
         return ResponseEntity.noContent().build();
     }

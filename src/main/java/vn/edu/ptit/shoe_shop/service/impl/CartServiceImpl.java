@@ -19,26 +19,28 @@ import vn.edu.ptit.shoe_shop.dto.response.CartResponseDTO;
 import vn.edu.ptit.shoe_shop.entity.Cart;
 import vn.edu.ptit.shoe_shop.entity.CartItem;
 import vn.edu.ptit.shoe_shop.entity.ProductVariant;
-
+import vn.edu.ptit.shoe_shop.entity.User;
 import vn.edu.ptit.shoe_shop.repository.CartIteamRepository;
 import vn.edu.ptit.shoe_shop.repository.CartRepository;
 import vn.edu.ptit.shoe_shop.repository.ProductVariantRepository;
+import vn.edu.ptit.shoe_shop.repository.UserRepository;
 import vn.edu.ptit.shoe_shop.service.CartService;
 
 @Service
 @RequiredArgsConstructor
 public class CartServiceImpl implements CartService  {
+    private final UserRepository userRepository;
     private final CartMapper cartMapper;
     private final CartRepository cartRepository;
     private final ProductVariantRepository productVariantRepository;
     private final CartIteamRepository cartIteamRepository;
 @Override
 @Transactional
-public ApiResponse<Object> addProductVariantToCart(AddVariantRequestDTO requestDTO) {
-    UUID userId;
+public ApiResponse<Object> addProductVariantToCart(String userId,AddVariantRequestDTO requestDTO) {
+    UUID userIdUUID;
     UUID variantId;
     try {
-        userId = UUID.fromString(requestDTO.getUserId());
+        userIdUUID = UUID.fromString(userId);
         variantId = UUID.fromString(requestDTO.getVariantId());
     } catch (IllegalArgumentException e) {
         throw new BusinessException("ID không đúng định dạng UUID");
@@ -49,7 +51,7 @@ public ApiResponse<Object> addProductVariantToCart(AddVariantRequestDTO requestD
     }
 
     // Tìm Cart và Variant tương ứng
-    Cart cart = this.cartRepository.findByUser_UserId(userId)
+    Cart cart = this.cartRepository.findByUser_UserId(userIdUUID)
             .orElseThrow(() -> new NotFoundException("Không xác thực được người dùng hoặc chưa có giỏ hàng"));
 
     ProductVariant variant = this.productVariantRepository.findByProductVariantId(variantId)
@@ -129,6 +131,18 @@ public ApiResponse<Object> addProductVariantToCart(AddVariantRequestDTO requestD
         this.cartIteamRepository.save(cartItem);
      }
 
+     public void createCart(String userId) {
+        UUID id;
+        try {
+            id = UUID.fromString(userId);
+        } catch (Exception e) {
+            throw new IdInvalidException("Id không đúng định dạng");
+        }
+        User user = this.userRepository.findByUserId(id).orElseThrow(()->new NotFoundException("Không tìm thấy người dùng"));
+        Cart cart = new Cart();
+        cart.setUser(user);
+        this.cartRepository.save(cart);
+     }
      @Override
      @Transactional
      public void deleteItemFromCart(String itemId) {

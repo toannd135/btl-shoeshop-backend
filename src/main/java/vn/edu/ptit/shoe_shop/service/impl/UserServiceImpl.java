@@ -27,6 +27,7 @@ import vn.edu.ptit.shoe_shop.common.exception.IdInvalidException;
 import vn.edu.ptit.shoe_shop.repository.RoleRepository;
 import vn.edu.ptit.shoe_shop.repository.UserRepository;
 import vn.edu.ptit.shoe_shop.repository.UserRepositoryCustom;
+import vn.edu.ptit.shoe_shop.service.CartService;
 import vn.edu.ptit.shoe_shop.service.UserService;
 
 
@@ -36,7 +37,7 @@ import java.util.UUID;
 
 @Service
 public class UserServiceImpl implements UserService {
-
+    private final CartService cartService;
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final RoleRepository roleRepository;
@@ -47,13 +48,14 @@ public class UserServiceImpl implements UserService {
     private static final Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
 
     public UserServiceImpl(UserRepository userRepository, UserMapper userMapper, RedisTemplate redisTemplate,
-                           RoleRepository roleRepository, UserRepositoryCustom userRepositoryCustom, PasswordEncoder passwordEncoder) {
+                           RoleRepository roleRepository, UserRepositoryCustom userRepositoryCustom, PasswordEncoder passwordEncoder, CartService cartService) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
         this.redisTemplate = redisTemplate;
         this.roleRepository = roleRepository;
         this.userRepositoryCustom = userRepositoryCustom;
         this.passwordEncoder = passwordEncoder;
+        this.cartService = cartService;
     }
 
     @Override
@@ -232,7 +234,7 @@ public class UserServiceImpl implements UserService {
         newUser.setRole(role);
 
         this.userRepository.save(newUser);
-
+        this.cartService.createCart(newUser.getUserId().toString());
         this.redisTemplate.opsForSet().add(RedisKeyConstants.EMAIL_SET, newUser.getEmail());
         this.redisTemplate.opsForSet().add(RedisKeyConstants.USERNAME_SET, newUser.getUsername());
 

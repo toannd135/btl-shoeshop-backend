@@ -10,8 +10,9 @@ import vn.edu.ptit.shoe_shop.dto.response.ApiResponse;
 import vn.edu.ptit.shoe_shop.dto.response.CartResponseDTO;
 
 public interface CartService {
+    public void createCart(String userId);
     public CartResponseDTO getMyCart(String userId) throws IdInvalidException;
-    public ApiResponse<Object> addProductVariantToCart(AddVariantRequestDTO requestDTO);
+    public ApiResponse<Object> addProductVariantToCart(String userId,AddVariantRequestDTO requestDTO);
     public void updateQuantityItem(UpdateItemCartRequestDTO requestDTO);
     public void deleteItemFromCart(String itemId);
 }
