@@ -128,7 +128,7 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
 
             response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
 
-            String targetUrl = "http://localhost:5173/oauth2/redirect?token=" + accessToken;
+            String targetUrl = "https://api.shoeshopecommerce.dpdns.org/oauth2/redirect?token=" + accessToken;
             getRedirectStrategy().sendRedirect(request, response, targetUrl);
 
         } catch (Exception e) {
