@@ -5,9 +5,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import vn.edu.ptit.shoe_shop.common.enums.OrderStatusEnum;
+import vn.edu.ptit.shoe_shop.common.utils.security.SecurityUtils;
 import vn.edu.ptit.shoe_shop.dto.response.OrderResponse;
 import vn.edu.ptit.shoe_shop.service.OrderService;
 
@@ -21,12 +23,12 @@ public class OrderController {
 
     // 1. Lấy danh sách (Lịch sử + Lọc theo trạng thái)
     // Ví dụ gọi: GET /api/orders?status=PENDING&page=0&size=10
-    @GetMapping
+    @GetMapping("")
     public ResponseEntity<Page<OrderResponse>> getMyOrders(
             @RequestParam(required = false) OrderStatusEnum status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        String userId="123e4567-e89b-12d3-a456-426614174000";
+        String userId=SecurityUtils.getCurrentUserId().toString();
         Pageable pageable = PageRequest.of(page, size);
 
         return ResponseEntity.ok(orderService.getUserOrders(userId, status, pageable));
@@ -37,7 +39,7 @@ public class OrderController {
     @GetMapping("/{orderId}")
     public ResponseEntity<OrderResponse> getOrderDetail(
             @PathVariable String orderId) {
-         String userId="123e4567-e89b-12d3-a456-426614174000";
+         String userId=SecurityUtils.getCurrentUserId().toString();
         return ResponseEntity.ok(orderService.getOrderDetail(userId, orderId));
     }
 
@@ -47,7 +49,7 @@ public class OrderController {
     public ResponseEntity<OrderResponse> cancelOrder(
             @PathVariable String orderId,
             @RequestParam(required = false, defaultValue = "Tôi không còn nhu cầu nữa") String reason) {
-          String userId="123e4567-e89b-12d3-a456-426614174000";
+          String userId=SecurityUtils.getCurrentUserId().toString();
         OrderResponse response = orderService.cancelOrder(userId, orderId, reason);
         return ResponseEntity.ok(response);
     }
@@ -62,14 +64,15 @@ public class OrderController {
     }
      // 5. Admin cập nhật trạng thái của đơn hàng
     // Ví dụ gọi: PUT /api/orders/abc-123/status
-    // @PreAuthorize("ADMIN")
+
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{orderId}/status")
     public ResponseEntity<OrderResponse> updateStatusOrder(
             @PathVariable String orderId,
             @RequestParam OrderStatusEnum status
         ) {
-        String userId="123e4567-e89b-12d3-a456-426614174000";
-        OrderResponse response = orderService.updateStatusOrder(userId, orderId,status);
+
+        OrderResponse response = orderService.updateStatusOrder( orderId,status);
         return ResponseEntity.ok(response);
     }
 }

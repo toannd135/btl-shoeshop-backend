@@ -116,17 +116,15 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public OrderResponse updateStatusOrder(String userId, String orderId,OrderStatusEnum status) {
-        UUID userIdUUID;
+    public OrderResponse updateStatusOrder(String orderId,OrderStatusEnum status) {
         UUID orderIdUUID;
         try {
-            userIdUUID=UUID.fromString(userId);
             orderIdUUID=UUID.fromString(orderId);
         } catch (Exception e) {
             // TODO: handle exception
             throw new IdInvalidException("Id không đúng định dạng!");
         }
-        Order order = orderRepository.findByOrderIdAndUser_UserId(orderIdUUID, userIdUUID)
+        Order order = orderRepository.findByOrderId(orderIdUUID)
                 .orElseThrow(() -> new NotFoundException("Không tìm thấy đơn hàng!"));
         order.setStatus(status);
         this.orderRepository.save(order);

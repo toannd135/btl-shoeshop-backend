@@ -56,7 +56,7 @@ public class PaymentController {
     private final OrderPaymentRepository paymentRepository;
     private final OrderPaymentService orderPaymentService;
 
-    @PreAuthorize("isAuthenticated()")
+    // @PreAuthorize("isAuthenticated()")
     @Transactional
     @PostMapping("/create")
     public ResponseEntity<?> createPayment(

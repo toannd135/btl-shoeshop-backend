@@ -57,6 +57,7 @@ public class Product extends Auditable {
     private String description;
 
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private GenderEnum gender;
 
     private String imageUrl;

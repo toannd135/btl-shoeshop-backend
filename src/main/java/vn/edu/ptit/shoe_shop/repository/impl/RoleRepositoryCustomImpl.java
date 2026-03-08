@@ -15,7 +15,6 @@ import vn.edu.ptit.shoe_shop.common.enums.StatusEnum;
 import vn.edu.ptit.shoe_shop.dto.request.search.RoleSearchRequestDTO;
 import vn.edu.ptit.shoe_shop.entity.QRole;
 import vn.edu.ptit.shoe_shop.entity.Role;
-import vn.edu.ptit.shoe_shop.repository.RoleRepository;
 import vn.edu.ptit.shoe_shop.repository.RoleRepositoryCustom;
 
 import java.util.List;

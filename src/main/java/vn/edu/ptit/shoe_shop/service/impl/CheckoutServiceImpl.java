@@ -46,24 +46,25 @@ public class CheckoutServiceImpl implements CheckoutService {
 
     @Override
     @Transactional(rollbackFor = Exception.class) // Rollback nếu có bất kỳ lỗi nào
-    public OrderResponse processCheckout(CheckoutRequest request) {
+    public OrderResponse processCheckout(String userId,CheckoutRequest request) {
         // 1. Parse ID
-        UUID cartId;
-        UUID userId;
+        UUID userIdUUID;
         try {
-            cartId = UUID.fromString(request.getCartId());
-            userId = UUID.fromString(request.getUserId());
+           
+            userIdUUID = UUID.fromString(userId);
         } catch (IllegalArgumentException e) {
             throw new IdInvalidException("Id không đúng định dạng!");
         }
 
         // --- BƯỚC 1: VALIDATE CART & USER ---
-        User user = userRepository.findByUserId(userId)
+        User user = userRepository.findByUserId(userIdUUID)
                 .orElseThrow(() -> new NotFoundException("Không tìm thấy người dùng!"));
         
-        Cart cart = cartRepository.findByCartId(cartId)
-                .orElseThrow(() -> new NotFoundException("Giỏ hàng không tồn tại"));
-
+        Cart cart = user.getCart();
+        if(cart==null)
+        {
+            throw new RuntimeException("Giỏ hàng không tồn tại");
+        }
         if (cart.getItems() == null || cart.getItems().isEmpty()) {
             throw new RuntimeException("Giỏ hàng đang trống!");
         }
@@ -181,7 +182,7 @@ public class CheckoutServiceImpl implements CheckoutService {
 
         // Xóa giỏ hàng
         // Lưu ý: Nếu CartItem có quan hệ chặt chẽ, nên dùng method remove item
-        cartRepository.deleteAllByCart_CartId(cartId); 
+        cartRepository.deleteAllByCart_CartId(cart.getCartId()); 
         // Hoặc: cartRepository.delete(cart); tùy thiết kế DB
 
         return orderMapper.toOrderResponse(savedOrder);

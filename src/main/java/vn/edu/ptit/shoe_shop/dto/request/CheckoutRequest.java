@@ -7,11 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class CheckoutRequest {
-    @NotEmpty(message = "userId is required!")
-    private String userId;
-    @NotEmpty(message = "cartId is required!")
-    private String cartId;
-    @Nullable
+  
     private String couponCode; // Có thể null
     @NotEmpty(message = "receiverName is required!")
     private String receiverName;

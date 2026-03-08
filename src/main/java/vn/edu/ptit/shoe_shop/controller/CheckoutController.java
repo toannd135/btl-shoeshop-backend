@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import vn.edu.ptit.shoe_shop.common.utils.security.SecurityUtils;
 import vn.edu.ptit.shoe_shop.dto.request.CheckoutRequest;
 import vn.edu.ptit.shoe_shop.dto.response.OrderResponse;
 import vn.edu.ptit.shoe_shop.service.CheckoutService;
@@ -20,7 +21,8 @@ public class CheckoutController {
     @PostMapping("")
     public ResponseEntity<OrderResponse> checkout(@RequestBody @Valid CheckoutRequest request) {
         // Gọi xuống tầng Service để xử lý logic
-        OrderResponse createdOrder = checkoutService.processCheckout(request);
+        String userId=SecurityUtils.getCurrentUserId().toString();
+        OrderResponse createdOrder = checkoutService.processCheckout(userId,request);
         return ResponseEntity.ok(createdOrder);
     }
 }
