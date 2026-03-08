@@ -1,4 +1,4 @@
-replicaCount: 3
+replicaCount: 2
 
 image:
   repository: toannd135/shoeshop-backend
@@ -29,11 +29,11 @@ secret:
 
 resources:
   requests:
-    memory: "512Mi"
-    cpu: "300m"
+    memory: "256Mi"
+    cpu: "100m"
   limits:
     memory: "1024Mi"
-    cpu: "1000m"
+    cpu: "500m"
 
 
 redis:
@@ -78,17 +78,22 @@ ingress:
   className: "nginx"
   annotations:
     kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      proxy_set_header X-Forwarded-Proto https;
+      proxy_set_header X-Forwarded-Port 443;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     nginx.ingress.kubernetes.io/proxy-body-size: "10m"
     nginx.ingress.kubernetes.io/enable-cors: "true"
-    nginx.ingress.kubernetes.io/cors-allow-origin: "http://shoeshopecommerce.dpdns.org/"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "https://shoeshopecommerce.dpdns.org"
     nginx.ingress.kubernetes.io/cors-allow-headers: "Authorization, Refresh-Token, Content-Type"
   hosts:
     - host: api.shoeshopecommerce.dpdns.org
       paths:
         - path: /
           pathType: Prefix
-# ssl: ""
-  # sslKey: "classpath:keystore.p12"
-  # sslKeyPassword: "123456"
-  # sslKeyType: "PKCS12"
-  # sslKeyAlias: "tomcat"
+  tls:
+    - hosts:
+        - api.shoeshopecommerce.dpdns.org
+      secretName: shoeshop-api-tls-secret
+
