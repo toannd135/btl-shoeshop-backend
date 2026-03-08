@@ -46,11 +46,17 @@ Sử dụng tài khoản dưới đây để kiểm thử các tính năng dành
 Dự án áp dụng **Layered Architecture** để tách biệt mã nguồn:
 
 ```text
-com.shoeshop
-├── config/         # Security, Redis, CORS, Cloud Config
-├── controller/     # REST API Endpoints
-├── service/        # Business Logic & Validation
-├── repository/     # Data Access Layer (Spring Data JPA)
-├── entity/         # Database Models (Hibernate)
-├── dto/            # Data Transfer Objects (Request/Response)
-└── exception/      # Global Exception Handling
+src/main/java/com/shoeshop
+├── common/             # Các hằng số, tiện ích dùng chung (Utils)
+├── config/             # Cấu hình Security, Redis, Swagger
+├── controller/         # REST Controllers (Expose API)
+├── dto/                # Request/Response Data Transfer Objects
+│   ├── request/
+│   └── response/
+├── entity/             # JPA Entities (Database Tables)
+├── exception/          # Global Exception Handler & Custom Exceptions
+├── mapper/             # Chuyển đổi Entity <-> DTO (MapStruct/ModelMapper)
+├── repository/         # Spring Data JPA Repositories
+└── service/            # Business Logic
+    ├── impl/           # Service Implementations
+    └── Service Interface
