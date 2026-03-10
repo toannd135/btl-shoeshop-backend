@@ -37,16 +37,16 @@ public class Role implements Serializable {
     @Enumerated(EnumType.STRING)
     private StatusEnum status;
 
-    @Column(name = "createdAt", nullable = false)
+    @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
-    @Column(name = "updatedAt")
+    @Column(name = "updated_at")
     private Instant updatedAt;
 
     @OneToMany(mappedBy = "role", fetch = FetchType.LAZY)
     @JsonIgnore
     private List<User> users;
-
+//
     @ManyToMany(fetch = FetchType.LAZY)
     @JsonIgnoreProperties(value = {"roles"})
     @JoinTable(name = "permission_role", joinColumns = @JoinColumn(name = "role_id"),
@@ -67,9 +67,6 @@ public class Role implements Serializable {
         this.description = tmp.toString();
         this.createdAt = Instant.now();
         this.updatedAt = this.createdAt;
-        if (this.status == null) {
-            this.status = StatusEnum.ACTIVE;
-        }
     }
 
     @PreUpdate

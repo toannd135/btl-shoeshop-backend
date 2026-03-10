@@ -9,7 +9,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import vn.edu.ptit.shoe_shop.common.enums.OrderStatusEnum;
-import vn.edu.ptit.shoe_shop.common.utils.security.SecurityUtils;
+import vn.edu.ptit.shoe_shop.common.security.SecurityUtils;
 import vn.edu.ptit.shoe_shop.dto.response.OrderResponse;
 import vn.edu.ptit.shoe_shop.service.OrderService;
 

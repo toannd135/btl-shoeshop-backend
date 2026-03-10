@@ -7,26 +7,35 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.edu.ptit.shoe_shop.common.constant.JwtConstants;
+import vn.edu.ptit.shoe_shop.common.enums.ProviderEnum;
+import vn.edu.ptit.shoe_shop.common.enums.StatusEnum;
 import vn.edu.ptit.shoe_shop.common.exception.BadCredentialsException;
 import vn.edu.ptit.shoe_shop.common.exception.IdInvalidException;
-import vn.edu.ptit.shoe_shop.common.utils.security.SecurityUtils;
-import vn.edu.ptit.shoe_shop.common.utils.security.jwt.TokenProvider;
+import vn.edu.ptit.shoe_shop.common.security.jwt.TokenProvider;
 import vn.edu.ptit.shoe_shop.dto.LoginResult;
+import vn.edu.ptit.shoe_shop.dto.request.auth.ForgotPasswordRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.request.auth.LoginRequestDTO;
+import vn.edu.ptit.shoe_shop.dto.request.auth.ResetPasswordRequestDTO;
+import vn.edu.ptit.shoe_shop.dto.response.ForgotPasswordResponseDTO;
 import vn.edu.ptit.shoe_shop.entity.RefreshToken;
 import vn.edu.ptit.shoe_shop.entity.User;
 import vn.edu.ptit.shoe_shop.repository.RefreshTokenRepository;
 import vn.edu.ptit.shoe_shop.repository.UserRepository;
 import vn.edu.ptit.shoe_shop.service.AuthService;
-import vn.edu.ptit.shoe_shop.service.CustomUserDetail;
+import vn.edu.ptit.shoe_shop.common.security.service.CustomUserDetail;
+import vn.edu.ptit.shoe_shop.service.EmailService;
 import vn.edu.ptit.shoe_shop.service.RedisService;
+import vn.edu.ptit.shoe_shop.service.UserService;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -36,18 +45,27 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final RedisService redisService;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final UserService userService;
+    private final EmailService emailService;
+    private final PasswordEncoder passwordEncoder;
+
+
     private final Logger log = LoggerFactory.getLogger(AuthServiceImpl.class);
 
     @Value("${app.jwt.refresh-token-validity-in-seconds}")
     private Long refreshTokenExpiration;
 
-    public AuthServiceImpl(AuthenticationManager authenticationManager, TokenProvider tokenProvider
-            , UserRepository userRepository, RedisService redisService, RefreshTokenRepository refreshTokenRepository) {
+    public AuthServiceImpl(AuthenticationManager authenticationManager, TokenProvider tokenProvider,UserService userService
+            , UserRepository userRepository, RedisService redisService, RefreshTokenRepository refreshTokenRepository
+            , EmailService emailService, PasswordEncoder passwordEncoder) {
         this.authenticationManager = authenticationManager;
         this.tokenProvider = tokenProvider;
         this.userRepository = userRepository;
         this.redisService = redisService;
         this.refreshTokenRepository = refreshTokenRepository;
+        this.userService = userService;
+        this.emailService = emailService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -62,7 +80,7 @@ public class AuthServiceImpl implements AuthService {
         User user = customUserDetail.getUser();
         UUID userId = user.getUserId();
         // create access token
-        String accessToken = this.tokenProvider.createAccessToken(authentication, deviceId); // save into memory frontend
+        String accessToken = this.tokenProvider.createAccessToken(authentication, deviceId);
         // create refresh token
         String refreshToken = this.tokenProvider.createRefreshToken(authentication, deviceId);
         String refreshJti = this.tokenProvider.getJtiFromToken(refreshToken);
@@ -102,6 +120,10 @@ public class AuthServiceImpl implements AuthService {
                     log.debug("User not found with ID: {}", userId);
                     return new IdInvalidException("User not found");
                 });
+
+        if (accessToken != null && !accessToken.isEmpty()) {
+            revokeAccessToken(accessToken);
+        }
 
         // check token db
         RefreshToken refreshTokenEntity = this.refreshTokenRepository.findByUserUserIdAndDeviceId(userId, deviceId)
@@ -155,6 +177,73 @@ public class AuthServiceImpl implements AuthService {
         revokeAccessToken(accessToken);
     }
 
+    @Override
+    public ForgotPasswordResponseDTO forgotPassword(ForgotPasswordRequestDTO forgotPasswordRequestDTO) {
+        String email = forgotPasswordRequestDTO.getEmail();
+
+        User user = this.userService.getUserByUsernameOrEmail(email);
+        if(!user.getStatus().equals(StatusEnum.ACTIVE)) {
+            throw new IllegalArgumentException("User account is not active");
+        }
+        if(!user.getProvider().equals(ProviderEnum.SERVER)) {
+            throw new IllegalArgumentException("User account is not provided server");
+        }
+        long ttl = 3L;
+        String otp = this.redisService.generateAndSaveOTP(email, ttl);
+
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("otp", otp);
+        this.emailService.sendEmailFromTemplateSync(
+                user.getEmail(),
+                "OTP for Password Reset",
+                "otpVerify",
+                variables
+        );
+        return new ForgotPasswordResponseDTO(email, ttl);
+    }
+
+    @Override
+    public String otpVerification(String otp, String email) {
+        String otpInRedis = this.redisService.getOtp(email);
+        if(otpInRedis == null) {
+            throw new IllegalArgumentException("Otp time out");
+        }
+        if(!otpInRedis.equals(otp)) {
+            throw new IllegalArgumentException("Otp not matching");
+        }
+        String resetTokenValue = UUID.randomUUID().toString();
+        this.redisService.storeResetToken(email, resetTokenValue);
+        return resetTokenValue;
+    }
+
+    @Override
+    public String resetPassword(ResetPasswordRequestDTO resetPasswordRequestDTO) {
+        String newPassword = resetPasswordRequestDTO.getNewPassword();
+        String confirmNewPassword = resetPasswordRequestDTO.getConfirmNewPassword();
+        if(!newPassword.equals(confirmNewPassword)) {
+            throw new IllegalArgumentException("Password not match");
+        }
+        String email = resetPasswordRequestDTO.getEmail();
+        String tokenInRedis = this.redisService.getResetToken(email);
+        if(!tokenInRedis.equals(resetPasswordRequestDTO.getResetToken())) {
+            throw  new IllegalArgumentException("token expired");
+        }
+        User user = this.userService.getUserByUsernameOrEmail(email);
+        user.setPassword(this.passwordEncoder.encode(newPassword));
+        this.userRepository.save(user);
+        this.redisService.deleteResetToken(user.getEmail());
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("username", user.getUsername());
+        emailService.sendEmailFromTemplateSync(
+                user.getEmail(),
+                "Password Changed Successfully",
+                "resetPasswordNotifition",
+                variables
+        );
+
+        return "Password has been reset successfully. An email confirmation has been sent.";
+    }
+
     private void revokeAccessToken(String accessToken) {
         try {
             Jwt decodeAccessToken = this.tokenProvider.checkValidAccessToken(accessToken);
@@ -176,6 +265,7 @@ public class AuthServiceImpl implements AuthService {
         uRes.setUsername(user.getUsername());
         uRes.setFullName(user.getFirstName() + " " + user.getLastName());
         uRes.setRoleCode(user.getRole().getCode());
+        uRes.setAvatarImage(user.getAvatarImage());
         res.setUser(uRes);
         res.setAccessToken(at);
         res.setRefreshToken(rt);

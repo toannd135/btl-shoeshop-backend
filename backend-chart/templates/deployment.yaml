@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "backend-chart.fullname" . }}
+  labels: {{ include "backend-chart.selectorLabels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels: {{ include "backend-chart.selectorLabels" . | nindent 6 }}
+  template: 
+    metadata:
+      labels: {{ include "backend-chart.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+      - name: {{ .Chart.Name }}
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+
+        env:
+        - name: JAVA_TOOL_OPTIONS
+          value: "-Xmx450m -Xms256m -Dspring.config.location=optional:classpath:/,file:/run/config/application.yaml"
+
+        envFrom:
+        - secretRef:
+            name: {{ include "backend-chart.fullname" . }}-database-connection 
+
+        ports:
+          - containerPort: 8080
+            name: http
+
+        {{- if .Values.healthCheck.enable }}
+        livenessProbe: {{- toYaml .Values.healthCheck.livenessProbe  | nindent 10 }}
+        readinessProbe: {{- toYaml .Values.healthCheck.readinessProbe  | nindent 10 }}
+        {{- end }}
+
+        resources: {{- toYaml .Values.resources | nindent 10 }}
+
+
+        volumeMounts:
+        - name: application-config-volume
+          mountPath: /run/config/application.yaml
+          subPath: application.yaml
+
+      volumes:
+      - name: application-config-volume
+        configMap: 
+          name: {{ include "backend-chart.fullname" . }}-configmap
+
+      {{- with .Values.nodeSelector }}
+      nodeSelector: {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      {{- with .Values.tolerations }}
+      tolerations: {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      {{- with .Values.affinity }}
+      affinity: {{- toYaml . | nindent 8 }}
+      {{- end }}

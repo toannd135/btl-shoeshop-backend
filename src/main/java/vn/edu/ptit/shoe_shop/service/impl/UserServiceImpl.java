@@ -12,8 +12,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.edu.ptit.shoe_shop.common.constant.EmailPattern;
 import vn.edu.ptit.shoe_shop.common.constant.RedisKeyConstants;
+import vn.edu.ptit.shoe_shop.common.enums.ProviderEnum;
 import vn.edu.ptit.shoe_shop.common.enums.RoleEnum;
 import vn.edu.ptit.shoe_shop.common.enums.StatusEnum;
+import vn.edu.ptit.shoe_shop.common.exception.TokenExpiredOrUsedException;
 import vn.edu.ptit.shoe_shop.dto.request.auth.RegisterRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.request.search.UserSearchRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.response.page.UserPageResponseDTO;
@@ -28,11 +30,19 @@ import vn.edu.ptit.shoe_shop.repository.RoleRepository;
 import vn.edu.ptit.shoe_shop.repository.UserRepository;
 import vn.edu.ptit.shoe_shop.repository.UserRepositoryCustom;
 import vn.edu.ptit.shoe_shop.service.CartService;
+import vn.edu.ptit.shoe_shop.service.EmailService;
+import vn.edu.ptit.shoe_shop.service.RedisService;
 import vn.edu.ptit.shoe_shop.service.UserService;
 
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
+
+import static vn.edu.ptit.shoe_shop.entity.QUser.user;
 
 
 @Service
@@ -43,19 +53,22 @@ public class UserServiceImpl implements UserService {
     private final RoleRepository roleRepository;
     private final UserRepositoryCustom userRepositoryCustom;
     private final PasswordEncoder passwordEncoder;
-    private final RedisTemplate redisTemplate;
+    private final RedisService redisService;
+    private final EmailService emailService;
 
     private static final Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
 
-    public UserServiceImpl(UserRepository userRepository, UserMapper userMapper, RedisTemplate redisTemplate,
-                           RoleRepository roleRepository, UserRepositoryCustom userRepositoryCustom, PasswordEncoder passwordEncoder, CartService cartService) {
+    public UserServiceImpl(UserRepository userRepository, UserMapper userMapper, RedisService redisService,
+                           RoleRepository roleRepository, UserRepositoryCustom userRepositoryCustom,
+                           EmailService emailService, PasswordEncoder passwordEncoder,CartService cartService) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
-        this.redisTemplate = redisTemplate;
+        this.redisService = redisService;
         this.roleRepository = roleRepository;
         this.userRepositoryCustom = userRepositoryCustom;
         this.passwordEncoder = passwordEncoder;
         this.cartService = cartService;
+        this.emailService = emailService;
     }
 
     @Override
@@ -90,6 +103,11 @@ public class UserServiceImpl implements UserService {
         log.debug("Password hashed for user");
         this.userRepository.save(user);
         log.info("User created successfully with ID: {}", user.getUserId());
+
+
+        // luu vao cache
+
+
         UserResponseDTO res = this.userMapper.toResponseDTO(user);
         res.setFullName(user.getFirstName() +  " " + user.getLastName());
         log.debug("End createUser with response: {}", res);
@@ -145,6 +163,9 @@ public class UserServiceImpl implements UserService {
                     log.debug("User not found with ID: {}", id);
                     return new IdInvalidException("User not found");
                 });
+        if(user.getRole().getName().equals(RoleEnum.ADMIN.name())) {
+            throw new IllegalStateException("cannot delete admin");
+        }
         user.setStatus(StatusEnum.DELETED);
         log.debug("User set status {} for user", user.getStatus());
         this.userRepository.save(user);
@@ -207,27 +228,26 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public String register(RegisterRequestDTO registerRequestDTO) {
         // kiem tra redis
-        if(Boolean.TRUE.equals(this.redisTemplate.opsForSet()
-                .isMember(RedisKeyConstants.EMAIL_SET, registerRequestDTO.getEmail()))) {
+        if(Boolean.TRUE.equals(this.redisService.isExistsInSet(
+                RedisKeyConstants.EMAIL_SET, registerRequestDTO.getEmail()))) {
             throw new IllegalStateException("Email already exists");
         }
-        if(Boolean.TRUE.equals(this.redisTemplate.opsForSet()
-                .isMember(RedisKeyConstants.USERNAME_SET, registerRequestDTO.getUsername()))) {
+        if(Boolean.TRUE.equals(this.redisService.isExistsInSet(
+                RedisKeyConstants.USERNAME_SET, registerRequestDTO.getUsername()))) {
             throw new IllegalStateException("Username already exists");
         }
 
         // kiem tra database
         if(this.userRepository.existsByEmail(registerRequestDTO.getEmail())) {
-            this.redisTemplate.opsForSet().add(RedisKeyConstants.EMAIL_SET, registerRequestDTO.getEmail());
             throw new IllegalStateException("Email already exists");
         }
         if(this.userRepository.existsByUsername(registerRequestDTO.getUsername())) {
-            this.redisTemplate.opsForSet().add(RedisKeyConstants.USERNAME_SET, registerRequestDTO.getEmail());
             throw new IllegalStateException("Username already exists");
         }
 
         User newUser = this.userMapper.registerDTOToUser(registerRequestDTO);
         newUser.setStatus(StatusEnum.INACTIVE);
+        newUser.setProvider(ProviderEnum.SERVER);
         newUser.setPassword(this.passwordEncoder.encode(registerRequestDTO.getPassword()));
         Role role = this.roleRepository.findByName(RoleEnum.USER.name())
                 .orElseThrow(() -> new IdInvalidException("Role not found"));
@@ -235,13 +255,61 @@ public class UserServiceImpl implements UserService {
 
         this.userRepository.save(newUser);
         this.cartService.createCart(newUser.getUserId().toString());
-        this.redisTemplate.opsForSet().add(RedisKeyConstants.EMAIL_SET, newUser.getEmail());
-        this.redisTemplate.opsForSet().add(RedisKeyConstants.USERNAME_SET, newUser.getUsername());
+        // this.redisTemplate.opsForSet().add(RedisKeyConstants.EMAIL_SET, newUser.getEmail());
+        // this.redisTemplate.opsForSet().add(RedisKeyConstants.USERNAME_SET, newUser.getUsername());
 
 
-        //gui email
-        return "";
+        // //gui email
+        // return "";
+
+        sendVerificationEmail(newUser);
+        this.redisService.addToSet(RedisKeyConstants.EMAIL_SET, newUser.getEmail());
+        this.redisService.addToSet(RedisKeyConstants.USERNAME_SET, newUser.getUsername());
+        setRandomTTL("users:usernames", 24 * 60);
+        setRandomTTL("users:emails", 24 * 60);
+        return "Registration successful. Please check your email to verify your account";
     }
 
+    private void setRandomTTL(String key, long baseMinutes) {
+        long randomMinutes = ThreadLocalRandom.current().nextLong(120);
+        long finalTtl = baseMinutes + randomMinutes;
+        this.redisService.expireKey(key, finalTtl);
+        log.info("Key [{}] set to expire in {} minutes (~{} hours).", key, finalTtl, String.format("%.1f", finalTtl / 60.0));
+    }
 
+    private void sendVerificationEmail(User user) {
+        String token = UUID.randomUUID().toString();
+        this.redisService.storeVerificationToken(token, user.getUserId(), 600L);
+
+        String verifyUrl = "http://localhost:8080/api/v1/auth/verify?token=" + token;
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("confirmationLink", verifyUrl);
+        this.emailService.sendEmailFromTemplateSync(
+                user.getEmail(),
+                "Please confirm account.",
+                "registerConfirmation",
+                variables
+        );
+    }
+
+    @Override
+    @Transactional
+    public String verifyUser(String token) {
+        String userId = this.redisService.getUserIdFromVerificationToken(token);
+        if (userId == null) {
+            throw new TokenExpiredOrUsedException("Invalid or expired verification token");
+        }
+        User user = this.userRepository.findByUserId(UUID.fromString(userId))
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        if (user.getStatus().equals(StatusEnum.ACTIVE)) {
+            throw new TokenExpiredOrUsedException("Token invalid or already used");
+        }
+        user.setStatus(StatusEnum.ACTIVE);
+        this.userRepository.save(user);
+        this.redisService.deleteVerificationToken(token);
+
+        return "Account verified successfully";
+    }
+
+    
 }

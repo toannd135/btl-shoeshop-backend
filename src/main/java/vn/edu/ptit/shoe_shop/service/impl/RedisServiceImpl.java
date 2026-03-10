@@ -9,8 +9,10 @@ import org.springframework.transaction.annotation.Transactional;
 import vn.edu.ptit.shoe_shop.common.constant.TokenConstants;
 import vn.edu.ptit.shoe_shop.service.RedisService;
 
+import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+
 
 @Service
 public class RedisServiceImpl implements RedisService {
@@ -71,6 +73,74 @@ public class RedisServiceImpl implements RedisService {
     public boolean isRefreshTokenValid(UUID userId, String jti, String refreshToken) {
         return refreshToken.equals(this.redisTemplate.opsForValue()
                 .get(TokenConstants.REFRESH_PREFIX + userId.toString() + ":" + jti));
+    }
+
+    @Override
+    public boolean isExistsInSet(String key, String value) {
+        return Boolean.TRUE.equals(this.redisTemplate.opsForSet().isMember(key, value));
+    }
+
+    @Override
+    public void addToSet(String key, String value) {
+        this.redisTemplate.opsForSet().add(key, value);
+    }
+
+    @Override
+    public void expireKey(String key, long finalTtl) {
+        this.redisTemplate.expire(key, finalTtl, TimeUnit.SECONDS);
+    }
+
+    @Override
+    public void storeVerificationToken(String token, UUID userId, Long ttlSeconds) {
+        this.redisTemplate.opsForValue().set(TokenConstants.VERIFY_PREFIX + token, userId, ttlSeconds, TimeUnit.SECONDS);
+    }
+
+    @Override
+    public String getUserIdFromVerificationToken(String token) {
+        return this.redisTemplate.opsForValue().get(TokenConstants.VERIFY_PREFIX + token).toString();
+    }
+
+    @Override
+    public void deleteVerificationToken(String token) {
+        this.redisTemplate.delete(TokenConstants.VERIFY_PREFIX + token);
+    }
+
+
+    public String generateAndSaveOTP(String email, long ttl) {
+        String otp = String.format("%06d", new Random().nextInt(999999));
+        String key = "otp:forgot-password:" + email;
+        this.redisTemplate.opsForValue().set(key, otp, 3, TimeUnit.MINUTES);
+        return otp;
+    }
+
+    @Override
+    public String getOtp(String email) {
+        String key = "otp:forgot-password:" + email;
+        return this.redisTemplate.opsForValue().get(key).toString();
+    }
+
+    @Override
+    public void deleteOtp(String email) {
+        String key = "otp:forgot-password:" + email;
+        this.redisTemplate.delete(key);
+    }
+
+    @Override
+    public void storeResetToken(String email, String token) {
+        String key = "reset-password:" + email;
+        this.redisTemplate.opsForValue().set(key, token, 5, TimeUnit.MINUTES);
+    }
+
+    @Override
+    public String getResetToken(String email) {
+        String key = "reset-password:" + email;
+        return this.redisTemplate.opsForValue().get(key).toString();
+    }
+
+    @Override
+    public void deleteResetToken(String email) {
+        String key = "reset-password:" + email;
+        this.redisTemplate.delete(key);
     }
 
     private String buildRefreshTokenKey(UUID userId, String deviceId) {

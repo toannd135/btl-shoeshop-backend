@@ -1,5 +1,5 @@
 # build stage
-FROM maven:3.9-eclipse-temurin-21-alpine as build
+FROM maven:3.9-eclipse-temurin-21-alpine AS build
 WORKDIR /app
 
 COPY pom.xml .
@@ -13,4 +13,4 @@ WORKDIR /run
 RUN apk add --no-cache wget
 COPY --from=build /app/target/*.jar /run/app.jar
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "/run/app.jar"]
+CMD ["java", "-jar", "/run/app.jar"]

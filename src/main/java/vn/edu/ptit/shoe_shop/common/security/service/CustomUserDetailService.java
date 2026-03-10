@@ -1,4 +1,4 @@
-package vn.edu.ptit.shoe_shop.service;
+package vn.edu.ptit.shoe_shop.common.security.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,6 +7,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import vn.edu.ptit.shoe_shop.entity.User;
+import vn.edu.ptit.shoe_shop.service.UserService;
 
 @Service
 public class CustomUserDetailService implements UserDetailsService {

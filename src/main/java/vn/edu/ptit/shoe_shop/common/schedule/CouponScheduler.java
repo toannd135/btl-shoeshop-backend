@@ -1,4 +1,4 @@
-package vn.edu.ptit.shoe_shop.schedule;
+package vn.edu.ptit.shoe_shop.common.schedule;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

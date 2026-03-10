@@ -13,11 +13,9 @@ import vn.edu.ptit.shoe_shop.dto.request.UserUpdateRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.request.search.UserSearchRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.response.UserResponseDTO;
 import vn.edu.ptit.shoe_shop.dto.response.page.UserPageResponseDTO;
-import vn.edu.ptit.shoe_shop.entity.User;
 import vn.edu.ptit.shoe_shop.service.UserService;
 import vn.edu.ptit.shoe_shop.common.utils.annotation.ApiMessage;
 
-import java.util.List;
 import java.util.UUID;
 
 
@@ -91,4 +89,6 @@ public class UserController {
                 userPageResponseDTO.getPages());
         return ResponseEntity.ok().body(userPageResponseDTO);
     }
+
+    
 }

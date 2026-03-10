@@ -6,12 +6,12 @@ pipeline {
     environment {
         IMAGE_NAME = "toannd135/shoeshop-backend"
         DOCKER_CREDENTIALS = 'dockerhub-credentials'
-        GITHUB_CREDENTIALS = 'github-token'
-        CONFIG_REPO_URL = "https://github.com/toannd135/BTL_WEB_BACKEND.git"
+        GITHUB_CREDENTIALS = 'my-github'
+        CONFIG_REPO_URL = "https://github.com/toannd135/btl-shoeshop-backend.git"
     }
     stages {
-        stage ('Agent information') {
-            steps {
+        stage ('Agent information') {                                   
+            steps {                                                                                             
                 echo " Running on agent: ${env.NODE_NAME}"
                 echo " Workspace: ${env.WORKSPACE}"
                 sh 'whoami'
@@ -81,6 +81,85 @@ pipeline {
                         sh " docker push ${env.IMAGE_NAME}:${env.IMAGE_TAG}"
                     }
                     echo "Docker image pushed successfully!"
+                }
+            }
+        }
+        stage('Clone Config Repo') {
+            steps {
+                script {
+                    echo " Cloning config repository..."
+                    
+                    
+                    sh 'mkdir -p config-repo'
+                    
+                    dir('config-repo') {
+                    
+                        withCredentials([gitUsernamePassword(credentialsId: env.GITHUB_CREDENTIALS, gitToolName: 'Default')]) {
+                            sh """
+                                git clone ${env.CONFIG_REPO_URL} .
+                                git config user.email "nguyenductoan123@gmail.com"
+                                git config user.name "Jenkins CI/CD Backend"
+                            """
+                        }
+                        
+                        echo " Config repo cloned successfully!"
+                        sh 'ls -la'
+                    }
+                }
+            }
+        }
+        
+        stage('Update Helm Manifest') {
+            steps {
+                script {
+                    dir('config-repo') {
+                        def tagName = env.IMAGE_TAG
+                        echo "Updating with tag: ${tagName}"
+                        
+                        sh """
+                            sed -i 's/^  tag:.*/  tag: "${tagName}"/' backend-chart/values.yaml
+                        """
+                        
+                        sh "grep 'tag:' backend-chart/values.yaml"
+                    }
+                }
+            }
+        }
+        stage('Push Config Changes') {
+            steps {
+                script {
+                    echo "Pushing changes to config repository..."
+                    
+                    dir('config-repo') {
+                        
+                        def gitStatus = sh(
+                            script: 'git status --porcelain',
+                            returnStdout: true
+                        ).trim()
+                        
+                        if (gitStatus) {
+                            echo "Changes detected, committing and pushing..."
+                            
+                            sh """
+                                git add .
+                                git commit -m " Update image version to ${env.IMAGE_TAG}
+                                
+                                - Updated helm-values/values-prod.yaml
+                                - Image: ${env.IMAGE_NAME}:${env.IMAGE_TAG}
+                                - Build: ${env.BUILD_NUMBER}
+                                - Jenkins Job: ${env.JOB_NAME}"
+                            """
+                            
+                            withCredentials([gitUsernamePassword(credentialsId: env.GITHUB_CREDENTIALS, gitToolName: 'Default')]) {
+                                sh "git pull origin main --rebase"
+                                sh 'git push origin main'
+                            }
+                            
+                            echo " Config changes pushed successfully!"
+                        } else {
+                            echo " No changes detected in config repo"
+                        }
+                    }
                 }
             }
         }

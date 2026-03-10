@@ -2,23 +2,20 @@ package vn.edu.ptit.shoe_shop.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
-import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import vn.edu.ptit.shoe_shop.service.CustomUserDetailService;
+import vn.edu.ptit.shoe_shop.common.security.service.CustomUserDetailService;
 import vn.edu.ptit.shoe_shop.service.UserService;
+
 import static vn.edu.ptit.shoe_shop.common.enums.RoleEnum.ADMIN;
 
 @Configuration
@@ -26,24 +23,16 @@ import static vn.edu.ptit.shoe_shop.common.enums.RoleEnum.ADMIN;
 public class SecurityConfiguration {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
 
-    public SecurityConfiguration(JwtAuthenticationFilter jwtAuthenticationFilter) {
+    public SecurityConfiguration(JwtAuthenticationFilter jwtAuthenticationFilter, OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.oAuth2LoginSuccessHandler = oAuth2LoginSuccessHandler;
     }
-    @Bean
-    public BCryptPasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
 
     @Bean
     public UserDetailsService userDetailsService(UserService userService) {
         return new CustomUserDetailService(userService);
-    }
-
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
-        return authenticationConfiguration.getAuthenticationManager();
     }
 
     @Bean
@@ -56,11 +45,14 @@ public class SecurityConfiguration {
 
 
     String[] whiteList = {
-            "/api/v1/users/**",
             "/",
+            "/actuator/**",
+            "/login/**",
+            "/oauth2/**",
+            "/api/v1/auth/refresh-token",
             "/api/v1/auth/login",
             "/api/v1/auth/register",
-            "/api/v1/auth/verify",
+            "/api/v1/auth/verify-email",
             "/api/v1/auth/forgot-password",
             "/api/v1/auth/reset-password",
             "/api/v1/auth/verify-otp"
@@ -77,22 +69,29 @@ public class SecurityConfiguration {
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(
                         auth -> auth
+                                .requestMatchers(
+                                        "/actuator/health",
+                                        "/actuator/health/**"
+                                ).permitAll()
                                 .requestMatchers(whiteList).permitAll()
-//                                .requestMatchers( "/api/v1/users/**").hasAnyRole(ADMIN.name())
-//                                .requestMatchers("/api/v1/roles/**").hasRole(ADMIN.name())
-//                                .requestMatchers("/api/v1/permissions/**").hasRole(ADMIN.name())
+                                .requestMatchers( "/api/v1/users/**").hasAnyRole(ADMIN.name())
+                                .requestMatchers("/api/v1/roles/**").hasRole(ADMIN.name())
+                                .requestMatchers("/api/v1/permissions/**").hasRole(ADMIN.name())
                                 .anyRequest()
-                                .permitAll()
+                                .authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .sessionManagement(
-                        session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                        session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 )
                 .formLogin(form -> form.disable())
-                .oauth2ResourceServer(oauth2 -> oauth2
-                        .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter))
-                        .authenticationEntryPoint(customAuthenticationEntryPoint)
-                )
+                // .oauth2Login(oauth2 -> oauth2
+                //         .successHandler(oAuth2LoginSuccessHandler)
+                // )
+                // .oauth2ResourceServer(oauth2 -> oauth2
+                //         .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter))
+                //         .authenticationEntryPoint(customAuthenticationEntryPoint)
+                // )
                 .exceptionHandling(
                         exceptions -> exceptions
                                 .accessDeniedHandler(customAccessDeniedHandler)

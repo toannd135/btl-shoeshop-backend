@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import vn.edu.ptit.shoe_shop.common.utils.security.SecurityUtils;
+import vn.edu.ptit.shoe_shop.common.security.SecurityUtils;
 import vn.edu.ptit.shoe_shop.dto.request.AddVariantRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.request.UpdateItemCartRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.response.ApiResponse;

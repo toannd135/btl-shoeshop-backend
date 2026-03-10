@@ -12,7 +12,7 @@ import vn.edu.ptit.shoe_shop.repository.UserRepository;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
-
+/*
 @Component
 public class RedisDataInitializer implements CommandLineRunner {
 
@@ -59,5 +59,5 @@ public class RedisDataInitializer implements CommandLineRunner {
         long finalTtl = baseMinutes + randomMinutes;
         this.redisTemplate.expire(key, finalTtl, TimeUnit.MINUTES);
         log.info("Key [{}] set to expire in {} minutes (~{} hours).", key, finalTtl, String.format("%.1f", finalTtl / 60.0));
-    }
-}
+    }*/
+//}

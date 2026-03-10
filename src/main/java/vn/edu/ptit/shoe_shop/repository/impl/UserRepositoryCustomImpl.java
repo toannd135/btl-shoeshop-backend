@@ -25,7 +25,6 @@ import vn.edu.ptit.shoe_shop.repository.UserRepositoryCustom;
 import java.time.LocalDate;
 import java.util.List;
 
-
 @Repository
 public class UserRepositoryCustomImpl implements UserRepositoryCustom {
 
@@ -44,7 +43,7 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
         log.debug("Start searchUsers with request: {}", request);
         BooleanBuilder builder = new BooleanBuilder();
 
-        if(StringUtils.hasText(request.getFullName())) {
+        if (StringUtils.hasText(request.getFullName())) {
             log.debug("Filtering by fullName: {}", request.getFullName());
             builder.or(user.firstName.containsIgnoreCase(request.getFullName()));
             builder.or(user.lastName.containsIgnoreCase(request.getFullName()));
@@ -69,11 +68,11 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
             log.debug("Filtering by dateOfBirth: {}", request.getDateOfBirth());
             builder.or(user.dateOfBirth.eq(LocalDate.parse(request.getDateOfBirth())));
         }
-        if(request.getStatus() != null){
+        if (request.getStatus() != null) {
             log.debug("Filtering by status: {}", request.getStatus());
             builder.or(user.status.eq(StatusEnum.valueOf(request.getStatus().toUpperCase())));
         }
-        if(request.getRoleName() != null) {
+        if (request.getRoleName() != null) {
             log.debug("Filtering by roleName: {}", request.getRoleName());
             builder.or(role.name.containsIgnoreCase(request.getRoleName().toUpperCase()));
         }
@@ -84,15 +83,18 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
                 .where(builder);
         log.debug("Constructed base query: {}", query);
 
-        for(Sort.Order order : pageable.getSort()){
-            log.debug("Apply sorting: {} {}", order.getProperty(), order.getDirection());
-            PathBuilder<User> pathBuilder = new PathBuilder<>(User.class, user.getMetadata());
-            query.orderBy(
-                    new OrderSpecifier(
-                            order.isAscending() ? Order.ASC : Order.DESC,
-                            pathBuilder.get(order.getProperty())
-                    )
-            );
+        if (pageable.getSort().isSorted()) {
+            for (Sort.Order order : pageable.getSort()) {
+                log.debug("Apply sorting: {} {}", order.getProperty(), order.getDirection());
+                PathBuilder<User> pathBuilder = new PathBuilder<>(User.class, user.getMetadata());
+                query.orderBy(
+                        new OrderSpecifier(
+                                order.isAscending() ? Order.ASC : Order.DESC,
+                                pathBuilder.get(order.getProperty())));
+            }
+        } else {
+            log.debug("No sort specified, applying default sort by createdAt DESC");
+            query.orderBy(user.createdAt.desc());
         }
 
         List<User> contents = query

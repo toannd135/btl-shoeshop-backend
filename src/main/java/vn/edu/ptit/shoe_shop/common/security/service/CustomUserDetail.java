@@ -1,4 +1,4 @@
-package vn.edu.ptit.shoe_shop.service;
+package vn.edu.ptit.shoe_shop.common.security.service;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

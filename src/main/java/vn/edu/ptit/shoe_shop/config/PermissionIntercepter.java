@@ -1,22 +1,5 @@
 package vn.edu.ptit.shoe_shop.config;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.servlet.HandlerInterceptor;
-import org.springframework.web.servlet.HandlerMapping;
-import vn.edu.ptit.shoe_shop.common.utils.security.SecurityUtils;
-import vn.edu.ptit.shoe_shop.entity.Permission;
-import vn.edu.ptit.shoe_shop.entity.Role;
-import vn.edu.ptit.shoe_shop.entity.User;
-import vn.edu.ptit.shoe_shop.service.UserService;
-
-import java.util.List;
 //
 //@Component
 //public class PermissionIntercepter implements HandlerInterceptor {
