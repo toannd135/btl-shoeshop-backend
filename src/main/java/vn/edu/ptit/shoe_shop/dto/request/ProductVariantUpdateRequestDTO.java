@@ -4,7 +4,7 @@ package vn.edu.ptit.shoe_shop.dto.request;
 import jakarta.validation.constraints.Min;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import vn.edu.ptit.shoe_shop.common.enums.StatusEnum;
+import vn.edu.ptit.shoe_shop.common.enums.ProductStatusEnum;
 
 import java.math.BigDecimal;
 
@@ -19,5 +19,5 @@ public class ProductVariantUpdateRequestDTO {
     Integer quantity;
     @Min(1)
     BigDecimal basePrice;
-    StatusEnum status;
+    ProductStatusEnum status;
 }

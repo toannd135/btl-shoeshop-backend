@@ -175,6 +175,11 @@ public class ProductVariantService {
         return toResponse(variant);
     }
 
+    public List<ProductVariantResponseDTO> alertLowStock(Integer quantity) {
+        return productVariantRepository.findByQuantityLessThan(quantity)
+                .stream().map(this::toResponse).toList();
+    }
+
     private static final Duration VARIANT_TTL = Duration.ofMinutes(2);
     private static final String NULL_MARKER = "NULL";
     private static final Duration NULL_TTL = Duration.ofSeconds(30);

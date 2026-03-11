@@ -65,9 +65,6 @@ public class ProductVariantImageService {
                 image.setIsPrimary(false);
             }
         }
-        if (request.getStatus() != null) {
-            image.setStatus(request.getStatus());
-        }
         productVariantImageRepository.save(image);
         return toResponse(image);
     }
@@ -108,9 +105,6 @@ public class ProductVariantImageService {
             }
 
             image.setIsPrimary(true);
-        }
-        if (request.getStatus() != null) {
-            image.setStatus(request.getStatus());
         }
         productVariantImageRepository.save(image);
         return toResponse(image);
@@ -169,8 +163,6 @@ public class ProductVariantImageService {
                 .productVariantId(image.getProductVariant().getProductVariantId())
                 .imageURL(image.getImageUrl())
                 .isPrimary(image.getIsPrimary())
-
-                .status(image.getStatus())
                 .createdAt(image.getCreatedAt())
                 .updatedAt(image.getUpdatedAt())
                 .build();

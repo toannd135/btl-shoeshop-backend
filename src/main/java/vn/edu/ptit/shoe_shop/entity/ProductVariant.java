@@ -27,6 +27,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import vn.edu.ptit.shoe_shop.common.enums.ProductStatusEnum;
 
 @Entity
 @Table(name ="product_variants")
@@ -57,6 +58,10 @@ public class ProductVariant extends Auditable {
     @Column(nullable = false)
     private BigDecimal basePrice;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    ProductStatusEnum status;
+
     @ManyToOne(cascade = {CascadeType.DETACH,CascadeType.MERGE,CascadeType.REFRESH,CascadeType.PERSIST})
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
@@ -77,4 +82,18 @@ public class ProductVariant extends Auditable {
     @OneToMany(mappedBy = "variant", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> listOrderItems = new ArrayList<>();
 
+    @OneToMany(mappedBy = "variant", fetch = FetchType.LAZY)
+    List<InventoryTransaction> inventoryTransactions;
+
+    @OneToMany(mappedBy = "variant", fetch = FetchType.LAZY)
+    List<SupplierVariant> supplierVariants;
+
+    @Override
+    protected void onCreate() {
+        super.onCreate();
+
+        if (this.status == null) {
+            this.status = ProductStatusEnum.ACTIVE;
+        }
+    }
 }

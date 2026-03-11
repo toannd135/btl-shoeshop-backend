@@ -6,15 +6,17 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
-import org.springframework.web.multipart.MultipartFile;
+import vn.edu.ptit.shoe_shop.common.enums.OrderStatusEnum;
+
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ProductVariantImageCreateRequestDTO {
+public class PurchaseOrderCreateRequestDTO {
+    String note;
+    OrderStatusEnum status;
     @NotNull
-    MultipartFile image;
-
-    Boolean isPrimary;
-
+    LocalDateTime expectedDeliveryDate;
 }

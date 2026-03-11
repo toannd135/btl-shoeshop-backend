@@ -6,9 +6,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import org.springframework.web.multipart.MultipartFile;
-import vn.edu.ptit.shoe_shop.common.enums.StatusEnum;
-
-import java.util.UUID;
 
 @Getter
 @Setter
@@ -17,5 +14,4 @@ import java.util.UUID;
 public class ProductVariantImageUpdateRequestDTO {
     MultipartFile image;
     Boolean isPrimary;
-    StatusEnum status;
 }
