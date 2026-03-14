@@ -55,6 +55,7 @@ public class PaymentController {
     private final OrderRepository orderRepository;
     private final OrderPaymentRepository paymentRepository;
     private final OrderPaymentService orderPaymentService;
+    private final VNPayConfig vnPayConfig;
 
     // @PreAuthorize("isAuthenticated()")
     @Transactional
@@ -118,9 +119,9 @@ public class PaymentController {
         String vnp_IpAddr = VNPayConfig.getIpAddress(request); // Sửa IP thực
 
         Map<String, String> vnp_Params = new HashMap<>();
-        vnp_Params.put("vnp_Version", VNPayConfig.version);
-        vnp_Params.put("vnp_Command", VNPayConfig.command);
-        vnp_Params.put("vnp_TmnCode", VNPayConfig.tmnCode);
+        vnp_Params.put("vnp_Version", vnPayConfig.getVersion());
+        vnp_Params.put("vnp_Command", vnPayConfig.getCommand());
+        vnp_Params.put("vnp_TmnCode", vnPayConfig.getTmnCode());
         vnp_Params.put("vnp_Amount", String.valueOf(vnp_Amount));
         vnp_Params.put("vnp_CurrCode", "VND");
         vnp_Params.put("vnp_BankCode", bankCode);
@@ -128,7 +129,7 @@ public class PaymentController {
         vnp_Params.put("vnp_OrderInfo", "Thanh toan don hang:" + order.getOrderId().toString() + " Ma: " + vnp_TxnRef);
         vnp_Params.put("vnp_OrderType", "other");
         vnp_Params.put("vnp_Locale", "vn");
-        vnp_Params.put("vnp_ReturnUrl", VNPayConfig.returnUrl);
+        vnp_Params.put("vnp_ReturnUrl", vnPayConfig.getReturnUrl());
         vnp_Params.put("vnp_IpAddr", vnp_IpAddr);
 
         Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));
@@ -165,10 +166,10 @@ public class PaymentController {
             }
         }
 
-        String vnp_SecureHash = VNPayConfig.hmacSHA512(VNPayConfig.vnpSecretKey, hashData.toString());
+        String vnp_SecureHash = VNPayConfig.hmacSHA512(vnPayConfig.getVnpSecretKey(), hashData.toString());
         query.append("&vnp_SecureHash=").append(vnp_SecureHash);
 
-        String paymentUrl = VNPayConfig.baseUrl + "?" + query.toString();
+        String paymentUrl = vnPayConfig.getBaseUrl() + "?" + query.toString();
 
         OrderPayment payment = OrderPayment.builder()
                 .order(order)
@@ -293,6 +294,8 @@ public class PaymentController {
             }
 
         } catch (Exception e) {
+            System.out.println("🚨 LỖI GỐC NẰM Ở ĐÂY NÀY:");
+            e.printStackTrace();
             vnpayApiResponse.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
             vnpayApiResponse.setMessage("Lỗi xử lý: " + e.getMessage());
         }

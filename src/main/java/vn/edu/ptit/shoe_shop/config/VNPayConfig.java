@@ -18,24 +18,24 @@ import lombok.Setter;
 @Setter
 
 public class VNPayConfig {
-    @Value("${vnpay.base-url}")
-    public static String baseUrl;
-    @Value("${vnpay.tmn-code}")
-    public static String tmnCode;
-    @Value("${vnpay.hash-secret}")
-    public static String vnpSecretKey;
-    @Value("${vnpay.return-url}")
-    public static String returnUrl;
-    @Value("${vnpay.cancel-url}")
-    public static String cancelUrl;
-    @Value("${vnpay.ipn-url}")
-    public static String ipnUrl;
-    @Value("${vnpay.version}")
-    public static String version;
-    @Value("${vnpay.command}")
-    public static String command;
-    @Value("${vnpay.order-type}")
-    public static String orderType;
+    @Value("${app.vnpay.base-url}")
+    public String baseUrl;
+    @Value("${app.vnpay.tmn-code}")
+    public String tmnCode;
+    @Value("${app.vnpay.hash-secret}")
+    public String vnpSecretKey;
+    @Value("${app.vnpay.return-url}")
+    public String returnUrl;
+    @Value("${app.vnpay.cancel-url}")
+    public String cancelUrl;
+    @Value("${app.vnpay.ipn-url}")
+    public String ipnUrl;
+    @Value("${app.vnpay.version}")
+    public String version;
+    @Value("${app.vnpay.command}")
+    public String command;
+    @Value("${app.vnpay.order-type}")
+    public String orderType;
     public static String hmacSHA512(final String key, final String data) {
         try {
 
