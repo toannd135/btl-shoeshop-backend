@@ -26,10 +26,12 @@ public class OrderMapper {
                 .build();
 
         List<OrderItemResponse> items = order.getListOrderItems().stream().map(item -> OrderItemResponse.builder()
+                .productId(item.getVariant().getProduct().getProductId())
                 .productName(item.getVariant().getProduct().getName())
                 .size(item.getVariant().getSize())
                 .quantity(item.getQuantity())
                 .price(item.getPriceAtPurchase())
+                .imageUrl(item.getVariant().getProduct().getImageUrl())
                 .build()).collect(Collectors.toList());
 
         // Map Order
