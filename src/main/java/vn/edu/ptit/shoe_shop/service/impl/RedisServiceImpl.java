@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.edu.ptit.shoe_shop.common.constant.TokenConstants;
@@ -16,7 +17,7 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 public class RedisServiceImpl implements RedisService {
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final StringRedisTemplate redisTemplate;
     private final Logger log = LoggerFactory.getLogger(RedisServiceImpl.class);
 
     @Value("${app.jwt.access-token-validity-in-seconds}")
@@ -25,7 +26,7 @@ public class RedisServiceImpl implements RedisService {
     @Value("${app.jwt.refresh-token-validity-in-seconds}")
     private Long refreshTokenExpiration;
 
-    public RedisServiceImpl(RedisTemplate<String, Object> redisTemplate) {
+    public RedisServiceImpl(StringRedisTemplate redisTemplate) {
         this.redisTemplate = redisTemplate;
     }
 
@@ -40,8 +41,7 @@ public class RedisServiceImpl implements RedisService {
     @Override
     public String getRefreshToken(UUID userId, String deviceId) {
         String key = buildRefreshTokenKey(userId, deviceId);
-        Object value = this.redisTemplate.opsForValue().get(key);
-        return value != null ? value.toString() : null;
+        return this.redisTemplate.opsForValue().get(key);
     }
 
     @Override
@@ -92,7 +92,7 @@ public class RedisServiceImpl implements RedisService {
 
     @Override
     public void storeVerificationToken(String token, UUID userId, Long ttlSeconds) {
-        this.redisTemplate.opsForValue().set(TokenConstants.VERIFY_PREFIX + token, userId, ttlSeconds, TimeUnit.SECONDS);
+        this.redisTemplate.opsForValue().set(TokenConstants.VERIFY_PREFIX + token, userId.toString(), ttlSeconds, TimeUnit.SECONDS);
     }
 
     @Override

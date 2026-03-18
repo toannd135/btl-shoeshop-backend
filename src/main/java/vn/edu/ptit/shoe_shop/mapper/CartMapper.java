@@ -26,6 +26,10 @@ public interface CartMapper {
         expression = "java(item.getVariant().getBasePrice())"
     )
     @Mapping(
+    target = "productName",
+    expression = "java(item.getVariant().getProduct().getName())"
+    )
+    @Mapping(
         target = "imageUrl",
         expression = "java(item.getVariant().getListProductVariantImages().stream().filter(v -> Boolean.TRUE.equals(v.getIsPrimary())).findFirst().map(v -> v.getImageUrl()).orElse(null))"
     )

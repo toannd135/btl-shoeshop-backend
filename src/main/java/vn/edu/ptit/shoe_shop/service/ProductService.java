@@ -303,6 +303,8 @@ public class ProductService {
 
                         // 1. xóa cache chi tiết
                         redisTemplate.delete("products::" + productId);
+                        
+                        redisTemplate.delete("productVariants::product_" + productId);
 
                         // 2. xóa page cache
                         Set<Object> pageKeys =

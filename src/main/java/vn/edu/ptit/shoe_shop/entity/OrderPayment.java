@@ -18,7 +18,9 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.NoArgsConstructor;
 import vn.edu.ptit.shoe_shop.common.enums.PaymentMethodEnum;
 import vn.edu.ptit.shoe_shop.common.enums.PaymentStatusEnum;
 
@@ -26,6 +28,8 @@ import vn.edu.ptit.shoe_shop.common.enums.PaymentStatusEnum;
 @Entity
 @Table(name = "order_payments")
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class OrderPayment {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -36,7 +40,7 @@ public class OrderPayment {
     @Column(name = "payment_method", nullable = false)
     @Enumerated(EnumType.STRING)
     private PaymentMethodEnum paymentMethod;
-    @Column(name = "transaction_id", nullable = false)
+    @Column(name = "transaction_id")
     private String transactionId;
     @OneToOne
     @JoinColumn(name = "order_id", nullable = false)

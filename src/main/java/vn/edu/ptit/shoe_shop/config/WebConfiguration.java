@@ -41,7 +41,8 @@ public class WebConfiguration implements WebMvcConfigurer {
         config.setAllowedOrigins(Arrays.asList(
                 "http://www.shoeshopecommerce.dpdns.org",
                 "https://shoeshopecommerce.dpdns.org",
-                "http://localhost:5173/"
+                "http://localhost:5173",
+                "http://shoeshopecommerce.dpdns.org"
         ));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept"));
