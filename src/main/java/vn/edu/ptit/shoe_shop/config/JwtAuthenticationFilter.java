@@ -28,13 +28,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
+            HttpServletResponse response,
+            FilterChain filterChain) throws ServletException, IOException {
 
         String accessToken = getJwtFromRequest(request);
-        if(StringUtils.hasText(accessToken)) {
+        if (StringUtils.hasText(accessToken)) {
             boolean isBlacklisted = this.redisService.isBlacklisted(accessToken);
-            if(isBlacklisted) {
+            if (isBlacklisted) {
                 ApiResponse<Object> apiResponse = new ApiResponse<>();
                 apiResponse.setStatusCode(HttpStatus.UNAUTHORIZED.value());
                 apiResponse.setError("Unauthorized");
@@ -53,7 +53,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private String getJwtFromRequest(HttpServletRequest request) {
         String bearerToken = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if(StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
             return bearerToken.substring(7);
         }
         return null;

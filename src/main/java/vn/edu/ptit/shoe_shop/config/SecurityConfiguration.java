@@ -79,19 +79,20 @@ public class SecurityConfiguration {
                                 .requestMatchers("/api/v1/permissions/**").hasRole(ADMIN.name())
                                 .anyRequest()
                                 .authenticated()
+                                // .permitAll()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .sessionManagement(
                         session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 )
                 .formLogin(form -> form.disable())
-                // .oauth2Login(oauth2 -> oauth2
-                //         .successHandler(oAuth2LoginSuccessHandler)
+                // .oauth2Login(oauth2 -> 
+                //         oauth2.successHandler(oAuth2LoginSuccessHandler)
                 // )
-                // .oauth2ResourceServer(oauth2 -> oauth2
-                //         .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter))
-                //         .authenticationEntryPoint(customAuthenticationEntryPoint)
-                // )
+                .oauth2ResourceServer(oauth2 -> oauth2
+                        .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter))
+                        .authenticationEntryPoint(customAuthenticationEntryPoint)
+                )
                 .exceptionHandling(
                         exceptions -> exceptions
                                 .accessDeniedHandler(customAccessDeniedHandler)
