@@ -6,15 +6,17 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
-import org.springframework.web.multipart.MultipartFile;
+
+import java.math.BigDecimal;
+import java.util.UUID;
 @Getter
 @Setter
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ProductVariantImageCreateRequestDTO {
+public class AddSupplierVariantRequestDTO {
     @NotNull
-    MultipartFile image;
-
-    Boolean isPrimary;
-
+    UUID variantId;
+    @NotNull
+    BigDecimal cost;
+    String note;
 }

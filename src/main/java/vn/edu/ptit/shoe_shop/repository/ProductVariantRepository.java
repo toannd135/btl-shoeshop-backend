@@ -9,8 +9,6 @@ import vn.edu.ptit.shoe_shop.entity.Product;
 import vn.edu.ptit.shoe_shop.entity.ProductVariant;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
 @Repository
 public interface ProductVariantRepository extends JpaRepository<ProductVariant, UUID> {
@@ -20,4 +18,6 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariant, 
     Optional<ProductVariant> findByProductVariantIdAndProduct(UUID id, Product product);
 
     Optional<ProductVariant> findByProductVariantId(UUID variantId);
+
+    List<ProductVariant> findByQuantityLessThan(int quantity);
 }

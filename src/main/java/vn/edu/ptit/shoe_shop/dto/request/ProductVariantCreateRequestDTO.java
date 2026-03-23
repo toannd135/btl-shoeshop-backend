@@ -4,7 +4,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import vn.edu.ptit.shoe_shop.common.enums.StatusEnum;
+import vn.edu.ptit.shoe_shop.common.enums.ProductStatusEnum;
 
 import java.math.BigDecimal;
 
@@ -26,6 +26,6 @@ public class ProductVariantCreateRequestDTO {
     @Min(1)
     BigDecimal basePrice;
 
-    StatusEnum status;
+    ProductStatusEnum status;
 
 }

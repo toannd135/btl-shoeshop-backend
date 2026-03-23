@@ -6,15 +6,24 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
-import org.springframework.web.multipart.MultipartFile;
+import vn.edu.ptit.shoe_shop.common.enums.SupplierStatusEnum;
+
 @Getter
 @Setter
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ProductVariantImageCreateRequestDTO {
+public class SupplierUpdateRequestDTO {
     @NotNull
-    MultipartFile image;
+    String supplierName;
 
-    Boolean isPrimary;
+    @NotNull
+    String address;
 
+    @NotNull
+    String email;
+
+    @NotNull
+    String phone;
+
+    SupplierStatusEnum status;
 }

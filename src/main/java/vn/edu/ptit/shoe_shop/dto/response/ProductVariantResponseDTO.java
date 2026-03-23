@@ -1,10 +1,8 @@
 package vn.edu.ptit.shoe_shop.dto.response;
 
-
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import vn.edu.ptit.shoe_shop.common.enums.StatusEnum;
-
+import vn.edu.ptit.shoe_shop.common.enums.ProductStatusEnum;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
@@ -24,7 +22,7 @@ public class ProductVariantResponseDTO {
     BigDecimal size;
     Integer quantity;
     BigDecimal basePrice;
-    StatusEnum status;
+    ProductStatusEnum status;
 
     Instant createdAt;
     Instant updatedAt;

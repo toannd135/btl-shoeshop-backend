@@ -2,9 +2,10 @@ package vn.edu.ptit.shoe_shop.dto.response;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import vn.edu.ptit.shoe_shop.common.enums.StatusEnum;
+import vn.edu.ptit.shoe_shop.common.enums.SupplierStatusEnum;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @Builder
@@ -13,16 +14,20 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ProductVariantImageResponseDTO {
-    UUID productId;
+public class SupplierResponse {
 
-    UUID productVariantId;
+    UUID supplierId;
 
-    UUID imageId;
+    String supplierName;
 
-    String imageURL;
+    String address;
 
-    Boolean isPrimary;
+    String email;
+
+    String phone;
+
+    List<SupplierVariantResponse> variants ;
+    SupplierStatusEnum status;
 
     Instant createdAt;
     Instant updatedAt;
