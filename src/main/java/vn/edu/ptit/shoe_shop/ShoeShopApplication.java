@@ -7,7 +7,7 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
-@EnableScheduling // <-- Kích hoạt tự động lên lịch
+@EnableScheduling
 @EnableCaching
 public class ShoeShopApplication {
 
