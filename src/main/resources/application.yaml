@@ -27,7 +27,16 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
-
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${CLIENT_ID_GOOGLE}
+            client-secret: ${CLIENT_SECRET_GOOGLE}
+            scope:
+              - profile
+              - email
   cache:
     type: redis
   data:
@@ -52,10 +61,13 @@ spring:
             required: true
           ssl:
             trust: smtp.gmail.com
+cloudinary:
+  cloud-name: dljrbdc51
+  api-key: 368851143165857
+  api-secret: E5etQ4Jq1lu9s_okchG5FUZVa3s
 
 app:
-  cors:
-    allowed-origins: http://localhost:3000,http://localhost:5173
+  frontendUrl: https://shoeshopecommerce.dpdns.org
   jwt:
     base64-secret: qoAEABDke07+AVLepXB4aCMtsT0wMAqR5x2VFyldsnx6e75YQkJH2UcZKTjEyoNgG71SBCXfq5N6NVZxWOfsHQ==
     access-token-validity-in-seconds: 900

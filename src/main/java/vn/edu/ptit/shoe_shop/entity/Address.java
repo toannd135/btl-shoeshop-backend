@@ -74,7 +74,7 @@ public class Address implements Serializable {
 
     @PreUpdate
     public void handleBeforeUpdate() {
-        this.createdBy = String.valueOf(user.getUserId());
+        this.updatedBy = String.valueOf(user.getUserId());
         this.updatedAt = Instant.now();
     }
 
@@ -130,12 +130,13 @@ public class Address implements Serializable {
         this.city = city;
     }
 
-    public boolean isDefault() {
+
+    public Boolean getIsDefault() { // Thêm chữ 'Is' vào sau 'get'
         return isDefault;
     }
 
-    public void setDefault(boolean aDefault) {
-        isDefault = aDefault;
+    public void setIsDefault(Boolean isDefault) {
+        this.isDefault = isDefault;
     }
 
     public StatusEnum getStatus() {
@@ -176,5 +177,13 @@ public class Address implements Serializable {
 
     public void setUpdatedBy(String updatedBy) {
         this.updatedBy = updatedBy;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 }

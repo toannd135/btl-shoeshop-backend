@@ -19,7 +19,7 @@ import vn.edu.ptit.shoe_shop.entity.Cart;
 import vn.edu.ptit.shoe_shop.entity.CartItem;
 import vn.edu.ptit.shoe_shop.entity.ProductVariant;
 import vn.edu.ptit.shoe_shop.mapper.CartMapper;
-import vn.edu.ptit.shoe_shop.repository.CartIteamRepository;
+import vn.edu.ptit.shoe_shop.repository.CartItemRepository;
 import vn.edu.ptit.shoe_shop.repository.CartRepository;
 import vn.edu.ptit.shoe_shop.repository.ProductVariantRepository;
 import vn.edu.ptit.shoe_shop.service.CartService;
@@ -30,7 +30,7 @@ public class CartServiceImpl implements CartService  {
     private final CartMapper cartMapper;
     private final CartRepository cartRepository;
     private final ProductVariantRepository productVariantRepository;
-    private final CartIteamRepository cartIteamRepository;
+    private final CartItemRepository cartIteamRepository;
 @Override
 @Transactional
 public ApiResponse<Object> addProductVariantToCart(AddVariantRequestDTO requestDTO) {

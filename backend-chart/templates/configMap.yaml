@@ -50,7 +50,6 @@ data:
           hibernate:
             dialect: org.hibernate.dialect.MySQLDialect
 
-
       data:
         web:
           pageable:

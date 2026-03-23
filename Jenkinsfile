@@ -28,6 +28,8 @@ pipeline {
                 sh 'ls -la'
             }
         }
+
+
         stage('Get version from Git') {
             steps {
                 script {

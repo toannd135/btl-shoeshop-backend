@@ -24,6 +24,8 @@ public class SecurityUtils {
     private static String extractPrincipal(Authentication authentication) {
         if (authentication == null) {
             return null;
+        } else if(authentication.getPrincipal() instanceof Jwt jwt) {
+            return jwt.getSubject();
         } else if (authentication.getPrincipal() instanceof UserDetails) {
             UserDetails springSecurityUser = (UserDetails) authentication.getPrincipal();
             return springSecurityUser.getUsername();
