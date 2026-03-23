@@ -24,8 +24,6 @@ public class SecurityUtils {
     private static String extractPrincipal(Authentication authentication) {
         if (authentication == null) {
             return null;
-        } else if(authentication.getPrincipal() instanceof Jwt jwt) {
-            return jwt.getSubject();
         } else if (authentication.getPrincipal() instanceof UserDetails) {
             UserDetails springSecurityUser = (UserDetails) authentication.getPrincipal();
             return springSecurityUser.getUsername();
@@ -55,11 +53,9 @@ public class SecurityUtils {
 
     public static UUID getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
         if (authentication == null || !(authentication.getPrincipal() instanceof Jwt jwt)) {
             return null;
         }
-
         return UUID.fromString(jwt.getSubject());
     }
 

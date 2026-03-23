@@ -42,8 +42,7 @@ public class AddressServiceImpl implements AddressService {
     @Override
     @Transactional
     public AddressResponseDTO createAddress(AddressRequestDTO addressRequestDTO) {
-        UUID userId = UUID.fromString(SecurityUtils.getCurrentUserLogin()
-                .orElseThrow(() -> new UsernameNotFoundException("User not found")));
+        UUID userId = SecurityUtils.getCurrentUserId();
         User user = this.userRepository.findByUserId(userId).orElseThrow(() -> new IdInvalidException("user not found"));
         Address address = this.addressMapper.toEntity(addressRequestDTO);
         boolean hasAnyAddress = this.addressRepository.existsByUser(user);
@@ -64,8 +63,7 @@ public class AddressServiceImpl implements AddressService {
 
     @Override
     public AddressResponseDTO updateAddress(AddressRequestDTO addressRequestDTO, UUID id) {
-        UUID userId = UUID.fromString(SecurityUtils.getCurrentUserLogin()
-                .orElseThrow(() -> new UsernameNotFoundException("User not found")));
+        UUID userId = SecurityUtils.getCurrentUserId();
         User user = this.userRepository.findByUserId(userId).orElseThrow(() -> new IdInvalidException("user not found"));
         Address address = this.addressRepository.findByAddressId(id)
                 .orElseThrow(() -> new IdInvalidException("address not found"));
@@ -92,8 +90,7 @@ public class AddressServiceImpl implements AddressService {
 
     @Override
     public AddressResponseDTO getAddress(UUID id) {
-        UUID userId = UUID.fromString(SecurityUtils.getCurrentUserLogin()
-                .orElseThrow(() -> new UsernameNotFoundException("User not found")));
+        UUID userId = SecurityUtils.getCurrentUserId();
         User user = this.userRepository.findByUserId(userId)
                 .orElseThrow(() -> new IdInvalidException("user not found"));
         Address address = this.addressRepository.findByAddressId(id)
@@ -106,8 +103,7 @@ public class AddressServiceImpl implements AddressService {
 
     @Override
     public void deleteAddress(UUID id) {
-        UUID userId = UUID.fromString(SecurityUtils.getCurrentUserLogin()
-                .orElseThrow(() -> new UsernameNotFoundException("User not found")));
+        UUID userId = SecurityUtils.getCurrentUserId();
         User user = this.userRepository.findByUserId(userId)
                 .orElseThrow(() -> new IdInvalidException("user not found"));
         Address address = this.addressRepository.findByAddressId(id)
@@ -124,8 +120,7 @@ public class AddressServiceImpl implements AddressService {
 
     @Override
     public AddressPageResponseDTO getAllAddresses() {
-        UUID userId = UUID.fromString(SecurityUtils.getCurrentUserLogin()
-                .orElseThrow(() -> new UsernameNotFoundException("User not found")));
+        UUID userId = SecurityUtils.getCurrentUserId();
         User user = this.userRepository.findByUserId(userId)
                 .orElseThrow(() -> new IdInvalidException("user not found"));
 
