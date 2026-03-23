@@ -43,6 +43,10 @@ public class InventoryTransaction extends Auditable {
     @JoinColumn(name = "variant_id", nullable = false)
     ProductVariant variant;
 
+    UUID referenceId;
+
+    UUID createdBy;
+
     @Override
     public void onCreate()
     {

@@ -65,7 +65,37 @@ public class InventoryTransactionService {
 
         return toResponse(transaction);
     }
+    @Transactional
+    public void adjustStock(
+            UUID variantId,
+            int quantityChange,
+            ITEnum type,
+            UUID referenceId,
+            UUID userId,
+            String reason
+    ) {
+        ProductVariant variant = productVariantRepository.findByProductVariantIdForUpdate(variantId)
+                .orElseThrow(() -> new RuntimeException("Variant not found"));
 
+        int newQuantity = variant.getQuantity() + quantityChange;
+
+        if (newQuantity < 0) {
+            throw new RuntimeException("Stock cannot be negative");
+        }
+
+        variant.setQuantity(newQuantity);
+        this.productVariantRepository.save(variant);
+
+        InventoryTransaction tx = new InventoryTransaction();
+        tx.setVariant(variant);
+        tx.setType(type);
+        tx.setQuantityChange(quantityChange);
+        tx.setCreatedBy(userId);
+        tx.setReferenceId(referenceId);
+        tx.setReason(reason);
+
+        this.inventoryTransactionRepository.save(tx);
+    }
     public InventoryTransactionResponse updateStatus(UUID itId, ITStatusEnum status) {
 
         InventoryTransaction transaction = inventoryTransactionRepository.findById(itId)

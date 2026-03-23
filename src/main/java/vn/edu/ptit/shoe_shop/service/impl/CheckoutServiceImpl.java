@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 import vn.edu.ptit.shoe_shop.common.enums.DiscountTypeEnum;
+import vn.edu.ptit.shoe_shop.common.enums.ITEnum;
 import vn.edu.ptit.shoe_shop.common.enums.OrderStatusEnum;
 import vn.edu.ptit.shoe_shop.common.exception.IdInvalidException;
 import vn.edu.ptit.shoe_shop.common.exception.NotFoundException;
@@ -30,6 +31,7 @@ import vn.edu.ptit.shoe_shop.repository.CouponRepository;
 import vn.edu.ptit.shoe_shop.repository.OrderRepository;
 import vn.edu.ptit.shoe_shop.repository.UserRepository;
 import vn.edu.ptit.shoe_shop.service.CheckoutService;
+import vn.edu.ptit.shoe_shop.service.InventoryTransactionService;
 import vn.edu.ptit.shoe_shop.service.ShippingService;
 
 @Service
@@ -42,58 +44,187 @@ public class CheckoutServiceImpl implements CheckoutService {
     private final CouponRepository couponRepository;
     private final OrderRepository orderRepository;
     private final ShippingService shippingService;
+    private final InventoryTransactionService inventoryTransactionService;
 
     @Override
     @Transactional(rollbackFor = Exception.class) // Rollback nếu có bất kỳ lỗi nào
-    public OrderResponse processCheckout(String userId,CheckoutRequest request) {
-        // 1. Parse ID
+    // public OrderResponse processCheckout(String userId, CheckoutRequest request) {
+    //     // 1. Parse ID
+    //     UUID userIdUUID;
+    //     try {
+
+    //         userIdUUID = UUID.fromString(userId);
+    //     } catch (IllegalArgumentException e) {
+    //         throw new IdInvalidException("Id không đúng định dạng!");
+    //     }
+
+    //     // --- BƯỚC 1: VALIDATE CART & USER ---
+    //     User user = userRepository.findByUserId(userIdUUID)
+    //             .orElseThrow(() -> new NotFoundException("Không tìm thấy người dùng!"));
+
+    //     Cart cart = user.getCart();
+    //     if (cart == null) {
+    //         throw new RuntimeException("Giỏ hàng không tồn tại");
+    //     }
+    //     if (cart.getItems() == null || cart.getItems().isEmpty()) {
+    //         throw new RuntimeException("Giỏ hàng đang trống!");
+    //     }
+
+    //     // Validate tồn kho & Tính Subtotal
+    //     // Lưu ý: Tính toán bằng BigDecimal phải cẩn thận scale
+    //     BigDecimal subTotal = BigDecimal.ZERO;
+
+    //     for (CartItem item : cart.getItems()) {
+    //         ProductVariant variant = item.getVariant();
+
+    //         // Check tồn kho
+    //         if (variant.getQuantity() < item.getQuantity()) {
+    //             throw new RuntimeException("Sản phẩm " + variant.getProduct().getName()
+    //                     + " (Size: " + variant.getSize() + ") không đủ số lượng!");
+    //         }
+
+    //         // Cộng dồn tiền: Giá * Số lượng
+    //         BigDecimal lineTotal = variant.getBasePrice()
+    //                 .multiply(BigDecimal.valueOf(item.getQuantity()));
+    //         subTotal = subTotal.add(lineTotal);
+    //     }
+
+    //     // --- BƯỚC 2: XỬ LÝ COUPON ---
+    //     BigDecimal discountAmount = BigDecimal.ZERO;
+    //     Coupon coupon = null;
+
+    //     if (request.getCouponCode() != null && !request.getCouponCode().isBlank()) {
+    //         coupon = couponRepository.findByCodeForUpdate(request.getCouponCode())
+    //                 .orElseThrow(() -> new NotFoundException("Mã giảm giá không tồn tại!"));
+
+    //         // Validate logic Coupon phức tạp hơn
+    //         validateCoupon(coupon, subTotal);
+
+    //         // Tính toán giảm giá
+    //         if (coupon.getDiscountType() == DiscountTypeEnum.PERCENTAGE) {
+    //             // Công thức: SubTotal * (Value / 100)
+    //             // FIX LỖI: Phải có RoundingMode để tránh lỗi chia số lẻ vô hạn
+    //             discountAmount = subTotal.multiply(coupon.getDiscountValue())
+    //                     .divide(new BigDecimal("100"), 0, RoundingMode.HALF_UP); // Làm tròn tiền VNĐ
+
+    //             // FIX LỖI: Kiểm tra Max Discount (Giảm 10% nhưng tối đa 50k)
+    //             if (coupon.getMaxDiscount() != null && discountAmount.compareTo(coupon.getMaxDiscount()) > 0) {
+    //                 discountAmount = coupon.getMaxDiscount();
+    //             }
+
+    //         } else if (coupon.getDiscountType() == DiscountTypeEnum.FIXED_AMOUNT) {
+    //             discountAmount = coupon.getDiscountValue();
+    //         }
+
+    //         // Đảm bảo không giảm quá giá trị đơn hàng
+    //         if (discountAmount.compareTo(subTotal) > 0) {
+    //             discountAmount = subTotal;
+    //         }
+    //     }
+
+    //     // --- BƯỚC 3: PHÍ SHIP ---
+    //     BigDecimal shippingFee = shippingService.calculateFee(request.getProvinceCode(), cart);
+
+    //     // --- BƯỚC 4: TẠO ORDER & TRỪ KHO ---
+    //     Order order = new Order();
+    //     order.setUser(user);
+    //     order.setReceiverName(request.getReceiverName());
+    //     order.setReceiverPhone(request.getReceiverPhone());
+    //     order.setShippingAddress(request.getShippingAddress());
+    //     order.setCreatedAt(Instant.now()); // Thêm ngày đặt
+
+    //     List<OrderItem> orderItems = new ArrayList<>();
+
+    //     for (CartItem item : cart.getItems()) {
+    //         ProductVariant variant = item.getVariant();
+    //         inventoryTransactionService.adjustStock(variant.getProductVariantId(), -item.getQuantity(), ITEnum.SALE,
+    //                 null, userIdUUID, "Order checkout");
+    //         OrderItem snapshotItem = new OrderItem();
+    //         snapshotItem.setOrder(order);
+    //         snapshotItem.setVariant(variant);
+    //         snapshotItem.setQuantity(item.getQuantity());
+    //         snapshotItem.setPriceAtPurchase(variant.getBasePrice());
+
+    //         // OPTION: Tính luôn thành tiền của từng item để dễ thống kê sau này
+    //         // snapshotItem.setTotalPrice(snapshotItem.getPriceAtPurchase().multiply(BigDecimal.valueOf(item.getQuantity())));
+
+    //         orderItems.add(snapshotItem);
+
+    //     }
+
+    //     order.setListOrderItems(orderItems);
+
+    //     // Tổng cuối = (SubTotal - Discount) + Ship
+    //     // Dùng max(0) để an toàn
+    //     BigDecimal finalTotal = subTotal.subtract(discountAmount).add(shippingFee);
+    //     if (finalTotal.compareTo(BigDecimal.ZERO) < 0)
+    //         finalTotal = BigDecimal.ZERO;
+
+    //     order.setTotalPrice(subTotal);
+    //     order.setDiscountAmount(discountAmount);
+    //     order.setShippingFee(shippingFee);
+    //     order.setFinalPrice(finalTotal);
+    //     order.setStatus(OrderStatusEnum.PENDING);
+
+    //     // Lưu Coupon Usage (Nếu có dùng coupon)
+    //     if (coupon != null) {
+    //         // Giảm số lượng coupon còn lại
+    //         if (coupon.getUsageLimit() != null && coupon.getUsageLimit() > 0) {
+    //             coupon.setUsageLimit(coupon.getUsageLimit() - 1);
+    //             // couponRepository.save(coupon); // Managed entity tự update
+    //         }
+    //         // TODO: Lưu lịch sử dùng coupon vào bảng order_coupons nếu cần
+    //     }
+
+    //     // Lưu đơn hàng (Cascade ALL sẽ lưu luôn OrderItems)
+    //     Order savedOrder = orderRepository.save(order);
+
+    //     // Xóa giỏ hàng
+    //     // Lưu ý: Nếu CartItem có quan hệ chặt chẽ, nên dùng method remove item
+    //     cartRepository.deleteAllByCart_CartId(cart.getCartId());
+    //     // Hoặc: cartRepository.delete(cart); tùy thiết kế DB
+
+    //     return orderMapper.toOrderResponse(savedOrder);
+    // }
+
+    public OrderResponse processCheckout(String userId, CheckoutRequest request) {
+
+        // ===== 1. PARSE ID =====
         UUID userIdUUID;
         try {
-           
             userIdUUID = UUID.fromString(userId);
-        } catch (IllegalArgumentException e) {
-            throw new IdInvalidException("Id không đúng định dạng!");
+        } catch (Exception e) {
+            throw new RuntimeException("Id không hợp lệ");
         }
 
-        // --- BƯỚC 1: VALIDATE CART & USER ---
+        // ===== 2. LOAD USER + CART =====
         User user = userRepository.findByUserId(userIdUUID)
-                .orElseThrow(() -> new NotFoundException("Không tìm thấy người dùng!"));
-        
+                .orElseThrow(() -> new RuntimeException("User không tồn tại"));
+
         Cart cart = user.getCart();
-        if(cart==null)
-        {
-            throw new RuntimeException("Giỏ hàng không tồn tại");
-        }
-        if (cart.getItems() == null || cart.getItems().isEmpty()) {
-            throw new RuntimeException("Giỏ hàng đang trống!");
+
+        if (cart == null || cart.getItems() == null || cart.getItems().isEmpty()) {
+            throw new RuntimeException("Giỏ hàng trống");
         }
 
-        // Validate tồn kho & Tính Subtotal
-        // Lưu ý: Tính toán bằng BigDecimal phải cẩn thận scale
+        // ===== 3. TÍNH SUBTOTAL =====
         BigDecimal subTotal = BigDecimal.ZERO;
 
         for (CartItem item : cart.getItems()) {
-            ProductVariant variant = item.getVariant();
-            
-            // Check tồn kho
-            if (variant.getQuantity() < item.getQuantity()) {
-                throw new RuntimeException("Sản phẩm " + variant.getProduct().getName()
-                        + " (Size: " + variant.getSize() + ") không đủ số lượng!");
-            }
-            
-            // Cộng dồn tiền: Giá * Số lượng
-            BigDecimal lineTotal = variant.getBasePrice()
+            BigDecimal lineTotal = item.getVariant().getBasePrice()
                     .multiply(BigDecimal.valueOf(item.getQuantity()));
+
             subTotal = subTotal.add(lineTotal);
         }
 
-        // --- BƯỚC 2: XỬ LÝ COUPON ---
+        // ===== 4. COUPON =====
         BigDecimal discountAmount = BigDecimal.ZERO;
         Coupon coupon = null;
 
         if (request.getCouponCode() != null && !request.getCouponCode().isBlank()) {
-            coupon = couponRepository.findByCode(request.getCouponCode())
-                    .orElseThrow(() -> new NotFoundException("Mã giảm giá không tồn tại!"));
+
+            coupon = couponRepository.findByCodeForUpdate(request.getCouponCode())
+                    .orElseThrow(() -> new RuntimeException("Coupon không tồn tại"));
 
             // Validate logic Coupon phức tạp hơn
             validateCoupon(coupon, subTotal);
@@ -120,87 +251,89 @@ public class CheckoutServiceImpl implements CheckoutService {
             }
         }
 
-        // --- BƯỚC 3: PHÍ SHIP ---
+        // ===== 5. SHIPPING =====
         BigDecimal shippingFee = shippingService.calculateFee(request.getProvinceCode(), cart);
 
-        // --- BƯỚC 4: TẠO ORDER & TRỪ KHO ---
+        // ===== 6. CREATE ORDER (SAVE TRƯỚC) =====
         Order order = new Order();
         order.setUser(user);
         order.setReceiverName(request.getReceiverName());
         order.setReceiverPhone(request.getReceiverPhone());
         order.setShippingAddress(request.getShippingAddress());
-        order.setCreatedAt(Instant.now()); // Thêm ngày đặt
-
-        List<OrderItem> orderItems = new ArrayList<>();
-
-        for (CartItem item : cart.getItems()) {
-            ProductVariant variant = item.getVariant();
-
-            OrderItem snapshotItem = new OrderItem();
-            snapshotItem.setOrder(order);
-            snapshotItem.setVariant(variant);
-            snapshotItem.setQuantity(item.getQuantity());
-            snapshotItem.setPriceAtPurchase(variant.getBasePrice());
-            
-            // OPTION: Tính luôn thành tiền của từng item để dễ thống kê sau này
-            // snapshotItem.setTotalPrice(snapshotItem.getPriceAtPurchase().multiply(BigDecimal.valueOf(item.getQuantity())));
-
-            orderItems.add(snapshotItem);
-
-            // TRỪ TỒN KHO TRỰC TIẾP (Không query lại DB để tối ưu)
-            // Hibernate sẽ tự động update dòng này do đang trong Transaction
-            variant.setQuantity(variant.getQuantity() - item.getQuantity());
-            // variantRepository.save(variant); // Không cần thiết nếu entity đang managed, nhưng gọi cũng không sao
-        }
-
-        order.setListOrderItems(orderItems);
-
-        // Tổng cuối = (SubTotal - Discount) + Ship
-        // Dùng max(0) để an toàn
-        BigDecimal finalTotal = subTotal.subtract(discountAmount).add(shippingFee);
-        if (finalTotal.compareTo(BigDecimal.ZERO) < 0) finalTotal = BigDecimal.ZERO;
+        order.setCreatedAt(Instant.now());
+        order.setStatus(OrderStatusEnum.PENDING);
 
         order.setTotalPrice(subTotal);
         order.setDiscountAmount(discountAmount);
         order.setShippingFee(shippingFee);
-        order.setFinalPrice(finalTotal);
-        order.setStatus(OrderStatusEnum.PENDING);
-        
-        // Lưu Coupon Usage (Nếu có dùng coupon)
-        if (coupon != null) {
-            // Giảm số lượng coupon còn lại
-            if (coupon.getUsageLimit() != null && coupon.getUsageLimit() > 0) {
-                 coupon.setUsageLimit(coupon.getUsageLimit() - 1);
-                 // couponRepository.save(coupon); // Managed entity tự update
-            }
-            // TODO: Lưu lịch sử dùng coupon vào bảng order_coupons nếu cần
-        }
 
-        // Lưu đơn hàng (Cascade ALL sẽ lưu luôn OrderItems)
+        BigDecimal finalTotal = subTotal.subtract(discountAmount).add(shippingFee);
+        if (finalTotal.compareTo(BigDecimal.ZERO) < 0)
+            finalTotal = BigDecimal.ZERO;
+
+        order.setFinalPrice(finalTotal);
+
+        // 💥 SAVE để lấy orderId
         Order savedOrder = orderRepository.save(order);
 
-        // Xóa giỏ hàng
-        // Lưu ý: Nếu CartItem có quan hệ chặt chẽ, nên dùng method remove item
-        cartRepository.deleteAllByCart_CartId(cart.getCartId()); 
-        // Hoặc: cartRepository.delete(cart); tùy thiết kế DB
+        // ===== 7. LOOP ITEMS + TRỪ KHO =====
+        List<OrderItem> orderItems = new ArrayList<>();
 
+        for (CartItem item : cart.getItems()) {
+
+            ProductVariant variant = item.getVariant();
+
+            // 🔥 CHỈ GỌI SERVICE (đã lock + check)
+            inventoryTransactionService.adjustStock(
+                    variant.getProductVariantId(),
+                    -item.getQuantity(),
+                    ITEnum.SALE,
+                    savedOrder.getOrderId(),
+                    userIdUUID,
+                    "Order checkout");
+
+            OrderItem oi = new OrderItem();
+            oi.setOrder(savedOrder);
+            oi.setVariant(variant);
+            oi.setQuantity(item.getQuantity());
+            oi.setPriceAtPurchase(variant.getBasePrice());
+            
+            // oi.setTotalPrice(
+            //         variant.getBasePrice().multiply(BigDecimal.valueOf(item.getQuantity())));
+
+            orderItems.add(oi);
+        }
+
+        savedOrder.setListOrderItems(orderItems);
+
+        // ===== 8. UPDATE COUPON =====
+        if (coupon != null) {
+            if (coupon.getUsageLimit() != null && coupon.getUsageLimit() > 0) {
+                coupon.setUsageLimit(coupon.getUsageLimit() - 1);
+            }
+        }
+
+        // ===== 9. CLEAR CART =====
+        cartRepository.deleteAllByCart_CartId(cart.getCartId());
+
+        // ===== 10. RETURN =====
         return orderMapper.toOrderResponse(savedOrder);
     }
 
     // Tách hàm validate coupon để code gọn hơn
     private void validateCoupon(Coupon coupon, BigDecimal orderValue) {
         Instant now = Instant.now();
-        
+
         if (coupon.getExpiresAt().isBefore(now)) {
             throw new RuntimeException("Mã giảm giá đã hết hạn!");
         }
-        
+
         if (coupon.getStartsAt() != null && coupon.getStartsAt().isAfter(now)) {
             throw new RuntimeException("Mã giảm giá chưa đến đợt áp dụng!");
         }
 
         if (coupon.getUsageLimit() != null && coupon.getUsageLimit() <= 0) {
-             throw new RuntimeException("Mã giảm giá đã hết lượt sử dụng!");
+            throw new RuntimeException("Mã giảm giá đã hết lượt sử dụng!");
         }
 
         if (orderValue.compareTo(coupon.getMinOrderValue()) < 0) {
