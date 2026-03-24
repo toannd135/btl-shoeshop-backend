@@ -15,7 +15,7 @@ service:
   targetPort: 8080
   # type: ClusterIP
   type: LoadBalancer
-  nodePort: 30007
+
 
 secret:
   dbHost: "argocd-database-database-chart.shoeshop-data.svc.cluster.local"
