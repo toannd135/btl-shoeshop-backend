@@ -14,7 +14,7 @@ service:
   port: 80
   targetPort: 8080
   # type: ClusterIP
-  type: NodePort
+  type: LoadBalancer
   nodePort: 30007
 
 secret:
