@@ -3,7 +3,7 @@ package vn.edu.ptit.shoe_shop.dto.response;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import vn.edu.ptit.shoe_shop.common.enums.GenderEnum;
-import vn.edu.ptit.shoe_shop.common.enums.StatusEnum;
+import vn.edu.ptit.shoe_shop.common.enums.ProductStatusEnum;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -23,7 +23,7 @@ public class ProductResponseDTO {
     GenderEnum gender;
     String imageUrl;
 
-    StatusEnum status;
+    ProductStatusEnum status;
     Instant createdAt;
     Instant updatedAt;
 }

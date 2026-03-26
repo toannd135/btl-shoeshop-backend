@@ -54,6 +54,6 @@ public class RedisConfig {
                                 new GenericJackson2JsonRedisSerializer(redisObjectMapper())
                         )
                 )
-                .entryTtl(Duration.ofMinutes(10));
+                .entryTtl(Duration.ofMinutes(180));
     }
 }

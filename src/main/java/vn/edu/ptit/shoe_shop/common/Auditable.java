@@ -1,8 +1,10 @@
 package vn.edu.ptit.shoe_shop.common;
 
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.FieldDefaults;
 import vn.edu.ptit.shoe_shop.common.enums.StatusEnum;
 import vn.edu.ptit.shoe_shop.common.security.SecurityUtils;
 
@@ -13,22 +15,20 @@ import java.util.UUID;
 @MappedSuperclass
 @Getter
 @Setter
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public abstract class Auditable implements Serializable {
 
     @Column(name = "created_by", updatable = false)
-    protected UUID createdBy;
+    UUID createdBy;
 
     @Column(name = "updated_by")
-    protected UUID updatedBy;
+    UUID updatedBy;
 
     @Column(updatable = false)
-    protected Instant createdAt;
+    Instant createdAt;
 
-    protected Instant updatedAt;
+    Instant updatedAt;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    protected StatusEnum status;
 
     @PrePersist
     protected void onCreate() {
@@ -39,13 +39,10 @@ public abstract class Auditable implements Serializable {
         this.createdAt = Instant.now();
         this.updatedAt = Instant.now();
 
-        if (status == null) {
-            status = StatusEnum.ACTIVE;
-        }
     }
 
     @PreUpdate
-    protected void onUpdate() {
+    void onUpdate() {
         this.updatedBy = SecurityUtils.getCurrentUserId();
         this.updatedAt = Instant.now();
     }

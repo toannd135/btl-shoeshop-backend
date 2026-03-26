@@ -7,8 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import org.springframework.web.multipart.MultipartFile;
-import vn.edu.ptit.shoe_shop.common.enums.StatusEnum;
-
 @Getter
 @Setter
 @NoArgsConstructor
@@ -19,5 +17,4 @@ public class ProductVariantImageCreateRequestDTO {
 
     Boolean isPrimary;
 
-    StatusEnum status;
 }

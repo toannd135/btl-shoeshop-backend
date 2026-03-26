@@ -24,8 +24,6 @@ public class ProductVariantImageResponseDTO {
 
     Boolean isPrimary;
 
-    StatusEnum status;
-
     Instant createdAt;
     Instant updatedAt;
 }

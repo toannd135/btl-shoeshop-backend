@@ -5,6 +5,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.hibernate.annotations.JdbcTypeCode;
 import vn.edu.ptit.shoe_shop.common.Auditable;
+import vn.edu.ptit.shoe_shop.common.enums.StatusEnum;
 
 import java.io.Serializable;
 import java.sql.Types;
@@ -34,10 +35,21 @@ public class Category extends Auditable {
     @JoinColumn(name = "parent_id")
     Category parent;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    StatusEnum status;
+
     @OneToMany(mappedBy = "category",
             fetch = FetchType.LAZY,
             cascade = {CascadeType.DETACH,CascadeType.MERGE,CascadeType.REFRESH,CascadeType.PERSIST})
     private Set<Product> products;
 
+    @Override
+    protected void onCreate() {
+        super.onCreate();
 
+        if (this.status == null) {
+            this.status = StatusEnum.ACTIVE;
+        }
+    }
 }
