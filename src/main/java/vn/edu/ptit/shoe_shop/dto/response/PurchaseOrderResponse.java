@@ -24,4 +24,6 @@ public class PurchaseOrderResponse {
     List<POItemResponse> items;
     Instant createdAt;
     Instant updatedAt;
+    UUID createdBy;
+    UUID updatedBy;
 }

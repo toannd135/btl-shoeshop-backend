@@ -125,6 +125,8 @@ public class CategoryServiceImpl implements CategoryService {
                 .status(category.getStatus())
                 .createdAt(category.getCreatedAt())
                 .updatedAt(category.getUpdatedAt())
+                .createdBy(category.getCreatedBy())
+                .updatedBy(category.getUpdatedBy())
                 .build();
     }
 

@@ -23,4 +23,6 @@ public class CategoryResponseDTO {
     StatusEnum status;
     Instant createdAt;
     Instant updatedAt;
+    UUID createdBy;
+    UUID updatedBy;
 }

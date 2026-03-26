@@ -166,6 +166,8 @@ public class ProductVariantImageServiceImpl implements ProductVariantImageServic
                 .isPrimary(image.getIsPrimary())
                 .createdAt(image.getCreatedAt())
                 .updatedAt(image.getUpdatedAt())
+                .createdBy(image.getCreatedBy())
+                .updatedBy(image.getUpdatedBy())
                 .build();
     }
 

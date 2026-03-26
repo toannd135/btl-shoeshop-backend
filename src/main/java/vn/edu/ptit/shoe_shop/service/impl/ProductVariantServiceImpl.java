@@ -208,6 +208,8 @@ public class ProductVariantServiceImpl implements ProductVariantService {
                 .status(productVariant.getStatus())
                 .createdAt(productVariant.getCreatedAt())
                 .updatedAt(productVariant.getUpdatedAt())
+                .createdBy(productVariant.getCreatedBy())
+                .updatedBy(productVariant.getUpdatedBy())
                 .build();
     }
 

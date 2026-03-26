@@ -26,4 +26,6 @@ public class ProductResponseDTO {
     ProductStatusEnum status;
     Instant createdAt;
     Instant updatedAt;
+    UUID createdBy;
+    UUID updatedBy;
 }

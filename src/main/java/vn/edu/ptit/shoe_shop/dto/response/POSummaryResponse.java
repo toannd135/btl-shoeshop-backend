@@ -19,4 +19,6 @@ public class POSummaryResponse {
     OrderStatusEnum status;
     Instant createdAt;
     Instant updatedAt;
+    UUID createdBy;
+    UUID updatedBy;
 }

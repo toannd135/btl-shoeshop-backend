@@ -190,6 +190,8 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 
                 .createdAt(purchaseOrder.getCreatedAt())
                 .updatedAt(purchaseOrder.getUpdatedAt())
+                .createdBy(purchaseOrder.getCreatedBy())
+                .updatedBy(purchaseOrder.getUpdatedBy())
                 .build();
     }
 

@@ -163,6 +163,8 @@ public class SupplierServiceImpl implements SupplierService {
                 .variants(variantResponses)
                 .createdAt(supplier.getCreatedAt())
                 .updatedAt(supplier.getUpdatedAt())
+                .createdBy(supplier.getCreatedBy())
+                .updatedBy(supplier.getUpdatedBy())
                 .build();
     }
 }
