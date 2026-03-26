@@ -15,7 +15,7 @@ spring:
     name: shoes-shop
 
   datasource:
-    url: jdbc:mysql://localhost:3306/shoeshop
+    url: jdbc:mysql://34.126.184.248:3307/shoeshop
     username: root
     password: 123456
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -44,9 +44,21 @@ spring:
       pageable:
         one-indexed-parameters: true
     redis:
-      host: localhost
-      port: 6379
+      host: 34.126.184.248
+      port: 6380
       timeout: 2000
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: my-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
   mail:
     host: smtp.gmail.com
     port: 587
