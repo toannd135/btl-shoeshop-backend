@@ -5,10 +5,12 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
+import org.hibernate.annotations.JdbcTypeCode;
 import vn.edu.ptit.shoe_shop.common.enums.StatusEnum;
 import vn.edu.ptit.shoe_shop.common.security.SecurityUtils;
 
 import java.io.Serializable;
+import java.sql.Types;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -19,9 +21,11 @@ import java.util.UUID;
 public abstract class Auditable implements Serializable {
 
     @Column(name = "created_by", updatable = false)
+    @JdbcTypeCode(Types.VARCHAR)
     UUID createdBy;
 
     @Column(name = "updated_by")
+    @JdbcTypeCode(Types.VARCHAR)
     UUID updatedBy;
 
     @Column(updatable = false)
