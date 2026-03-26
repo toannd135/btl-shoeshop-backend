@@ -20,11 +20,11 @@ import java.util.UUID;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public abstract class Auditable implements Serializable {
 
-    @Column(name = "created_by", updatable = false)
+    @Column(name = "created_by", updatable = false, columnDefinition = "VARCHAR(36)")
     @JdbcTypeCode(Types.VARCHAR)
     UUID createdBy;
 
-    @Column(name = "updated_by")
+    @Column(name = "updated_by", columnDefinition = "VARCHAR(36)")
     @JdbcTypeCode(Types.VARCHAR)
     UUID updatedBy;
 
