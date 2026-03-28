@@ -22,8 +22,10 @@ import vn.edu.ptit.shoe_shop.service.Cloudinary.UploadImageFile;
 import vn.edu.ptit.shoe_shop.service.ProductVariantImageService;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -36,7 +38,7 @@ public class ProductVariantImageServiceImpl implements ProductVariantImageServic
     UploadImageFile uploadImageFile;
 
     @CacheEvict(
-            value = "variantImageList",
+            value = "variantImagesCache",
             key = "#productId + '_' + #variantId"
     )
     public ProductVariantImageResponseDTO create(UUID productId,
@@ -70,9 +72,9 @@ public class ProductVariantImageServiceImpl implements ProductVariantImageServic
         return toResponse(image);
     }
     @Caching(evict = {
-            @CacheEvict(value = "variantImageList",
+            @CacheEvict(value = "variantImagesCache",
                     key = "#productId + '_' + #variantId"),
-            @CacheEvict(value = "variantImage",
+            @CacheEvict(value = "variantImageDetailCache",
                     key = "#productId + '_' + #variantId + '_' + #imageId")
     })
     public ProductVariantImageResponseDTO update(UUID productId,
@@ -111,7 +113,7 @@ public class ProductVariantImageServiceImpl implements ProductVariantImageServic
         return toResponse(image);
     }
     @Cacheable(
-            value = "variantImageList",
+            value = "variantImagesCache",
             key = "#productId + '_' + #variantId"
     )
     public List<ProductVariantImageResponseDTO> getAllImage(UUID productId,
@@ -122,13 +124,15 @@ public class ProductVariantImageServiceImpl implements ProductVariantImageServic
                 .orElseThrow(() -> new ResourceNotFoundException("Product variant not found"));
         List<ProductVariantImage> images = productVariantImageRepository.findByProductVariant(variant);
 
-        return images.stream().map(this::toResponse).toList();
+        return images.stream()
+                .map(this::toResponse)
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
     @Cacheable(
-            value = "variantImage",
+            value = "variantImageDetailCache",
             key = "#productId + '_' + #variantId + '_' + #imageId",
-            unless = "#result == null"  // Không cache kết quả null
+            unless = "#result == null"
     )
     public ProductVariantImageResponseDTO getImageById(UUID productId,
                                                        UUID variantId,
@@ -145,8 +149,8 @@ public class ProductVariantImageServiceImpl implements ProductVariantImageServic
     }
 
     @Caching(evict = {
-            @CacheEvict(value = "variantImageList", key = "#productId + '_' + #variantId"),
-            @CacheEvict(value = "variantImage", key = "#productId + '_' + #variantId + '_' + #imageId")
+            @CacheEvict(value = "variantImagesCache", key = "#productId + '_' + #variantId"),
+            @CacheEvict(value = "variantImageDetailCache", key = "#productId + '_' + #variantId + '_' + #imageId")
     })
     public void deleteImage(UUID productId, UUID variantId, UUID imageId) {
         Product product = productRepository.findById(productId)

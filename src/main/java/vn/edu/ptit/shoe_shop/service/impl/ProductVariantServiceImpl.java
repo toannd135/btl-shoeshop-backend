@@ -1,5 +1,6 @@
 package vn.edu.ptit.shoe_shop.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -64,14 +66,13 @@ public class ProductVariantServiceImpl implements ProductVariantService {
     public List<ProductVariantResponseDTO> getAllProductVariant(UUID productId) {
 
         String listKey = variantListKey(productId);
-
         Object cached = redisTemplate.opsForValue().get(listKey);
 
         if (cached != null) {
+            // Bây giờ Jackson sẽ ép kiểu List chuẩn xác 100%
             @SuppressWarnings("unchecked")
-            List<ProductVariantResponseDTO> result =
-                    (List<ProductVariantResponseDTO>) cached;
-            return result;
+            List<ProductVariantResponseDTO> cachedList = (List<ProductVariantResponseDTO>) cached;
+            return cachedList;
         }
 
         Product product = productRepository.findById(productId)
@@ -81,7 +82,7 @@ public class ProductVariantServiceImpl implements ProductVariantService {
                 productVariantRepository.findByProduct(product)
                         .stream()
                         .map(this::toResponse)
-                        .toList();
+                        .collect(Collectors.toList());
 
         redisTemplate.opsForValue().set(
                 listKey,
@@ -144,7 +145,7 @@ public class ProductVariantServiceImpl implements ProductVariantService {
                 ));
         productVariantRepository.delete(variant);
 
-        redisTemplate.delete("productVariants::" + productId + "_" + variantId);
+        redisTemplate.delete(variantKey(productId, variantId));
         redisTemplate.delete(variantListKey(productId));
     }
 
