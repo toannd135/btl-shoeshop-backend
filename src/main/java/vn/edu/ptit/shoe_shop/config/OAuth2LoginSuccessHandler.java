@@ -25,7 +25,6 @@ import vn.edu.ptit.shoe_shop.repository.RefreshTokenRepository;
 import vn.edu.ptit.shoe_shop.repository.RoleRepository;
 import vn.edu.ptit.shoe_shop.repository.UserRepository;
 import vn.edu.ptit.shoe_shop.service.RedisService;
-import vn.edu.ptit.shoe_shop.service.UserService;
 
 import java.io.IOException;
 import java.time.Instant;

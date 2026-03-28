@@ -11,6 +11,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import vn.edu.ptit.shoe_shop.common.utils.request.RequestUtils;
 import vn.edu.ptit.shoe_shop.dto.response.ApiResponse;
 
 import java.io.IOException;
@@ -52,7 +53,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
                                  HttpServletResponse response,
                                  FilterChain filterChain,
                                  String type) throws ServletException, IOException {
-        String ip = getCurrentClientIp(request);
+        String ip = RequestUtils.getClientIp(request);
         // nếu cho token trong xô rồi thì lấy xô ra. nếu không thì tạo 1 xô mới
         Bucket bucket = buckets.computeIfAbsent(ip, key -> switch (type) {
             case "register" -> createRegisterBuilder();
@@ -106,13 +107,5 @@ public class RateLimitFilter extends OncePerRequestFilter {
         return Bucket.builder()
                 .addLimit(limit)
                 .build();
-    }
-
-    private String getCurrentClientIp(HttpServletRequest request) {
-        String xfHeader = request.getHeader("X-Forwarded-For");
-        if(xfHeader == null) {
-            return request.getRemoteAddr();
-        }
-        return xfHeader.split(",")[0].trim();
     }
 }

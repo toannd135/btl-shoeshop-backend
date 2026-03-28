@@ -1,7 +1,6 @@
 package vn.edu.ptit.shoe_shop.service;
 
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 public interface RedisService {
 
