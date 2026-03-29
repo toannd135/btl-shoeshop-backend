@@ -145,7 +145,7 @@ public class ProductServiceImpl implements ProductService {
         List<Product> products = productRepository.findAll();
         return products.stream()
                 .map(this::toResponse)
-                .toList();
+                .collect(Collectors.toCollection(java.util.ArrayList::new));
 
     }
 
@@ -202,7 +202,7 @@ public class ProductServiceImpl implements ProductService {
         List<ProductResponseDTO> items = page.getContent()
                 .stream()
                 .map(this::toResponse)
-                .toList();
+                .collect(Collectors.toCollection(java.util.ArrayList::new));
 
         ProductPageResponseDTO response = new ProductPageResponseDTO();
         response.setItems(items);
@@ -252,7 +252,7 @@ public class ProductServiceImpl implements ProductService {
         List<ProductResponseDTO> items = page.getContent()
                 .stream()
                 .map(this::toResponse)
-                .toList();
+                .collect(Collectors.toCollection(java.util.ArrayList::new));
 
         ProductPageResponseDTO response = new ProductPageResponseDTO();
         response.setItems(items);

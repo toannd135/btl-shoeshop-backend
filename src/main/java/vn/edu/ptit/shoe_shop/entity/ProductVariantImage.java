@@ -28,7 +28,7 @@ public class ProductVariantImage extends Auditable {
 
     Boolean isPrimary;
 
-    @ManyToOne(cascade = {CascadeType.DETACH,CascadeType.MERGE,CascadeType.REFRESH,CascadeType.PERSIST})
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.DETACH,CascadeType.MERGE,CascadeType.REFRESH,CascadeType.PERSIST})
     @JoinColumn(name = "product_variant_id")
     ProductVariant productVariant;
 

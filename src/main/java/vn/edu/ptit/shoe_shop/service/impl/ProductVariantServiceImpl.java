@@ -82,7 +82,7 @@ public class ProductVariantServiceImpl implements ProductVariantService {
                 productVariantRepository.findByProduct(product)
                         .stream()
                         .map(this::toResponse)
-                        .collect(Collectors.toList());
+                        .collect(Collectors.toCollection(java.util.ArrayList::new));;
 
         redisTemplate.opsForValue().set(
                 listKey,
@@ -179,7 +179,8 @@ public class ProductVariantServiceImpl implements ProductVariantService {
 
     public List<ProductVariantResponseDTO> alertLowStock(Integer quantity) {
         return productVariantRepository.findByQuantityLessThan(quantity)
-                .stream().map(this::toResponse).toList();
+                .stream().map(this::toResponse)
+                .collect(Collectors.toCollection(java.util.ArrayList::new));
     }
 
     private static final Duration VARIANT_TTL = Duration.ofMinutes(2);
