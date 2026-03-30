@@ -12,23 +12,16 @@ import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 import vn.edu.ptit.shoe_shop.common.enums.DiscountTypeEnum;
+import vn.edu.ptit.shoe_shop.common.enums.ITEnum;
+import vn.edu.ptit.shoe_shop.common.enums.ITStatusEnum;
 import vn.edu.ptit.shoe_shop.common.enums.OrderStatusEnum;
 import vn.edu.ptit.shoe_shop.common.exception.IdInvalidException;
 import vn.edu.ptit.shoe_shop.common.exception.NotFoundException;
 import vn.edu.ptit.shoe_shop.dto.request.CheckoutRequest;
 import vn.edu.ptit.shoe_shop.dto.response.OrderResponse;
-import vn.edu.ptit.shoe_shop.entity.Cart;
-import vn.edu.ptit.shoe_shop.entity.CartItem;
-import vn.edu.ptit.shoe_shop.entity.Coupon;
-import vn.edu.ptit.shoe_shop.entity.Order;
-import vn.edu.ptit.shoe_shop.entity.OrderItem;
-import vn.edu.ptit.shoe_shop.entity.ProductVariant;
-import vn.edu.ptit.shoe_shop.entity.User;
+import vn.edu.ptit.shoe_shop.entity.*;
 import vn.edu.ptit.shoe_shop.mapper.OrderMapper;
-import vn.edu.ptit.shoe_shop.repository.CartRepository;
-import vn.edu.ptit.shoe_shop.repository.CouponRepository;
-import vn.edu.ptit.shoe_shop.repository.OrderRepository;
-import vn.edu.ptit.shoe_shop.repository.UserRepository;
+import vn.edu.ptit.shoe_shop.repository.*;
 import vn.edu.ptit.shoe_shop.service.CheckoutService;
 import vn.edu.ptit.shoe_shop.service.ShippingService;
 
@@ -42,6 +35,8 @@ public class CheckoutServiceImpl implements CheckoutService {
     private final CouponRepository couponRepository;
     private final OrderRepository orderRepository;
     private final ShippingService shippingService;
+    private final ProductVariantRepository productVariantRepository;
+    private final InventoryTransactionRepository inventoryTransactionRepository;
 
     @Override
     @Transactional(rollbackFor = Exception.class) // Rollback nếu có bất kỳ lỗi nào
@@ -72,7 +67,9 @@ public class CheckoutServiceImpl implements CheckoutService {
         BigDecimal subTotal = BigDecimal.ZERO;
 
         for (CartItem item : cart.getItems()) {
-            ProductVariant variant = item.getVariant();
+            ProductVariant variant = productVariantRepository.findByIdWithLock(
+                            item.getVariant().getProductVariantId())
+                    .orElseThrow(() -> new NotFoundException("Variant không tồn tại: " + item.getVariant().getProductVariantId()));
             
             // Check tồn kho
             if (variant.getQuantity() < item.getQuantity()) {
@@ -150,6 +147,14 @@ public class CheckoutServiceImpl implements CheckoutService {
             // Hibernate sẽ tự động update dòng này do đang trong Transaction
             variant.setQuantity(variant.getQuantity() - item.getQuantity());
             // variantRepository.save(variant); // Không cần thiết nếu entity đang managed, nhưng gọi cũng không sao
+            InventoryTransaction transaction = InventoryTransaction.builder()
+                    .type(ITEnum.SALE)
+                    .quantityChange(-item.getQuantity())
+                    .variant(variant)
+                    .status(ITStatusEnum.COMPLETED)
+                    .reason("Đặt hàng thành công")
+                    .build();
+            inventoryTransactionRepository.save(transaction);
         }
 
         order.setListOrderItems(orderItems);

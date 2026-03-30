@@ -155,7 +155,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
     }
 
     public POPageResponseDTO getPage(Pageable pageable) {
-        // Chuẩn hóa pageable (nếu cần)
+        // Chuẩn hóa pageable
         Pageable pageableToUse = normalizePageable(pageable);
 
         Page<PurchaseOrder> page = purchaseOrderRepository.findAllWithSupplier(pageableToUse);
