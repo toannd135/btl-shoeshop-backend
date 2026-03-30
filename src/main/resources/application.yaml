@@ -15,9 +15,9 @@ spring:
     name: shoes-shop
 
   datasource:
-    url: jdbc:mysql://127.0.0.1:3306/shoeshop
+    url: jdbc:mysql://13.222.11.14:3307/shoeshop
     username: root
-    password: Trungtrung2005@
+    password: 123456
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
@@ -27,7 +27,6 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
-        default_batch_fetch_size: 100
   security:
     oauth2:
       client:
@@ -45,7 +44,7 @@ spring:
       pageable:
         one-indexed-parameters: true
     redis:
-      host: 34.126.184.248
+      host: 13.222.11.14
       port: 6380
       timeout: 2000
 
