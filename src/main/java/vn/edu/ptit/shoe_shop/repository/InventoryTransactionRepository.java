@@ -1,5 +1,8 @@
 package vn.edu.ptit.shoe_shop.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -12,12 +15,5 @@ import java.util.UUID;
 
 @Repository
 public interface InventoryTransactionRepository extends JpaRepository<InventoryTransaction, UUID> {
-    @Query("""
-        SELECT it FROM InventoryTransaction it
-        WHERE (:variantId IS NULL OR it.variant.productVariantId = :variantId)
-        AND (:type IS NULL OR it.type = :type)
-        AND (:fromDate IS NULL OR it.createdAt >= :fromDate)
-        AND (:toDate IS NULL OR it.createdAt <= :toDate)
-    """)
-    List<InventoryTransaction> search(UUID variantId, ITEnum type, Instant fromDate, Instant toDate);
+    Page<InventoryTransaction> findAll(Specification<InventoryTransaction> spec, Pageable pageableToUse);
 }
