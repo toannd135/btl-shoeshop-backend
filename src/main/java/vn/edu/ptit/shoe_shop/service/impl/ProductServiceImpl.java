@@ -1,9 +1,12 @@
 package vn.edu.ptit.shoe_shop.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -13,6 +16,11 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+import vn.edu.ptit.shoe_shop.common.security.SecurityUtils;
+import vn.edu.ptit.shoe_shop.common.utils.request.RequestUtils;
+import vn.edu.ptit.shoe_shop.dto.logEvent.ProductViewEvent;
 import vn.edu.ptit.shoe_shop.dto.request.ProductCreateRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.request.ProductUpdateRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.response.ProductResponseDTO;
@@ -40,11 +48,13 @@ import java.util.stream.Collectors;
 @Transactional
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor
+@Slf4j
 public class ProductServiceImpl implements ProductService {
     ProductRepository productRepository;
     CategoryRepository categoryRepository;
     UploadImageFile uploadImageFile;
     RedisTemplate<String, Object> redisTemplate;
+    ObjectMapper objectMapper;
 
     public ProductResponseDTO create(ProductCreateRequestDTO request) throws IOException {
         Category category = null;
@@ -114,14 +124,16 @@ public class ProductServiceImpl implements ProductService {
     }
 
     public ProductResponseDTO getById(UUID id) {
-
+        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        HttpServletRequest request = (attributes != null) ? attributes.getRequest() : null;
         String cacheKey = "products::" + id;
-
+        boolean isCacheHit = false;
         // 1. Check cache
         ProductResponseDTO cached =
                 (ProductResponseDTO) redisTemplate.opsForValue().get(cacheKey);
 
         if (cached != null) {
+            sendUserBehaviorEvent(id, request);
             return cached;
         }
 
@@ -138,14 +150,36 @@ public class ProductServiceImpl implements ProductService {
                 randomTtl(Duration.ofMinutes(10))
         );
 
+        sendUserBehaviorEvent(id, request);
+
         return response;
     }
+
+    private void sendUserBehaviorEvent(UUID productId,HttpServletRequest request) {
+        try {
+            ProductViewEvent event = ProductViewEvent.builder()
+                    .eventId(UUID.randomUUID().toString())
+                    .userId(String.valueOf(SecurityUtils.getCurrentUserId()))
+                    .productId(productId.toString())
+                    .ipAddress(RequestUtils.getClientIp(request))
+                    .userAgent(request.getHeader("User-Agent"))
+                    .action("VIEW_DETAIL")
+                    .timestamp(System.currentTimeMillis())
+                    .build();
+
+            log.info("USER_EVENT_JSON: {}", objectMapper.writeValueAsString(event));
+
+        } catch (Exception e) {
+            log.error("Failed to log event for Big Data pipeline", e);
+        }
+    }
+
 
     public List<ProductResponseDTO> getAll() {
         List<Product> products = productRepository.findAll();
         return products.stream()
                 .map(this::toResponse)
-                .collect(Collectors.toCollection(java.util.ArrayList::new));
+                .toList();
 
     }
 
@@ -202,7 +236,7 @@ public class ProductServiceImpl implements ProductService {
         List<ProductResponseDTO> items = page.getContent()
                 .stream()
                 .map(this::toResponse)
-                .collect(Collectors.toCollection(java.util.ArrayList::new));
+                .toList();
 
         ProductPageResponseDTO response = new ProductPageResponseDTO();
         response.setItems(items);
@@ -252,7 +286,7 @@ public class ProductServiceImpl implements ProductService {
         List<ProductResponseDTO> items = page.getContent()
                 .stream()
                 .map(this::toResponse)
-                .collect(Collectors.toCollection(java.util.ArrayList::new));
+                .toList();
 
         ProductPageResponseDTO response = new ProductPageResponseDTO();
         response.setItems(items);
@@ -353,8 +387,6 @@ public class ProductServiceImpl implements ProductService {
                 .status(product.getStatus())
                 .createdAt(product.getCreatedAt())
                 .updatedAt(product.getUpdatedAt())
-                .createdBy(product.getCreatedBy())
-                .updatedBy(product.getUpdatedBy())
                 .build();
     }
 }

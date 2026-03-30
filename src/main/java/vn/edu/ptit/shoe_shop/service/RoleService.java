@@ -6,10 +6,9 @@ import org.springframework.data.domain.Pageable;
 import vn.edu.ptit.shoe_shop.dto.request.RoleCreateRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.request.RoleUpdateRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.request.search.RoleSearchRequestDTO;
-import vn.edu.ptit.shoe_shop.dto.request.search.UserSearchRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.response.RoleResponseDTO;
 import vn.edu.ptit.shoe_shop.dto.response.page.RolePageResponseDTO;
-import vn.edu.ptit.shoe_shop.dto.response.page.UserPageResponseDTO;
+
 
 public interface RoleService {
     RoleResponseDTO createRole(RoleCreateRequestDTO roleCreateRequestDTO);
