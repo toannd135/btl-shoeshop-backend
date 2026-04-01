@@ -10,10 +10,11 @@ import vn.edu.ptit.shoe_shop.entity.Category;
 import vn.edu.ptit.shoe_shop.entity.Product;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, UUID>, JpaSpecificationExecutor<Product> {
-
+    List<Product> findByProductIdIn(List<String> ids);
 }

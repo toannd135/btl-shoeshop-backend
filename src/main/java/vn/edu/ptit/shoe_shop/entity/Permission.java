@@ -65,6 +65,9 @@ public class Permission implements Serializable {
     public void handleBeforeCreate() {
         this.createdAt = Instant.now();
         this.updatedAt = this.createdAt;
+        if (this.status == null) {
+            this.status = StatusEnum.ACTIVE;
+        }
     }
 
     @PreUpdate

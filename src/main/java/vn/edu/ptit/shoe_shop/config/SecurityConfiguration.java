@@ -2,6 +2,7 @@ package vn.edu.ptit.shoe_shop.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
@@ -17,6 +18,7 @@ import vn.edu.ptit.shoe_shop.common.security.service.CustomUserDetailService;
 import vn.edu.ptit.shoe_shop.service.UserService;
 
 import static vn.edu.ptit.shoe_shop.common.enums.RoleEnum.ADMIN;
+import static vn.edu.ptit.shoe_shop.common.enums.RoleEnum.MANAGER;
 
 @Configuration
 @EnableMethodSecurity(securedEnabled = true)
@@ -46,6 +48,7 @@ public class SecurityConfiguration {
 
     String[] whiteList = {
             "/",
+            "/api/v1/recommend-products/**",
             "/actuator/**",
             "/login/**",
             "/oauth2/**",

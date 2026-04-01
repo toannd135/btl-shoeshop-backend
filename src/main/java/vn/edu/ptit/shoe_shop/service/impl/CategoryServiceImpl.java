@@ -32,9 +32,9 @@ public class CategoryServiceImpl implements CategoryService {
     @CachePut(value = "categories", key = "#result.categoryId", unless = "#result == null")
     public CategoryResponseDTO create(CategoryCreateRequestDTO request) {
 
-        if (categoryRepository.existsByCategoryName(request.getCategoryName())) {
-            throw new DuplicateResourceException("Category name already exists");
-        }
+//        if (categoryRepository.existsByCategoryName(request.getCategoryName())) {
+//            throw new DuplicateResourceException("Category name already exists");
+//        }
 
         Category parent = null;
         if (request.getParentId() != null) {
