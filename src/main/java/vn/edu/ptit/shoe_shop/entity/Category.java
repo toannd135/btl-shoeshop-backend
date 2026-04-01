@@ -28,7 +28,7 @@ public class Category extends Auditable {
     @JdbcTypeCode(Types.VARCHAR)
     UUID categoryId;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     String categoryName;
 
     @ManyToOne(fetch = FetchType.LAZY)
