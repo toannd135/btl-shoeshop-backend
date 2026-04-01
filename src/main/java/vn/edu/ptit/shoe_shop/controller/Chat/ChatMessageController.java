@@ -2,6 +2,11 @@ package vn.edu.ptit.shoe_shop.controller.Chat;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
 import vn.edu.ptit.shoe_shop.dto.request.ChatMessageRequest;
 import vn.edu.ptit.shoe_shop.dto.response.Chat.ChatMessageResponse;
 import vn.edu.ptit.shoe_shop.dto.response.Chat.ConversationResponse;
@@ -40,10 +45,29 @@ public class ChatMessageController {
     }
 
     @GetMapping("/messages")
-    public List<ChatMessageResponse> listMessages(
+    public Page<ChatMessageResponse> listMessages(
             @RequestParam String conversationId,
-            @RequestParam String viewerId // prod: lấy từ JWT
-    ) {
-        return messageService.listByConversation(conversationId, viewerId);
+            @RequestParam String viewerId, // prod: lấy từ JWT
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "asc") String direction) {
+
+        // đảm bảo page và size hợp lệ
+        page = Math.max(page, 1);
+        size = Math.min(Math.max(size, 1), 100);
+
+        // chỉ cho phép sort theo createdAt
+        if (!"createdAt".equals(sortBy)) {
+            sortBy = "createdAt";
+        }
+
+        Sort sort = "asc".equalsIgnoreCase(direction)
+                ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+
+        Pageable pageable = PageRequest.of(page - 1, size, sort);
+
+        return messageService.listByConversation(conversationId, viewerId, pageable);
     }
 }

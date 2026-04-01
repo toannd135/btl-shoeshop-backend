@@ -8,9 +8,7 @@ import vn.edu.ptit.shoe_shop.entity.User;
 import vn.edu.ptit.shoe_shop.repository.ConversationRepository;
 import vn.edu.ptit.shoe_shop.repository.UserRepository;
 import vn.edu.ptit.shoe_shop.service.ConversationService;
-import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,7 +54,7 @@ public class ConversationServiceImpl implements ConversationService {
 
     @Transactional(readOnly = true)
     public List<ConversationItemResponse> listConversationsForViewer(String viewerId) {
-        boolean isAdminViewer = (viewerId == DEFAULT_ADMIN_ID);
+        boolean isAdminViewer = DEFAULT_ADMIN_ID.equals(viewerId);
         List<Conversation> conversations = isAdminViewer
                 ? conversationRepository.findByAdmin_UserIdOrderByUpdatedAtDesc(UUID.fromString(viewerId))
                 : conversationRepository.findByUser_UserIdOrderByUpdatedAtDesc(UUID.fromString(viewerId));
