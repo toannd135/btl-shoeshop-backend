@@ -14,24 +14,25 @@ import vn.edu.ptit.shoe_shop.entity.Order;
 public class OrderMapper {
 
     public OrderResponse toOrderResponse(Order order) {
-        if (order == null) return null;
+        if (order == null)
+            return null;
 
         // Map User
         UserShortInfo userInfo = UserShortInfo.builder()
                 .userId(order.getUser().getUserId())
-//                .name(order.getUser().getName())
+                .name(order.getUser().getUsername())
                 .phone(order.getUser().getPhone())
                 .email(order.getUser().getEmail())
                 .build();
 
-        List<OrderItemResponse> items = order.getListOrderItems().stream().map(item->
-            OrderItemResponse.builder()
-            .productName(item.getVariant().getProduct().getName())
-            .size(item.getVariant().getSize())
-            .quantity(item.getQuantity())
-            .price(item.getPriceAtPurchase())
-            .build()
-        ).collect(Collectors.toList());
+        List<OrderItemResponse> items = order.getListOrderItems().stream().map(item -> OrderItemResponse.builder()
+                .productId(item.getVariant().getProduct().getProductId())
+                .productName(item.getVariant().getProduct().getName())
+                .size(item.getVariant().getSize())
+                .quantity(item.getQuantity())
+                .price(item.getPriceAtPurchase())
+                .imageUrl(item.getVariant().getProduct().getImageUrl())
+                .build()).collect(Collectors.toList());
 
         // Map Order
         return OrderResponse.builder()

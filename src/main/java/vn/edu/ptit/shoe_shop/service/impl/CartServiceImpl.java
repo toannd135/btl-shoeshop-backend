@@ -28,10 +28,12 @@ import vn.edu.ptit.shoe_shop.dto.response.CartResponseDTO;
 import vn.edu.ptit.shoe_shop.entity.Cart;
 import vn.edu.ptit.shoe_shop.entity.CartItem;
 import vn.edu.ptit.shoe_shop.entity.ProductVariant;
+import vn.edu.ptit.shoe_shop.entity.User;
 import vn.edu.ptit.shoe_shop.mapper.CartMapper;
 import vn.edu.ptit.shoe_shop.repository.CartItemRepository;
 import vn.edu.ptit.shoe_shop.repository.CartRepository;
 import vn.edu.ptit.shoe_shop.repository.ProductVariantRepository;
+import vn.edu.ptit.shoe_shop.repository.UserRepository;
 import vn.edu.ptit.shoe_shop.service.CartService;
 
 @Service
@@ -39,6 +41,7 @@ import vn.edu.ptit.shoe_shop.service.CartService;
 @Slf4j
 public class CartServiceImpl implements CartService  {
     private final CartMapper cartMapper;
+    private final UserRepository userRepository;
     private final CartRepository cartRepository;
     private final ProductVariantRepository productVariantRepository;
     private final CartItemRepository cartIteamRepository;
@@ -46,14 +49,14 @@ public class CartServiceImpl implements CartService  {
 
     @Override
     @Transactional
-    public ApiResponse<Object> addProductVariantToCart(AddVariantRequestDTO requestDTO) {
+    public ApiResponse<Object> addProductVariantToCart(String userId, AddVariantRequestDTO requestDTO) {
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         HttpServletRequest request = (attributes != null) ? attributes.getRequest() : null;
         
-        UUID userId;
+        UUID userIdUUID;
         UUID variantId;
         try {
-            userId = UUID.fromString(requestDTO.getUserId());
+            userIdUUID = UUID.fromString(userId);
             variantId = UUID.fromString(requestDTO.getVariantId());
         } catch (IllegalArgumentException e) {
             throw new BusinessException("ID không đúng định dạng UUID");
@@ -64,7 +67,7 @@ public class CartServiceImpl implements CartService  {
         }
 
         // Tìm Cart và Variant tương ứng
-        Cart cart = this.cartRepository.findByUser_UserId(userId)
+        Cart cart = this.cartRepository.findByUser_UserId(userIdUUID)
                 .orElseThrow(() -> new NotFoundException("Không xác thực được người dùng hoặc chưa có giỏ hàng"));
 
         ProductVariant variant = this.productVariantRepository.findByProductVariantId(variantId)
@@ -132,42 +135,63 @@ public class CartServiceImpl implements CartService  {
 
     @Override
     public CartResponseDTO getMyCart(String userId) throws IdInvalidException {
-       UUID id;
+        UUID id;
+
+        // Bước 1: Chỉ bắt lỗi khi Parse UUID
         try {
             id = UUID.fromString(userId);
-             Cart cart = this.cartRepository.findByUser_UserId(id).orElseThrow(()->new NotFoundException("Không xác thực được người dùng"));
-             return this.cartMapper.toResponseDTO(cart);
-        } catch (Exception e) {
-            throw new IdInvalidException("Id không đúng định dạng");
+        } catch (IllegalArgumentException e) {
+            // Log thêm userId ra để dễ debug nếu bị sai định dạng thật
+            throw new IdInvalidException("Id không đúng định dạng: " + userId);
         }
+
+        // Bước 2: Query Database (Để exception NotFound tự văng ra, không bọc trong
+        // try-catch này nữa)
+        Cart cart = this.cartRepository.findByUser_UserId(id)
+                .orElseThrow(() -> new NotFoundException("Người dùng chưa có giỏ hàng hoặc không tồn tại"));
+
+        return this.cartMapper.toResponseDTO(cart);
     }
 
-     @Override
-     public void updateQuantityItem(UpdateItemCartRequestDTO requestDTO) {
+    @Override
+    public void updateQuantityItem(UpdateItemCartRequestDTO requestDTO) {
         UUID cartItemId;
         try {
-            cartItemId= UUID.fromString(requestDTO.getCartItemId());
+            cartItemId = UUID.fromString(requestDTO.getCartItemId());
         } catch (Exception e) {
             throw new IdInvalidException("Id không đúng định dạng");
         }
-        CartItem cartItem= this.cartIteamRepository.findByCartItemId(cartItemId)
-        .orElseThrow(()-> new NotFoundException("Không tìm thấy sản phẩm"));
+        CartItem cartItem = this.cartIteamRepository.findByCartItemId(cartItemId)
+                .orElseThrow(() -> new NotFoundException("Không tìm thấy sản phẩm"));
         // Nếu nhỏ hơn =0 thì xóa khỏi giỏ hàng luôn
         int newQty = cartItem.getQuantity() + requestDTO.getStep().getValue();
-        if(newQty<=0)
-        {
+        if (newQty <= 0) {
             this.cartIteamRepository.delete(cartItem);
-        }else{
+        } else {
             // Nếu lớn hơn 0 thì cập nhật số lượng
             cartItem.setQuantity(newQty);
         }
         // Lưu lại
         this.cartIteamRepository.save(cartItem);
-     }
+    }
 
-     @Override
-     @Transactional
-     public void deleteItemFromCart(String itemId) {
+    public void createCart(String userId) {
+        UUID id;
+        try {
+            id = UUID.fromString(userId);
+        } catch (Exception e) {
+            throw new IdInvalidException("Id không đúng định dạng");
+        }
+        User user = this.userRepository.findByUserId(id)
+                .orElseThrow(() -> new NotFoundException("Không tìm thấy người dùng"));
+        Cart cart = new Cart();
+        cart.setUser(user);
+        this.cartRepository.save(cart);
+    }
+
+    @Override
+    @Transactional
+    public void deleteItemFromCart(String itemId) {
         UUID deleteItemId;
         try {
             deleteItemId = UUID.fromString(itemId);
@@ -175,9 +199,10 @@ public class CartServiceImpl implements CartService  {
             throw new IdInvalidException("Id không đúng định dạng!");
         }
         this.cartIteamRepository.findByCartItemId(deleteItemId)
-        .ifPresentOrElse(this.cartIteamRepository::delete,
-             () -> { throw new NotFoundException("Không tìm thấy sản phẩm trong giỏ hàng"); }
-        );
-     }
-     
+                .ifPresentOrElse(this.cartIteamRepository::delete,
+                        () -> {
+                            throw new NotFoundException("Không tìm thấy sản phẩm trong giỏ hàng");
+                        });
+    }
+
 }

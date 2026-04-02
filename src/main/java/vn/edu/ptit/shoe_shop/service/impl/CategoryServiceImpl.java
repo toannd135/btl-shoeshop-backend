@@ -32,14 +32,18 @@ public class CategoryServiceImpl implements CategoryService {
     @CachePut(value = "categories", key = "#result.categoryId", unless = "#result == null")
     public CategoryResponseDTO create(CategoryCreateRequestDTO request) {
 
-//        if (categoryRepository.existsByCategoryName(request.getCategoryName())) {
-//            throw new DuplicateResourceException("Category name already exists");
-//        }
-
         Category parent = null;
         if (request.getParentId() != null) {
-            parent = categoryRepository.findById(request.getParentId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Parent category not found"));
+
+            if (!categoryRepository.existsById(request.getParentId())) {
+                throw new ResourceNotFoundException("Parent category not found");
+            }
+
+            parent = categoryRepository.findById(request.getParentId()).orElse(null);
+        }
+
+        if (categoryRepository.existsByCategoryNameAndParent(request.getCategoryName(), parent)) {
+            throw new DuplicateResourceException("Category name already exists in this parent");
         }
 
         Category category = Category.builder()
@@ -61,40 +65,53 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
 
-        if (request.getCategoryName() != null &&
-                categoryRepository.existsByCategoryName(request.getCategoryName()) &&
-                !category.getCategoryName().equals(request.getCategoryName())) {
-            throw new DuplicateResourceException("Category name already exists");
-        }
+        Category finalParent = category.getParent();
+        String finalName = category.getCategoryName();
 
-        if (request.getCategoryName() != null) {
-            category.setCategoryName(request.getCategoryName());
-        }
-
+        // Nếu user muốn đổi parent
         if (request.getParentId() != null) {
             if (request.getParentId().equals(id)) {
                 throw new BusinessException("Category cannot be its own parent");
             }
 
-            Category parent = categoryRepository.findById(request.getParentId())
+            finalParent = categoryRepository.findById(request.getParentId())
                     .orElseThrow(() -> new ResourceNotFoundException("Parent category not found"));
 
-            validateNoCycle(category, parent);
-            category.setParent(parent);
+            validateNoCycle(category, finalParent);
         }
+
+
+        if (request.getCategoryName() != null) {
+            finalName = request.getCategoryName().trim();
+        }
+
+        // Check duplicate trong cùng parent
+        if (categoryRepository.existsByCategoryNameAndParentAndCategoryIdNot(finalName, finalParent, id)) {
+            throw new DuplicateResourceException("Category name already exists in this parent");
+        }
+
+        // Set các giá trị vào entity
+        category.setCategoryName(finalName);
+        category.setParent(finalParent);
 
         if (request.getStatus() != null) {
             category.setStatus(request.getStatus());
         }
 
+        // Save category
         Category updated = categoryRepository.save(category);
+        // Trả về DTO
         return toResponse(updated);
-    }
+        }
 
-    @CacheEvict(value = "categories", key = "#id")
+    @CacheEvict(value = "categories", key = "#id") // chỉ clear category này
     public void delete(UUID id) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
+        boolean hasChildren = categoryRepository.existsByParent(category);
+        if (hasChildren) {
+            throw new BusinessException("Cannot delete category because it has child categories");
+        }
         categoryRepository.delete(category);
     }
 

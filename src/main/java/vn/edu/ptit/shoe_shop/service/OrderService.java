@@ -11,5 +11,5 @@ public interface OrderService {
     public OrderResponse getOrderDetail(String userId, String orderId);
     public OrderResponse cancelOrder(String userId, String orderId, String cancelReason);
     public OrderResponse trackingOrder(String userId, String orderId);
-    public OrderResponse updateStatusOrder(String userId, String orderId, OrderStatusEnum status);
+    public OrderResponse updateStatusOrder( String orderId, OrderStatusEnum status);
 }

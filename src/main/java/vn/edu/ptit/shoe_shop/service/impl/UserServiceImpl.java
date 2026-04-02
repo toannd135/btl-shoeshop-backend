@@ -30,6 +30,7 @@ import vn.edu.ptit.shoe_shop.common.exception.IdInvalidException;
 import vn.edu.ptit.shoe_shop.repository.RoleRepository;
 import vn.edu.ptit.shoe_shop.repository.UserRepository;
 import vn.edu.ptit.shoe_shop.repository.UserRepositoryCustom;
+import vn.edu.ptit.shoe_shop.service.CartService;
 import vn.edu.ptit.shoe_shop.service.EmailService;
 import vn.edu.ptit.shoe_shop.service.RedisService;
 import vn.edu.ptit.shoe_shop.service.UserService;
@@ -47,7 +48,7 @@ import static vn.edu.ptit.shoe_shop.entity.QUser.user;
 
 @Service
 public class UserServiceImpl implements UserService {
-
+    private final CartService cartService;
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final RoleRepository roleRepository;
@@ -60,13 +61,14 @@ public class UserServiceImpl implements UserService {
 
     public UserServiceImpl(UserRepository userRepository, UserMapper userMapper, RedisService redisService,
                            RoleRepository roleRepository, UserRepositoryCustom userRepositoryCustom,
-                           EmailService emailService, PasswordEncoder passwordEncoder) {
+                           EmailService emailService, PasswordEncoder passwordEncoder,CartService cartService) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
         this.redisService = redisService;
         this.roleRepository = roleRepository;
         this.userRepositoryCustom = userRepositoryCustom;
         this.passwordEncoder = passwordEncoder;
+        this.cartService = cartService;
         this.emailService = emailService;
     }
 
@@ -229,6 +231,13 @@ public class UserServiceImpl implements UserService {
         newUser.setRole(role);
 
         this.userRepository.save(newUser);
+        this.cartService.createCart(newUser.getUserId().toString());
+        // this.redisTemplate.opsForSet().add(RedisKeyConstants.EMAIL_SET, newUser.getEmail());
+        // this.redisTemplate.opsForSet().add(RedisKeyConstants.USERNAME_SET, newUser.getUsername());
+
+
+        // //gui email
+        // return "";
 
         sendVerificationEmail(newUser);
         this.redisService.addToSet(RedisKeyConstants.EMAIL_SET, newUser.getEmail());

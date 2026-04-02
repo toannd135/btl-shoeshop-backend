@@ -6,15 +6,20 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import vn.edu.ptit.shoe_shop.common.enums.ITEnum;
+import vn.edu.ptit.shoe_shop.common.enums.ITStatusEnum;
 import vn.edu.ptit.shoe_shop.common.enums.OrderStatusEnum;
 import vn.edu.ptit.shoe_shop.common.exception.IdInvalidException;
 import vn.edu.ptit.shoe_shop.common.exception.NotFoundException;
+import vn.edu.ptit.shoe_shop.mapper.OrderMapper;
 import vn.edu.ptit.shoe_shop.dto.response.OrderResponse;
+import vn.edu.ptit.shoe_shop.entity.InventoryTransaction;
 import vn.edu.ptit.shoe_shop.entity.Order;
 import vn.edu.ptit.shoe_shop.entity.OrderItem;
 import vn.edu.ptit.shoe_shop.entity.ProductVariant;
-import vn.edu.ptit.shoe_shop.mapper.OrderMapper;
+import vn.edu.ptit.shoe_shop.repository.InventoryTransactionRepository;
 import vn.edu.ptit.shoe_shop.repository.OrderRepository;
+import vn.edu.ptit.shoe_shop.repository.ProductVariantRepository;
 import vn.edu.ptit.shoe_shop.service.OrderService;
 
 import java.util.UUID;
@@ -24,6 +29,8 @@ import java.util.UUID;
 public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final OrderMapper orderMapper;
+    private final ProductVariantRepository productVariantRepository;
+    private final InventoryTransactionRepository inventoryTransactionRepository;
 
     // --- 1. Lịch sử đơn hàng / Danh sách đơn hàng ---
     public Page<OrderResponse> getUserOrders(String userId, OrderStatusEnum status, Pageable pageable) {
@@ -83,17 +90,29 @@ public class OrderServiceImpl implements OrderService {
         if (order.getStatus() != OrderStatusEnum.PENDING) {
             throw new RuntimeException("Không thể hủy đơn hàng đang trong trạng thái: " + order.getStatus().name());
         }
+        for (OrderItem item : order.getListOrderItems()) {
+            // Lấy variant với lock để tránh đồng thời
+            ProductVariant variant = productVariantRepository.findByIdWithLock(
+                            item.getVariant().getProductVariantId())
+                    .orElseThrow(() -> new NotFoundException("Variant not found: " + item.getVariant().getProductVariantId()));
+
+            // Cộng lại số lượng đã trừ lúc mua
+            variant.setQuantity(variant.getQuantity() + item.getQuantity());
+
+            // Tạo inventory transaction
+            InventoryTransaction transaction = InventoryTransaction.builder()
+                    .type(ITEnum.CUSTOMER_RETURN)
+                    .quantityChange(item.getQuantity())
+                    .variant(variant)
+                    .reason("Cancel order: " + orderId + " - " + cancelReason)
+                    .status(ITStatusEnum.COMPLETED)
+                    .build();
+            inventoryTransactionRepository.save(transaction);
+        }
 
         // Cập nhật trạng thái và lý do
         order.setStatus(OrderStatusEnum.CANCELLED);
-        order.setNote("User hủy: " + cancelReason); // Giả sử bảng Order có cột note
-
-        // ROLLBACK TỒN KHO: Trả lại số lượng giày vào kho
-        for (OrderItem item : order.getListOrderItems()) {
-            ProductVariant variant = item.getVariant();
-            // Cộng lại số lượng đã trừ lúc mua
-            variant.setQuantity(variant.getQuantity() + item.getQuantity()); 
-        }
+        order.setNote("User hủy: " + cancelReason);
 
         Order savedOrder = orderRepository.save(order);
         return orderMapper.toOrderResponse(savedOrder);
@@ -116,17 +135,15 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public OrderResponse updateStatusOrder(String userId, String orderId,OrderStatusEnum status) {
-        UUID userIdUUID;
+    public OrderResponse updateStatusOrder(String orderId,OrderStatusEnum status) {
         UUID orderIdUUID;
         try {
-            userIdUUID=UUID.fromString(userId);
             orderIdUUID=UUID.fromString(orderId);
         } catch (Exception e) {
             // TODO: handle exception
             throw new IdInvalidException("Id không đúng định dạng!");
         }
-        Order order = orderRepository.findByOrderIdAndUser_UserId(orderIdUUID, userIdUUID)
+        Order order = orderRepository.findByOrderId(orderIdUUID)
                 .orElseThrow(() -> new NotFoundException("Không tìm thấy đơn hàng!"));
         order.setStatus(status);
         this.orderRepository.save(order);

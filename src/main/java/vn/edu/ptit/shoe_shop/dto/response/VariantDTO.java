@@ -10,6 +10,7 @@ import lombok.Setter;
 @Getter
 public class VariantDTO {
     private UUID productVariantId;
+    private String productName;
     private String sku;
     private BigDecimal size;
     private String color;
