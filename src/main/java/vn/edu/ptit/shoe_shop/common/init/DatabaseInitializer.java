@@ -127,6 +127,28 @@ public class DatabaseInitializer implements CommandLineRunner {
                 // review for ADMIN
                 permissions.add(new Permission("Get all reviews by products (admin)", "/api/v1/admin/reviews/products/{productsId}", "GET", "REVIEWS"));
                 permissions.add(new Permission("Hard delete review (admin)", "/api/v1/admin/reviews/{id}", "DELETE", "REVIEWS"));
+                // Module supplier
+                permissions.add(new Permission("Get all suppliers", "/api/v1/supplier/all", "GET", "SUPPLIERS"));
+                permissions.add(new Permission("Get a supplier by id", "/api/v1/supplier/{id}", "GET", "SUPPLIERS"));
+                permissions.add(new Permission("Create a supplier", "/api/v1/supplier", "POST", "SUPPLIERS"));
+                permissions.add(new Permission("Update a supplier", "/api/v1/supplier/{id}", "PUT", "SUPPLIERS"));
+                permissions.add(new Permission("Delete a supplier", "/api/v1/supplier/{id}", "DELETE", "SUPPLIERS"));
+                // Variant of supplier
+                permissions.add(new Permission("Add a supplier variant", "/api/v1/supplier/{id}/add", "POST", "SUPPLIERS"));
+                permissions.add(new Permission("Update a supplier variant", "/api/v1/supplier/{id}/add/{variantId}", "PUT", "SUPPLIERS"));
+                permissions.add(new Permission("Remove a supplier variant", "/api/v1/supplier/{id}/remove/{variantId}", "DELETE", "SUPPLIERS"));
+                // Module purchase order
+                permissions.add(new Permission("Create a purchase order", "/api/v1/suppliers/{supplierId}/purchase-orders", "POST", "PURCHASE_ORDERS"));
+                permissions.add(new Permission("Update a purchase order", "/api/v1/purchase-order/{poId}", "PUT", "PURCHASE_ORDERS"));
+                permissions.add(new Permission("Get a purchase order by id", "/api/v1/purchase-order/{id}", "GET", "PURCHASE_ORDERS"));
+                permissions.add(new Permission("Get all purchase orders", "/api/v1/purchase-orders", "GET", "PURCHASE_ORDERS"));
+                // purchase order Items
+                permissions.add(new Permission("Change items in a purchase order", "/api/v1/purchase-order/{poId}/items", "POST", "PURCHASE_ORDERS"));
+                permissions.add(new Permission("Delete an item in a purchase order", "/api/v1/purchase-order/{poId}/items/{itemId}", "DELETE", "PURCHASE_ORDERS"));
+                //inventory transaction
+                permissions.add(new Permission("Search inventory transactions", "/api/v1/inventory-transactions/search", "GET", "INVENTORY_TRANSACTIONS"));
+                permissions.add(new Permission("Create an inventory transaction", "/api/v1/inventory-transactions", "POST", "INVENTORY_TRANSACTIONS"));
+                permissions.add(new Permission("Update inventory transaction status", "/api/v1/inventory-transactions/{itId}/status", "PUT", "INVENTORY_TRANSACTIONS"));
 
                 this.permissionRepository.saveAll(permissions);
             }
