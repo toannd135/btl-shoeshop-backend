@@ -1,9 +1,8 @@
 package vn.edu.ptit.shoe_shop.service.impl;
-
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import vn.edu.ptit.shoe_shop.common.exception.IdInvalidException;
 import vn.edu.ptit.shoe_shop.common.exception.NotFoundException;
 import vn.edu.ptit.shoe_shop.dto.request.ChatMessageRequest;
@@ -17,7 +16,6 @@ import vn.edu.ptit.shoe_shop.repository.ConversationRepository;
 import vn.edu.ptit.shoe_shop.repository.UserRepository;
 import vn.edu.ptit.shoe_shop.service.ChatMessageService;
 
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +24,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+
 
 @Slf4j
 @Service
@@ -92,11 +93,10 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         // createdAt do @CreationTimestamp lo
         chatMessageRepository.save(m);
 
-        // update conversation nhanh hơn
-        conversationRepository.updateLastMessage(
-                conv.getConversationId(),
-                req.getContent()
-        );
+        // Cập nhật conversation
+        conv.setLastMessage(req.getContent());
+        conv.setUpdatedAt(Instant.now());
+        conversationRepository.save(conv);
 
         //public socket event to client is conversation
         ChatMessageResponse response = toMessageResponse(m, sender.getUserId().toString());
@@ -106,24 +106,21 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         );
 
         // “currentUserId” để set cờ me — ở đây mình coi người gửi là current
-        return response;
+        return toMessageResponse(m, sender.getUserId().toString());
     }
 
     @Transactional(readOnly = true)
-    public Page<ChatMessageResponse> listByConversation(String conversationId, String viewerId, Pageable pageable) {
+    public List<ChatMessageResponse> listByConversation(String conversationId, String viewerId) {
         UUID conversationIdUUID;
         try {
             conversationIdUUID = UUID.fromString(conversationId);
         } catch (IllegalArgumentException e) {
             throw new IdInvalidException("Id không đúng định dạng UUID");
         }
-
-        // Đảm bảo sắp xếp theo createdAt tăng dần (cũ nhất lên trước)
-        Page<Message> page = chatMessageRepository
-                .findAllByConversationConversationIdOrderByCreatedAtAsc(conversationIdUUID, pageable);
-
-        return page.map(m -> toMessageResponse(m, viewerId));
+        var messages = chatMessageRepository
+                .findAllByConversationConversationIdOrderByCreatedAtAsc(conversationIdUUID);
+        return messages.stream()
+                .map(m -> toMessageResponse(m, viewerId.toString()))
+                .toList();
     }
-
-  
 }

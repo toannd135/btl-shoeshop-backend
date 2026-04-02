@@ -19,6 +19,6 @@ public class ConversationController {
     private final ConversationService conversationService;
     @GetMapping()
     public List<ConversationItemResponse> listConversations(@RequestParam String viewerId) {
-        return conversationService.listConversationsForViewer(viewerId);
+        return conversationService.listConversationsForViewer(viewerId.toString());
     }
 }

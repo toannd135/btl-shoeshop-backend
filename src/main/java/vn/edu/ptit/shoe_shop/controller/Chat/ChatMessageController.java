@@ -1,11 +1,9 @@
 package vn.edu.ptit.shoe_shop.controller.Chat;
 
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import vn.edu.ptit.shoe_shop.common.security.SecurityUtils;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import vn.edu.ptit.shoe_shop.dto.request.ChatMessageRequest;
 import vn.edu.ptit.shoe_shop.dto.response.Chat.ChatMessageResponse;
 import vn.edu.ptit.shoe_shop.dto.response.Chat.ConversationResponse;
@@ -15,6 +13,7 @@ import vn.edu.ptit.shoe_shop.service.ConversationService;
 
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -47,29 +46,10 @@ public class ChatMessageController {
     }
 
     @GetMapping("/messages")
-    public Page<ChatMessageResponse> listMessages(
-            @RequestParam String conversationId,
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "20") int size,
-            @RequestParam(defaultValue = "createdAt") String sortBy,
-            @RequestParam(defaultValue = "asc") String direction) {
-
-        // đảm bảo page và size hợp lệ
-        page = Math.max(page, 1);
-        size = Math.min(Math.max(size, 1), 100);
-
-        // chỉ cho phép sort theo createdAt
-        if (!"createdAt".equals(sortBy)) {
-            sortBy = "createdAt";
-        }
-
-        Sort sort = "asc".equalsIgnoreCase(direction)
-                ? Sort.by(sortBy).ascending()
-                : Sort.by(sortBy).descending();
-
-        Pageable pageable = PageRequest.of(page - 1, size, sort);
-
+    public List<ChatMessageResponse> listMessages(
+            @RequestParam String conversationId
+    ) {
         UUID viewerId = this.securityUtils.getCurrentUserId();
-        return messageService.listByConversation(conversationId, viewerId.toString(), pageable);
+        return messageService.listByConversation(conversationId, viewerId.toString());
     }
 }
