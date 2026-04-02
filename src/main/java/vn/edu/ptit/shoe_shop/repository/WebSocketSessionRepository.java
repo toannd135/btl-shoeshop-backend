@@ -8,5 +8,5 @@ import vn.edu.ptit.shoe_shop.entity.WebSocketSession;
 
 @Repository
 public interface WebSocketSessionRepository extends JpaRepository<WebSocketSession, UUID> {
-    void deleteBySocketSessionId(String sessionId);
+    void deleteBySocketSessionId(UUID sessionId);
 }

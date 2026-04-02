@@ -8,7 +8,6 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import vn.edu.ptit.shoe_shop.dto.request.CategoryCreateRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.request.CategoryUpdateRequestDTO;

@@ -25,7 +25,7 @@ public class ConversationServiceImpl implements ConversationService {
     private final ConversationRepository conversationRepository;
     private final UserRepository userRepository;
 
-    public static final String DEFAULT_ADMIN_ID = "68f4d462-5016-4682-910e-5f73f4b65cb7";
+    public static final String DEFAULT_ADMIN_ID = "6f83db48-ab38-4888-9d6d-4f61e3b451e5";
 
     @Transactional
     public Conversation addConversation(String userId) {

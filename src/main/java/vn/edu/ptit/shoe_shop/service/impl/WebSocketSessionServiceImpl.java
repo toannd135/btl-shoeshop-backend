@@ -8,6 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 import vn.edu.ptit.shoe_shop.entity.WebSocketSession;
 import vn.edu.ptit.shoe_shop.repository.WebSocketSessionRepository;
 
+import java.util.UUID;
+
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -21,7 +23,7 @@ public class WebSocketSessionServiceImpl implements WebSocketSessionService {
         return webSocketSessionRepository.save(webSocketSession);
     }
 
-    public void deleteSession(String sessionId) {
+    public void deleteSession(UUID sessionId) {
         webSocketSessionRepository.deleteBySocketSessionId(sessionId);
     }
 }

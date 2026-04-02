@@ -9,6 +9,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.sql.Types;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -38,9 +39,9 @@ public class Conversation {
     String lastMessage;
 
     @CreationTimestamp
-    LocalDateTime createdAt;
+    Instant createdAt;
 
     @UpdateTimestamp
-    LocalDateTime updatedAt;
+    Instant updatedAt;
 
 }
