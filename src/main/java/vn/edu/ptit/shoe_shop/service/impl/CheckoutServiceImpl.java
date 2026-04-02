@@ -30,6 +30,9 @@ import vn.edu.ptit.shoe_shop.repository.CartRepository;
 import vn.edu.ptit.shoe_shop.repository.CouponRepository;
 import vn.edu.ptit.shoe_shop.repository.OrderRepository;
 import vn.edu.ptit.shoe_shop.repository.UserRepository;
+import vn.edu.ptit.shoe_shop.common.enums.ITStatusEnum;
+import vn.edu.ptit.shoe_shop.entity.*;
+import vn.edu.ptit.shoe_shop.repository.*;
 import vn.edu.ptit.shoe_shop.service.CheckoutService;
 import vn.edu.ptit.shoe_shop.service.InventoryTransactionService;
 import vn.edu.ptit.shoe_shop.service.ShippingService;
@@ -44,8 +47,9 @@ public class CheckoutServiceImpl implements CheckoutService {
     private final CouponRepository couponRepository;
     private final OrderRepository orderRepository;
     private final ShippingService shippingService;
+    private final ProductVariantRepository productVariantRepository;
+    private final InventoryTransactionRepository inventoryTransactionRepository;
     private final InventoryTransactionService inventoryTransactionService;
-
     @Override
     @Transactional(rollbackFor = Exception.class) // Rollback nếu có bất kỳ lỗi nào
     // public OrderResponse processCheckout(String userId, CheckoutRequest request) {
@@ -211,7 +215,18 @@ public class CheckoutServiceImpl implements CheckoutService {
         BigDecimal subTotal = BigDecimal.ZERO;
 
         for (CartItem item : cart.getItems()) {
-            BigDecimal lineTotal = item.getVariant().getBasePrice()
+            ProductVariant variant = productVariantRepository.findByIdWithLock(
+                            item.getVariant().getProductVariantId())
+                    .orElseThrow(() -> new NotFoundException("Variant không tồn tại: " + item.getVariant().getProductVariantId()));
+            
+            // Check tồn kho
+            if (variant.getQuantity() < item.getQuantity()) {
+                throw new RuntimeException("Sản phẩm " + variant.getProduct().getName()
+                        + " (Size: " + variant.getSize() + ") không đủ số lượng!");
+            }
+            
+            // Cộng dồn tiền: Giá * Số lượng
+            BigDecimal lineTotal = variant.getBasePrice()
                     .multiply(BigDecimal.valueOf(item.getQuantity()));
 
             subTotal = subTotal.add(lineTotal);
@@ -262,12 +277,49 @@ public class CheckoutServiceImpl implements CheckoutService {
         order.setShippingAddress(request.getShippingAddress());
         order.setCreatedAt(Instant.now());
         order.setStatus(OrderStatusEnum.PENDING);
+        order.setCreatedAt(Instant.now()); // Thêm ngày đặt
+
+        List<OrderItem> orderItems = new ArrayList<>();
+
+        for (CartItem item : cart.getItems()) {
+            ProductVariant variant = item.getVariant();
+
+            OrderItem snapshotItem = new OrderItem();
+            snapshotItem.setOrder(order);
+            snapshotItem.setVariant(variant);
+            snapshotItem.setQuantity(item.getQuantity());
+            snapshotItem.setPriceAtPurchase(variant.getBasePrice());
+            
+            // OPTION: Tính luôn thành tiền của từng item để dễ thống kê sau này
+            // snapshotItem.setTotalPrice(snapshotItem.getPriceAtPurchase().multiply(BigDecimal.valueOf(item.getQuantity())));
+
+            orderItems.add(snapshotItem);
+
+            // TRỪ TỒN KHO TRỰC TIẾP (Không query lại DB để tối ưu)
+            // Hibernate sẽ tự động update dòng này do đang trong Transaction
+            variant.setQuantity(variant.getQuantity() - item.getQuantity());
+            // variantRepository.save(variant); // Không cần thiết nếu entity đang managed, nhưng gọi cũng không sao
+            InventoryTransaction transaction = InventoryTransaction.builder()
+                    .type(ITEnum.SALE)
+                    .quantityChange(-item.getQuantity())
+                    .variant(variant)
+                    .status(ITStatusEnum.COMPLETED)
+                    .reason("Đặt hàng thành công")
+                    .build();
+            inventoryTransactionRepository.save(transaction);
+        }
+
+        order.setListOrderItems(orderItems);
+
+        // Tổng cuối = (SubTotal - Discount) + Ship
+        // Dùng max(0) để an toàn
+        BigDecimal finalTotal = subTotal.subtract(discountAmount).add(shippingFee);
+        if (finalTotal.compareTo(BigDecimal.ZERO) < 0) finalTotal = BigDecimal.ZERO;
 
         order.setTotalPrice(subTotal);
         order.setDiscountAmount(discountAmount);
         order.setShippingFee(shippingFee);
 
-        BigDecimal finalTotal = subTotal.subtract(discountAmount).add(shippingFee);
         if (finalTotal.compareTo(BigDecimal.ZERO) < 0)
             finalTotal = BigDecimal.ZERO;
 
@@ -276,8 +328,6 @@ public class CheckoutServiceImpl implements CheckoutService {
         // 💥 SAVE để lấy orderId
         Order savedOrder = orderRepository.save(order);
 
-        // ===== 7. LOOP ITEMS + TRỪ KHO =====
-        List<OrderItem> orderItems = new ArrayList<>();
 
         for (CartItem item : cart.getItems()) {
 

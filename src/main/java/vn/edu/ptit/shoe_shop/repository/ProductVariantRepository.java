@@ -3,6 +3,7 @@ package vn.edu.ptit.shoe_shop.repository;
 import java.util.Optional;
 import java.util.UUID;
 
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
@@ -29,4 +30,6 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariant, 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT p FROM ProductVariant p WHERE p.productVariantId = :id")
     Optional<ProductVariant> findByProductVariantIdForUpdate(@Param("id") UUID id);
+    @Query("SELECT v FROM ProductVariant v WHERE v.productVariantId = :id")
+    Optional<ProductVariant> findByIdWithLock(UUID id);
 }

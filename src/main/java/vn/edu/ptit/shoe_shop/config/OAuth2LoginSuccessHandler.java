@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import vn.edu.ptit.shoe_shop.common.constant.TokenConstants;
 import vn.edu.ptit.shoe_shop.common.enums.ProviderEnum;
+import vn.edu.ptit.shoe_shop.common.enums.StatusEnum;
 import vn.edu.ptit.shoe_shop.common.exception.IdInvalidException;
 import vn.edu.ptit.shoe_shop.common.security.jwt.TokenProvider;
 import vn.edu.ptit.shoe_shop.entity.RefreshToken;
@@ -24,7 +25,6 @@ import vn.edu.ptit.shoe_shop.repository.RefreshTokenRepository;
 import vn.edu.ptit.shoe_shop.repository.RoleRepository;
 import vn.edu.ptit.shoe_shop.repository.UserRepository;
 import vn.edu.ptit.shoe_shop.service.RedisService;
-import vn.edu.ptit.shoe_shop.service.UserService;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -37,21 +37,19 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
     private final RedisService redisService;
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
-    private final UserService userService;
     private final RefreshTokenRepository refreshTokenRepository;
     public OAuth2LoginSuccessHandler(@Lazy TokenProvider tokenProvider, RedisService redisService,
                                      UserRepository userRepository, RoleRepository roleRepository,
-                                     UserService userService, RefreshTokenRepository refreshTokenRepository, RefreshTokenRepository refreshTokenRepository1) {
+                                     RefreshTokenRepository refreshTokenRepository) {
         this.tokenProvider = tokenProvider;
         this.redisService = redisService;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
-        this.userService = userService;
-        this.refreshTokenRepository = refreshTokenRepository1;
+        this.refreshTokenRepository = refreshTokenRepository;
     }
 
-    @Value("${app.jwt.access-token-validity-in-seconds}")
-    private Long accessTokenExpiration;
+    @Value("${app.frontendUrl}")
+    private String domain;
 
     @Value("${app.jwt.refresh-token-validity-in-seconds}")
     private Long refreshTokenExpiration;
@@ -59,47 +57,20 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
     @Override
     @Transactional
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
-
                                         Authentication authentication) throws IOException, ServletException {
-
         try {
             OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
             String email = oAuth2User.getAttribute("email");
-            User user = this.userRepository.findByEmail(email).orElse(null);
 
-            if (user == null) {
-                user = new User();
-                user.setEmail(email);
-
-                String givenName = oAuth2User.getAttribute("given_name");
-                String familyName = oAuth2User.getAttribute("family_name");
-                String name = oAuth2User.getAttribute("name");
-
-                if (givenName != null) {
-                    user.setFirstName(givenName);
-                } else {
-                    user.setFirstName(name != null ? name : "Google");
-                }
-                user.setLastName(familyName != null ? familyName : "");
-
-                user.setAvatarImage(oAuth2User.getAttribute("picture"));
-                user.setProvider(ProviderEnum.GOOGLE);
-
-                String username = email.split("@")[0];
-                user.setUsername(username);
-                user.setPassword("GOOGLE_SSO_ACCOUNT");
-
-                Role role = this.roleRepository.findByCode("ROLE_USER")
-                        .orElseThrow(() -> new IdInvalidException("role not found"));
-                user.setRole(role);
-                user.setStatus(vn.edu.ptit.shoe_shop.common.enums.StatusEnum.ACTIVE);
-
-                user = this.userRepository.save(user);
-            } else {
-                user.setAvatarImage(oAuth2User.getAttribute("picture"));
-                user.setProvider(ProviderEnum.GOOGLE);
-                this.userRepository.save(user);
-            }
+            User user = userRepository.findByEmail(email)
+                    .map(existingUser -> {
+                        if (!StatusEnum.ACTIVE.equals(existingUser.getStatus())) {
+                            throw new RuntimeException("Account is inactive");
+                        }
+                        existingUser.setAvatarImage(oAuth2User.getAttribute("picture"));
+                        return userRepository.save(existingUser);
+                    })
+                    .orElseGet(() -> createNewOAuth2User(oAuth2User, email));
 
             String accessToken = this.tokenProvider.createAccessTokenForOAuth2(user, oAuth2User, "google_oauth2");
             String refreshToken = this.tokenProvider.createRefreshTokenForOAuth2(user, oAuth2User, "google_oauth2");
@@ -123,12 +94,12 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
                     .secure(true)
                     .path("/")
                     .maxAge(Math.toIntExact(refreshTokenExpiration))
-                    .sameSite("Lax")
+                    .sameSite("None")
                     .build();
 
             response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
 
-            String targetUrl = "https://api.shoeshopecommerce.dpdns.org/oauth2/redirect?token=" + accessToken;
+            String targetUrl = domain + "/oauth2/redirect?token=" + accessToken;
             getRedirectStrategy().sendRedirect(request, response, targetUrl);
 
         } catch (Exception e) {
@@ -136,4 +107,20 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         }
     }
 
+    private User createNewOAuth2User(OAuth2User oAuth2User, String email) {
+        User user = new User();
+        user.setEmail(email);
+        user.setUsername(email.split("@")[0]);
+        user.setFirstName(oAuth2User.getAttribute("given_name") != null ? oAuth2User.getAttribute("given_name") : "Google");
+        user.setLastName(oAuth2User.getAttribute("family_name") != null ? oAuth2User.getAttribute("family_name") : "");
+        user.setAvatarImage(oAuth2User.getAttribute("picture"));
+        user.setProvider(ProviderEnum.GOOGLE);
+        user.setStatus(StatusEnum.ACTIVE);
+
+        Role role = roleRepository.findByCode("ROLE_USER")
+                .orElseThrow(() -> new IdInvalidException("Default role not found"));
+        user.setRole(role);
+
+        return this.userRepository.save(user);
+    }
 }

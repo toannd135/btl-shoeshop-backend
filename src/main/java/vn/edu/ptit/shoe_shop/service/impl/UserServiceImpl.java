@@ -2,6 +2,7 @@ package vn.edu.ptit.shoe_shop.service.impl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -71,11 +72,12 @@ public class UserServiceImpl implements UserService {
         this.emailService = emailService;
     }
 
+    @Value("${app.frontendUrl}")
+    private String domain;
+
     @Override
     @Transactional
     public UserResponseDTO createUser(UserCreateRequestDTO userCreateRequestDTO) {
-        log.debug("Start createUser with username: {}, email: {}",
-                userCreateRequestDTO.getUsername(), userCreateRequestDTO.getEmail());
         if(userCreateRequestDTO.getUsername() != null && this.userRepository.existsByUsername(userCreateRequestDTO.getUsername())){
             log.warn("Username {} already exists", userCreateRequestDTO.getUsername());
             throw new DataIntegrityViolationException("Username already exists");
@@ -85,72 +87,50 @@ public class UserServiceImpl implements UserService {
             throw new DataIntegrityViolationException("Email already exists");
         }
         User user = this.userMapper.toEntity(userCreateRequestDTO);
-        log.debug("Mapped User entity: {}", user);
         // kiem tra role
         if(userCreateRequestDTO.getRole() != null && userCreateRequestDTO.getRole().getId() != null){
-            log.debug("Fetching Role with ID: {}", userCreateRequestDTO.getRole().getId());
             Role role = this.roleRepository.findByRoleId(userCreateRequestDTO.getRole().getId())
                     .orElseThrow(() -> {
-                        log.debug("Role not found with ID: {}", userCreateRequestDTO.getRole().getId());
                         return new IdInvalidException("Role not found");
                     });
             user.setRole(role);
-            log.debug("Role set for user. Role name: {}", role.getName());
         }
         // ma hoa password
         String passwordHashed = this.passwordEncoder.encode(userCreateRequestDTO.getPassword());
         user.setPassword(passwordHashed);
-        log.debug("Password hashed for user");
         this.userRepository.save(user);
         log.info("User created successfully with ID: {}", user.getUserId());
 
-
-        // luu vao cache
-
-
         UserResponseDTO res = this.userMapper.toResponseDTO(user);
         res.setFullName(user.getFirstName() +  " " + user.getLastName());
-        log.debug("End createUser with response: {}", res);
         return res;
     }
 
     @Override
     @Transactional
     public UserResponseDTO updateUser(UserUpdateRequestDTO userUpdateRequestDTO, UUID id) {
-        log.debug("Start updateUser with ID: {}, data: {}", id, userUpdateRequestDTO);
         User user = this.userRepository.findByUserId(id)
-                .orElseThrow(() -> {
-                    log.debug("User not found with ID: {}", id);
-                    return new IdInvalidException("User not found");
-                });
+                .orElseThrow(() -> new IdInvalidException("User not found"));
         this.userMapper.updateUserFromDto(userUpdateRequestDTO, user);
-        log.debug("Mapped User entity for update: {}", user);
         Role role = this.roleRepository.findByRoleId(userUpdateRequestDTO.getRole().getId())
-                .orElseThrow(() -> {
-                    log.debug("Role not found with ID: {}", userUpdateRequestDTO.getRole().getId());
-                    return new IdInvalidException("Role not found");
-                });
+                .orElseThrow(() -> new IdInvalidException("Role not found"));
         user.setRole(role);
-        log.debug("Role set for user. Role name: {}", role.getName());
         this.userRepository.save(user);
         log.info("User updated successfully with ID: {}", user.getUserId());
         UserResponseDTO res = this.userMapper.toResponseDTO(user);
         res.setFullName(user.getFirstName() +  " " + user.getLastName());
-        log.debug("End updateUser with response: {}", res);
         return res;
     }
 
     @Override
     public UserResponseDTO fetchUser(UUID id) {
-        log.debug("Start fetchUser with ID: {}", id);
         User user = this.userRepository.findByUserId(id)
                 .orElseThrow(() -> {
-                    log.debug("User not found with ID: {}", id);
+                    log.warn("Attempt to delete ADMIN user. id={}", id);
                     return new IdInvalidException("User not found");
                 });
         UserResponseDTO res = this.userMapper.toResponseDTO(user);
         res.setFullName(user.getFirstName() +  " " + user.getLastName());
-        log.debug("End fetchUser with response: {}", res);
         return res;
     }
 
@@ -167,16 +147,12 @@ public class UserServiceImpl implements UserService {
             throw new IllegalStateException("cannot delete admin");
         }
         user.setStatus(StatusEnum.DELETED);
-        log.debug("User set status {} for user", user.getStatus());
         this.userRepository.save(user);
         log.debug("User deleted successfully with ID: {}", user.getUserId());
     }
 
     @Override
     public UserPageResponseDTO search(UserSearchRequestDTO request, Pageable pageable) {
-        log.debug("START searchUsers. Criteria: {}, Page: {}, Size: {}, Sort: {}",
-                request, pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort());
-
         Long startQuery = System.currentTimeMillis();
 
         Page<User> userPage = this.userRepositoryCustom.searchUsers(request, pageable);
@@ -200,7 +176,6 @@ public class UserServiceImpl implements UserService {
         Long totalTime = System.currentTimeMillis() - startQuery;
         log.info("END searchUsers. Found {} users in {} ms. Page {}/{}", userPage.getTotalElements(), totalTime,
                 userPage.getNumber() + 1, userPage.getTotalPages());
-
         return res;
     }
 
@@ -230,10 +205,12 @@ public class UserServiceImpl implements UserService {
         // kiem tra redis
         if(Boolean.TRUE.equals(this.redisService.isExistsInSet(
                 RedisKeyConstants.EMAIL_SET, registerRequestDTO.getEmail()))) {
+            log.warn("Register failed - email exists in redis: {}", registerRequestDTO.getEmail());
             throw new IllegalStateException("Email already exists");
         }
         if(Boolean.TRUE.equals(this.redisService.isExistsInSet(
                 RedisKeyConstants.USERNAME_SET, registerRequestDTO.getUsername()))) {
+            log.warn("Register failed - username exists in redis: {}", registerRequestDTO.getUsername());
             throw new IllegalStateException("Username already exists");
         }
 
@@ -267,6 +244,7 @@ public class UserServiceImpl implements UserService {
         this.redisService.addToSet(RedisKeyConstants.USERNAME_SET, newUser.getUsername());
         setRandomTTL("users:usernames", 24 * 60);
         setRandomTTL("users:emails", 24 * 60);
+        log.info("User registered successfully. username={}, email={}", newUser.getUsername(), newUser.getEmail());
         return "Registration successful. Please check your email to verify your account";
     }
 
@@ -281,7 +259,7 @@ public class UserServiceImpl implements UserService {
         String token = UUID.randomUUID().toString();
         this.redisService.storeVerificationToken(token, user.getUserId(), 600L);
 
-        String verifyUrl = "http://localhost:8080/api/v1/auth/verify?token=" + token;
+        String verifyUrl = domain + "api/v1/auth/verify?token=" + token;
         Map<String, Object> variables = new HashMap<>();
         variables.put("confirmationLink", verifyUrl);
         this.emailService.sendEmailFromTemplateSync(
@@ -297,6 +275,7 @@ public class UserServiceImpl implements UserService {
     public String verifyUser(String token) {
         String userId = this.redisService.getUserIdFromVerificationToken(token);
         if (userId == null) {
+            log.warn("Verification failed - invalid token");
             throw new TokenExpiredOrUsedException("Invalid or expired verification token");
         }
         User user = this.userRepository.findByUserId(UUID.fromString(userId))
@@ -307,7 +286,7 @@ public class UserServiceImpl implements UserService {
         user.setStatus(StatusEnum.ACTIVE);
         this.userRepository.save(user);
         this.redisService.deleteVerificationToken(token);
-
+        log.info("User verified successfully. id={}", user.getUserId());
         return "Account verified successfully";
     }
 

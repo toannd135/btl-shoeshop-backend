@@ -31,4 +31,6 @@ public class SupplierResponse {
 
     Instant createdAt;
     Instant updatedAt;
+    UUID createdBy;
+    UUID updatedBy;
 }

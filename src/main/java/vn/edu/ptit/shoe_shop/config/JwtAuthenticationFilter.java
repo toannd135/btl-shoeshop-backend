@@ -5,6 +5,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -16,6 +17,7 @@ import vn.edu.ptit.shoe_shop.service.RedisService;
 import java.io.IOException;
 
 @Component
+@Order(2)
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final RedisService redisService;
@@ -42,7 +44,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.setContentType("application/json");
                 response.setCharacterEncoding("UTF-8");
-                String json = objectMapper.writeValueAsString(apiResponse);
+                String json = this.objectMapper.writeValueAsString(apiResponse);
                 response.getWriter().write(json);
                 return;
             }

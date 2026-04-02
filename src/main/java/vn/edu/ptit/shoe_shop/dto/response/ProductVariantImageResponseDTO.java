@@ -26,4 +26,6 @@ public class ProductVariantImageResponseDTO {
 
     Instant createdAt;
     Instant updatedAt;
+    UUID createdBy;
+    UUID updatedBy;
 }

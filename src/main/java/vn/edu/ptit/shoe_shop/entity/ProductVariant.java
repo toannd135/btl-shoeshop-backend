@@ -62,7 +62,7 @@ public class ProductVariant extends Auditable {
     @Column(nullable = false)
     ProductStatusEnum status;
 
-    @ManyToOne(cascade = {CascadeType.DETACH,CascadeType.MERGE,CascadeType.REFRESH,CascadeType.PERSIST})
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.DETACH,CascadeType.MERGE,CascadeType.REFRESH,CascadeType.PERSIST})
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 

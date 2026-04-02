@@ -4,17 +4,19 @@ import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.edu.ptit.shoe_shop.dto.request.ChangePurchaseOrderItemRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.request.PurchaseOrderCreateRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.request.PurchaseOrderUpdateRequestDTO;
-import vn.edu.ptit.shoe_shop.dto.response.POSummaryResponse;
 import vn.edu.ptit.shoe_shop.dto.response.PurchaseOrderResponse;
+import vn.edu.ptit.shoe_shop.dto.response.page.POPageResponseDTO;
 import vn.edu.ptit.shoe_shop.service.PurchaseOrderService;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -45,8 +47,19 @@ public class PurchaseOrderController {
     }
 
     @GetMapping("/purchase-orders")
-    public ResponseEntity<List<POSummaryResponse>> getAll(){
-        return ResponseEntity.ok().body(purchaseOrderService.getAll());
+    public ResponseEntity<POPageResponseDTO> getPOs(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String direction) {
+
+        Sort sort = direction.equalsIgnoreCase("asc")
+                ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+
+        Pageable pageable = PageRequest.of(page - 1, size, sort);
+
+        return ResponseEntity.ok(purchaseOrderService.getPage(pageable));
     }
 
     @PostMapping("/purchase-order/{poId}/items")

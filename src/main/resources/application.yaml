@@ -15,7 +15,7 @@ spring:
     name: shoes-shop
 
   datasource:
-    url: jdbc:mysql://localhost:3306/shoeshop
+    url: jdbc:mysql://13.222.11.14:3307/shoeshop
     username: root
     password: 06012005Az09@
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -27,7 +27,17 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
-
+        default_batch_fetch_size: 100
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${CLIENT_ID_GOOGLE}
+            client-secret: ${CLIENT_SECRET_GOOGLE}
+            scope:
+              - profile
+              - email
   cache:
     type: redis
   data:
@@ -35,10 +45,21 @@ spring:
       pageable:
         one-indexed-parameters: true
     redis:
-      host: localhost
-      # host: redis
-      port: 6379
+      host: 13.222.11.14
+      port: 6380
       timeout: 2000
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: my-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
   mail:
     host: smtp.gmail.com
     port: 587
@@ -53,15 +74,13 @@ spring:
             required: true
           ssl:
             trust: smtp.gmail.com
-
 cloudinary:
   cloud-name: dljrbdc51
   api-key: 368851143165857
   api-secret: E5etQ4Jq1lu9s_okchG5FUZVa3s
 
 app:
-  cors:
-    allowed-origins: http://localhost:3000,http://localhost:5173
+  frontendUrl: https://shoeshopecommerce.dpdns.org
   jwt:
     base64-secret: qoAEABDke07+AVLepXB4aCMtsT0wMAqR5x2VFyldsnx6e75YQkJH2UcZKTjEyoNgG71SBCXfq5N6NVZxWOfsHQ==
     access-token-validity-in-seconds: 900

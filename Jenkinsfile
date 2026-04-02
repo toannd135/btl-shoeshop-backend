@@ -28,6 +28,8 @@ pipeline {
                 sh 'ls -la'
             }
         }
+
+
         stage('Get version from Git') {
             steps {
                 script {
@@ -128,6 +130,8 @@ pipeline {
         stage('Push Config Changes') {
             steps {
                 script {
+                    sh 'rm -rf config-repo'
+
                     echo "Pushing changes to config repository..."
                     
                     dir('config-repo') {

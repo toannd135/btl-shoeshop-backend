@@ -9,6 +9,6 @@ import org.springframework.stereotype.Repository;
 import vn.edu.ptit.shoe_shop.entity.CartItem;
 
 @Repository
-public interface CartIteamRepository extends JpaRepository<CartItem,UUID> {
+public interface CartItemRepository extends JpaRepository<CartItem,UUID> {
     Optional<CartItem> findByCartItemId(UUID cartItemId);
 }

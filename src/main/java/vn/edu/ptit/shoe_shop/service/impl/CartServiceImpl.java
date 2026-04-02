@@ -5,13 +5,22 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import vn.edu.ptit.shoe_shop.common.enums.ProductStatusEnum;
 import vn.edu.ptit.shoe_shop.common.exception.BusinessException;
 import vn.edu.ptit.shoe_shop.common.exception.IdInvalidException;
 import vn.edu.ptit.shoe_shop.common.exception.NotFoundException;
-import vn.edu.ptit.shoe_shop.mapper.CartMapper;
+import vn.edu.ptit.shoe_shop.common.security.SecurityUtils;
+import vn.edu.ptit.shoe_shop.common.utils.request.RequestUtils;
+import vn.edu.ptit.shoe_shop.dto.logEvent.AddToCartViewEvent;
+import vn.edu.ptit.shoe_shop.dto.logEvent.ProductViewEvent;
 import vn.edu.ptit.shoe_shop.dto.request.AddVariantRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.request.UpdateItemCartRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.response.ApiResponse;
@@ -20,7 +29,8 @@ import vn.edu.ptit.shoe_shop.entity.Cart;
 import vn.edu.ptit.shoe_shop.entity.CartItem;
 import vn.edu.ptit.shoe_shop.entity.ProductVariant;
 import vn.edu.ptit.shoe_shop.entity.User;
-import vn.edu.ptit.shoe_shop.repository.CartIteamRepository;
+import vn.edu.ptit.shoe_shop.mapper.CartMapper;
+import vn.edu.ptit.shoe_shop.repository.CartItemRepository;
 import vn.edu.ptit.shoe_shop.repository.CartRepository;
 import vn.edu.ptit.shoe_shop.repository.ProductVariantRepository;
 import vn.edu.ptit.shoe_shop.repository.UserRepository;
@@ -28,16 +38,21 @@ import vn.edu.ptit.shoe_shop.service.CartService;
 
 @Service
 @RequiredArgsConstructor
-public class CartServiceImpl implements CartService {
-    private final UserRepository userRepository;
+@Slf4j
+public class CartServiceImpl implements CartService  {
     private final CartMapper cartMapper;
+    private final UserRepository userRepository;
     private final CartRepository cartRepository;
     private final ProductVariantRepository productVariantRepository;
-    private final CartIteamRepository cartIteamRepository;
+    private final CartItemRepository cartIteamRepository;
+    private final ObjectMapper objectMapper;
 
     @Override
     @Transactional
     public ApiResponse<Object> addProductVariantToCart(String userId, AddVariantRequestDTO requestDTO) {
+        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        HttpServletRequest request = (attributes != null) ? attributes.getRequest() : null;
+        
         UUID userIdUUID;
         UUID variantId;
         try {
@@ -68,7 +83,7 @@ public class CartServiceImpl implements CartService {
             throw new BusinessException("Số lượng trong kho không đủ (Còn lại: " + variant.getQuantity() + ")");
         }
 
-        // Kiểm tra xem sản phẩm đã có trong giỏ hàng chưa
+        //  Kiểm tra xem sản phẩm đã có trong giỏ hàng chưa
         // Nếu có rồi => Cộng dồn số lượng. Nếu chưa => Tạo mới.
         Optional<CartItem> existingItemOpt = cart.getItems().stream()
                 .filter(item -> item.getVariant().getProductVariantId().equals(variantId))
@@ -91,10 +106,31 @@ public class CartServiceImpl implements CartService {
             cart.getItems().add(cartItem);
         }
 
-        // Lưu lại
+        //Lưu lại
         this.cartRepository.save(cart);
-
+        UUID productId = variant.getProduct().getProductId();
+        sendUserBehaviorEvent(productId, variantId, request);
         return new ApiResponse<>(200, null, "Thêm vào giỏ hàng thành công", "");
+    }
+
+    private void sendUserBehaviorEvent(UUID productId,UUID variantId, HttpServletRequest request) {
+        try {
+            AddToCartViewEvent event = AddToCartViewEvent.builder()
+                    .eventId(UUID.randomUUID().toString())
+                    .userId(String.valueOf(SecurityUtils.getCurrentUserId()))
+                    .productId(productId.toString())
+                    .variantId(variantId.toString())
+                    .ipAddress(RequestUtils.getClientIp(request))
+                    .userAgent(request.getHeader("User-Agent"))
+                    .action("ADD_TO_CART")
+                    .timestamp(System.currentTimeMillis())
+                    .build();
+
+            log.info("USER_EVENT_JSON: {}", objectMapper.writeValueAsString(event));
+
+        } catch (Exception e) {
+            log.error("Failed to log event for Big Data pipeline", e);
+        }
     }
 
     @Override

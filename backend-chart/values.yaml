@@ -3,7 +3,7 @@ replicaCount: 2
 image:
   repository: toannd135/shoeshop-backend
   pullPolicy: IfNotPresent
-  tag: "ad16499"
+  tag: "v1.2.11"
 
 imagePullSecrets: []
 nameOverride: ""
@@ -13,7 +13,9 @@ fullnameOverride: ""
 service:
   port: 80
   targetPort: 8080
-  type: ClusterIP
+  # type: ClusterIP
+  type: LoadBalancer
+
 
 secret:
   dbHost: "argocd-database-database-chart.shoeshop-data.svc.cluster.local"
@@ -58,7 +60,7 @@ healthCheck:
     timeoutSeconds: 5
   livenessProbe:
     httpGet:
-      path: /actuator/health/liveness
+      path: /actuator/health/
       port: 8080
       scheme: HTTP
     initialDelaySeconds: 60
@@ -66,7 +68,7 @@ healthCheck:
     timeoutSeconds: 5
   readinessProbe:
     httpGet:
-      path: /actuator/health/readiness
+      path: /actuator/health/
       port: 8080
       scheme: HTTP
     initialDelaySeconds: 45
@@ -78,6 +80,7 @@ ingress:
   className: "nginx"
   annotations:
     kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/use-forwarded-headers: "true"
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     nginx.ingress.kubernetes.io/configuration-snippet: |
       proxy_set_header X-Forwarded-Proto https;

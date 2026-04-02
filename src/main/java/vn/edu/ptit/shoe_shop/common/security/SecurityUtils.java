@@ -53,11 +53,9 @@ public class SecurityUtils {
 
     public static UUID getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
         if (authentication == null || !(authentication.getPrincipal() instanceof Jwt jwt)) {
             return null;
         }
-
         return UUID.fromString(jwt.getSubject());
     }
 
