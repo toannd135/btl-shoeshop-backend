@@ -15,9 +15,9 @@ spring:
     name: shoes-shop
 
   datasource:
-    url: jdbc:mysql://13.222.11.14:3307/shoeshop
+    url: jdbc:mysql://13.212.204.175:3307/shoeshop
     username: root
-    password: 06012005Az09@
+    password: 123456
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
@@ -45,7 +45,7 @@ spring:
       pageable:
         one-indexed-parameters: true
     redis:
-      host: 13.222.11.14
+      host: 13.212.204.175
       port: 6380
       timeout: 2000
 

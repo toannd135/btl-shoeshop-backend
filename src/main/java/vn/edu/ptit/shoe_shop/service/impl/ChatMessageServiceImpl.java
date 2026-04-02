@@ -19,7 +19,7 @@ import vn.edu.ptit.shoe_shop.service.ChatMessageService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
@@ -55,18 +55,18 @@ public class ChatMessageServiceImpl implements ChatMessageService {
                 .senderSummary(toSenderSummary(m.getSender()))
                 .content(m.getContent())
                 .me(Objects.equals(m.getSender().getUserId().toString(), currentUserId))
-                .createdAt(m.getCreatedAt())
+                .createdAt(m.getCreatedAt().toString())
                 .build();
     }
 
     @Transactional
-    public ChatMessageResponse send(ChatMessageRequest req,UUID senderId) {
+    public ChatMessageResponse send(ChatMessageRequest req) {
         if (req.getContent() == null || req.getContent().isBlank()) {
             throw new IllegalArgumentException("Nội dung tin nhắn trống");
         }
 
         final String ADMIN_ID = ConversationServiceImpl.DEFAULT_ADMIN_ID;
-        User sender = userRepository.findByUserId(senderId).orElseThrow(
+        User sender = userRepository.findByUserId(UUID.fromString(req.getSenderId())).orElseThrow(
             () -> new NotFoundException("User not found")
         );
 
@@ -95,7 +95,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
 
         // Cập nhật conversation
         conv.setLastMessage(req.getContent());
-        conv.setUpdatedAt(Instant.now());
+        conv.setUpdatedAt(LocalDateTime.now());
         conversationRepository.save(conv);
 
         //public socket event to client is conversation

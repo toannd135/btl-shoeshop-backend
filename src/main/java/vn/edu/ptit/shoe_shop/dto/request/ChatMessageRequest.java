@@ -8,6 +8,7 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @Builder
 public class ChatMessageRequest {
+    private String senderId;
     private String receiverId;
     private String content;
 }
