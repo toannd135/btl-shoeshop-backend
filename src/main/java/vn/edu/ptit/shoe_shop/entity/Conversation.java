@@ -1,6 +1,5 @@
 package vn.edu.ptit.shoe_shop.entity;
 
-
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -9,6 +8,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.sql.Types;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -31,16 +31,16 @@ public class Conversation {
     @JoinColumn(name = "user_id", nullable = false)
     User user;
 
-    @ManyToOne(fetch = FetchType.LAZY )
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "admin_id", nullable = false)
     User admin;
 
     String lastMessage;
 
     @CreationTimestamp
-    LocalDateTime createdAt;
+    Instant createdAt;
 
     @UpdateTimestamp
-    LocalDateTime updatedAt;
+    Instant updatedAt;
 
 }

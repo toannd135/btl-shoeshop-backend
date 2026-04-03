@@ -6,6 +6,7 @@ import lombok.experimental.FieldDefaults;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.sql.Types;
 import java.util.UUID;
@@ -36,6 +37,6 @@ public class Message {
     String content;
 
     @CreationTimestamp
-    LocalDateTime createdAt;
+    Instant createdAt;
 
 }

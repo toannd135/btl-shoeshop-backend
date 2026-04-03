@@ -3,7 +3,9 @@ package vn.edu.ptit.shoe_shop.dto.response.Chat;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -16,6 +18,6 @@ public class ConversationResponse {
     String userId;
     String adminId;
     String lastMessage;
-    LocalDateTime updatedAt;
-    LocalDateTime createdAt;
+    Instant updatedAt;
+    Instant createdAt;
 }

@@ -2,6 +2,7 @@ package vn.edu.ptit.shoe_shop.service.impl;
 
 import vn.edu.ptit.shoe_shop.common.exception.IdInvalidException;
 import vn.edu.ptit.shoe_shop.dto.response.Chat.ConversationItemResponse;
+import vn.edu.ptit.shoe_shop.dto.response.Chat.ListConversationForAdminResponse;
 import vn.edu.ptit.shoe_shop.dto.response.Chat.SenderSummary;
 import vn.edu.ptit.shoe_shop.entity.Conversation;
 import vn.edu.ptit.shoe_shop.entity.User;
@@ -25,25 +26,18 @@ public class ConversationServiceImpl implements ConversationService {
     private final ConversationRepository conversationRepository;
     private final UserRepository userRepository;
 
-    public static final String DEFAULT_ADMIN_ID = "68f4d462-5016-4682-910e-5f73f4b65cb7";
+    public static final String DEFAULT_ADMIN_ID = "6f83db48-ab38-4888-9d6d-4f61e3b451e5";
 
     @Transactional
-    public Conversation addConversation(String userId) {
-        UUID userIdUUID;
-        try {
-            userIdUUID = UUID.fromString(userId);
-        } catch (IllegalArgumentException e) {
-            throw new IdInvalidException("Id không đúng định dạng UUID");
-        }
-        return conversationRepository.findByUser_UserIdAndAdmin_UserId(userIdUUID,UUID.fromString(DEFAULT_ADMIN_ID)).
-                orElseGet(() ->{
+    public Conversation addConversation(UUID userId) {
+        return conversationRepository.findByUser_UserIdAndAdmin_UserId(userId, UUID.fromString(DEFAULT_ADMIN_ID))
+                .orElseGet(() -> {
                     Conversation conversation = Conversation.builder()
-                            .user(userRepository.findByUserId(userIdUUID).orElseThrow())
+                            .user(userRepository.findByUserId(userId).orElseThrow())
                             .admin(userRepository.findByUserId(UUID.fromString(DEFAULT_ADMIN_ID)).orElseThrow())
-                                    .build();
+                            .build();
                     return conversationRepository.save(conversation);
-                }
-        );
+                });
     }
 
     private SenderSummary toSenderSummary(User user) {
@@ -55,11 +49,11 @@ public class ConversationServiceImpl implements ConversationService {
     }
 
     @Transactional(readOnly = true)
-    public List<ConversationItemResponse> listConversationsForViewer(String viewerId) {
-        boolean isAdminViewer = (viewerId == DEFAULT_ADMIN_ID);
+    public List<ConversationItemResponse> listConversationsForViewer(UUID viewerId) {
+        boolean isAdminViewer = (viewerId.toString().equals(DEFAULT_ADMIN_ID));
         List<Conversation> conversations = isAdminViewer
-                ? conversationRepository.findByAdmin_UserIdOrderByUpdatedAtDesc(UUID.fromString(viewerId))
-                : conversationRepository.findByUser_UserIdOrderByUpdatedAtDesc(UUID.fromString(viewerId));
+                ? conversationRepository.findByAdmin_UserIdOrderByUpdatedAtDesc(viewerId)
+                : conversationRepository.findByUser_UserIdOrderByUpdatedAtDesc(viewerId);
 
         return conversations.stream().map(c -> {
             User counterpart = isAdminViewer ? c.getUser() : c.getAdmin();
@@ -71,4 +65,21 @@ public class ConversationServiceImpl implements ConversationService {
                     .build();
         }).toList();
     }
+
+    @Override
+    public ListConversationForAdminResponse listConversationsForAdmin(UUID adminId) {
+        List<Conversation> conversations = conversationRepository.findByAdmin_UserIdOrderByUpdatedAtDesc(adminId);
+        return ListConversationForAdminResponse.builder()
+                .conversations(conversations.stream().map(c -> {
+                    User user = c.getUser();
+                    return ConversationItemResponse.builder()
+                            .conversationId(c.getConversationId().toString())
+                            .senderSummary(toSenderSummary(user))
+                            .lastMessage(c.getLastMessage())
+                            .updatedAt(c.getUpdatedAt())
+                            .build();
+                }).toList())
+                .build();
+    }
+
 }

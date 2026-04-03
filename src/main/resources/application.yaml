@@ -15,7 +15,7 @@ spring:
     name: shoes-shop
 
   datasource:
-    url: jdbc:mysql://13.212.204.175:3307/shoeshop
+    url: jdbc:mysql://localhost:3306/shoeshop
     username: root
     password: 123456
     driver-class-name: com.mysql.cj.jdbc.Driver

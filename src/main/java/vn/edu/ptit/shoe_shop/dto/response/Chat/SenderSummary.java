@@ -1,5 +1,7 @@
 package vn.edu.ptit.shoe_shop.dto.response.Chat;
 
+import java.util.UUID;
+
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
