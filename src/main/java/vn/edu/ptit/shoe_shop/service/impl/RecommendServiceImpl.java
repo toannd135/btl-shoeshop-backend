@@ -3,6 +3,7 @@ package vn.edu.ptit.shoe_shop.service.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import vn.edu.ptit.shoe_shop.common.security.SecurityUtils;
 import vn.edu.ptit.shoe_shop.dto.response.ProductResponseDTO;
@@ -25,16 +26,21 @@ public class RecommendServiceImpl implements RecommendService {
     private final RedisTemplate redisTemplate;
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
+    private final StringRedisTemplate stringRedisTemplate;
 
     @Override
     public List<ProductResponseDTO> getRecommendProduct() {
         UUID userId = SecurityUtils.getCurrentUserId();
         try {
-            String rec = redisTemplate.opsForValue().get("rec:" + userId).toString();
-            if (rec == null || rec.isEmpty()) {
+            Object recObject = stringRedisTemplate.opsForValue().get("rec:" + userId);
+            if (recObject == null) {
                 log.warn("No recommendation found in Redis for user {}", userId);
                 return new ArrayList<>();
             }
+
+            String rec = recObject.toString();
+            if (rec.isEmpty()) return new ArrayList<>();
+
             List<String> productIds = Arrays.asList(rec.split(","));
             List<Product> products = productRepository.findByProductIdIn(productIds);
             return products.stream()
