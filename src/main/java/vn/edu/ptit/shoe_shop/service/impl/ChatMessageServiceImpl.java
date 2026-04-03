@@ -1,9 +1,9 @@
 package vn.edu.ptit.shoe_shop.service.impl;
 
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import vn.edu.ptit.shoe_shop.common.exception.IdInvalidException;
 import vn.edu.ptit.shoe_shop.common.exception.NotFoundException;
 import vn.edu.ptit.shoe_shop.dto.request.ChatMessageRequest;
@@ -17,7 +17,6 @@ import vn.edu.ptit.shoe_shop.repository.ConversationRepository;
 import vn.edu.ptit.shoe_shop.repository.UserRepository;
 import vn.edu.ptit.shoe_shop.service.ChatMessageService;
 
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +25,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 @Slf4j
 @Service
@@ -36,7 +39,6 @@ public class ChatMessageServiceImpl implements ChatMessageService {
     private final UserRepository userRepository;
     private final ConversationServiceImpl conversationServiceImpl;
     private final SimpMessagingTemplate messagingTemplate;
-
 
     public SenderSummary toSenderSummary(User user) {
         return SenderSummary.builder()
@@ -59,26 +61,25 @@ public class ChatMessageServiceImpl implements ChatMessageService {
     }
 
     @Transactional
-    public ChatMessageResponse send(ChatMessageRequest req,UUID senderId) {
+    public ChatMessageResponse send(ChatMessageRequest req, UUID senderID) {
         if (req.getContent() == null || req.getContent().isBlank()) {
             throw new IllegalArgumentException("Nội dung tin nhắn trống");
         }
 
         final String ADMIN_ID = ConversationServiceImpl.DEFAULT_ADMIN_ID;
-        User sender = userRepository.findByUserId(senderId).orElseThrow(
-            () -> new NotFoundException("User not found")
-        );
+        User sender = userRepository.findByUserId(senderID).orElseThrow(
+                () -> new NotFoundException("User not found"));
 
-        final String userId;
+        UUID userId;
         if (Objects.equals(sender.getUserId().toString(), ADMIN_ID)) {
             // Admin gửi: bắt buộc targetUserId
             if (req.getReceiverId() == null) {
                 throw new IllegalArgumentException("Admin gửi tin phải chỉ định targetUserId");
             }
-            userId = req.getReceiverId();
+            userId = UUID.fromString(req.getReceiverId());
         } else {
             // User gửi: luôn chat với admin cố định
-            userId = sender.getUserId().toString();
+            userId = sender.getUserId();
         }
 
         // Luôn đảm bảo có phòng user <-> admin
@@ -95,21 +96,20 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         // update conversation nhanh hơn
         conversationRepository.updateLastMessage(
                 conv.getConversationId(),
-                req.getContent()
-        );
+                req.getContent());
 
-        //public socket event to client is conversation
+        // public socket event to client is conversation
         ChatMessageResponse response = toMessageResponse(m, sender.getUserId().toString());
         messagingTemplate.convertAndSend(
                 "/topic/conversation/" + conv.getConversationId(),
-                response
-        );
+                response);
 
         // “currentUserId” để set cờ me — ở đây mình coi người gửi là current
         return response;
     }
 
     @Transactional(readOnly = true)
+
     public Page<ChatMessageResponse> listByConversation(String conversationId, String viewerId, Pageable pageable) {
         UUID conversationIdUUID;
         try {
@@ -117,7 +117,6 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         } catch (IllegalArgumentException e) {
             throw new IdInvalidException("Id không đúng định dạng UUID");
         }
-
         // Đảm bảo sắp xếp theo createdAt tăng dần (cũ nhất lên trước)
         Page<Message> page = chatMessageRepository
                 .findAllByConversationConversationIdOrderByCreatedAtAsc(conversationIdUUID, pageable);
@@ -125,5 +124,4 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         return page.map(m -> toMessageResponse(m, viewerId));
     }
 
-  
 }

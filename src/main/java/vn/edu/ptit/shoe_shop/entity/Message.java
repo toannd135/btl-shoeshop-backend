@@ -7,6 +7,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.sql.Types;
 import java.util.UUID;
 
@@ -38,8 +39,4 @@ public class Message {
     @CreationTimestamp
     Instant createdAt;
 
-    @PrePersist
-    public void handleBeforeCreate() {
-        this.createdAt = Instant.now();
-    }
 }

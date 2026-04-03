@@ -1,6 +1,5 @@
 package vn.edu.ptit.shoe_shop.entity;
 
-
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -32,7 +31,7 @@ public class Conversation {
     @JoinColumn(name = "user_id", nullable = false)
     User user;
 
-    @ManyToOne(fetch = FetchType.LAZY )
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "admin_id", nullable = false)
     User admin;
 

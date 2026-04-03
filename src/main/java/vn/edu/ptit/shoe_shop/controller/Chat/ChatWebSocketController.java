@@ -16,15 +16,15 @@ import org.springframework.stereotype.Controller;
 @RequiredArgsConstructor
 @Slf4j
 public class ChatWebSocketController {
-
+    private final SecurityUtils securityUtil;
     private final ChatMessageService chatMessageService;
-    private final SecurityUtils securityUtils;
+
     // Client sẽ send đến /app/chat.sendMessage
     @MessageMapping("/chat.messages.send")
     public void handleSendMessage(ChatMessageRequest request) {
         try {
-            UUID senderId = this.securityUtils.getCurrentUserId();
-            ChatMessageResponse resp = chatMessageService.send(request, senderId);
+            UUID userId = securityUtil.getCurrentUserId();
+            ChatMessageResponse resp = chatMessageService.send(request, userId);
             log.info("Message sent via WS: {}", resp.getMessageId());
         } catch (Exception e) {
             log.error("Error when handling WS message", e);

@@ -1,35 +1,37 @@
 package vn.edu.ptit.shoe_shop.controller.Chat;
 
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import vn.edu.ptit.shoe_shop.common.security.SecurityUtils;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import vn.edu.ptit.shoe_shop.dto.request.ChatMessageRequest;
 import vn.edu.ptit.shoe_shop.dto.response.Chat.ChatMessageResponse;
 import vn.edu.ptit.shoe_shop.dto.response.Chat.ConversationResponse;
 import vn.edu.ptit.shoe_shop.entity.Conversation;
 import vn.edu.ptit.shoe_shop.service.ChatMessageService;
 import vn.edu.ptit.shoe_shop.service.ConversationService;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/chat")
+@RequestMapping("api/v1/chat")
 @RequiredArgsConstructor
 public class ChatMessageController {
     private final ConversationService conversationService;
     private final ChatMessageService messageService;
-    private final SecurityUtils securityUtils;
+    private final SecurityUtils securityUtil;
 
     // (Tuỳ chọn) đảm bảo có phòng ngay khi cần
     @PostMapping("/conversations/ensure")
     public ConversationResponse ensureConversation() {
-        UUID userID = this.securityUtils.getCurrentUserId();
-        Conversation c = conversationService.addConversation(userID.toString());
+        UUID userId = securityUtil.getCurrentUserId();
+        Conversation c = conversationService.addConversation(userId);
         return ConversationResponse.builder()
                 .conversationId(c.getConversationId().toString())
                 .userId(c.getUser().getUserId().toString())
@@ -42,8 +44,8 @@ public class ChatMessageController {
     // Gửi tin: user → admin mặc định, hoặc admin → user (bằng targetUserId)
     @PostMapping("/messages")
     public ChatMessageResponse sendMessage(@RequestBody ChatMessageRequest req) {
-        UUID senderId = this.securityUtils.getCurrentUserId();
-        return messageService.send(req, senderId);
+        UUID userId = securityUtil.getCurrentUserId();
+        return messageService.send(req, userId);
     }
 
     @GetMapping("/messages")
@@ -69,7 +71,7 @@ public class ChatMessageController {
 
         Pageable pageable = PageRequest.of(page - 1, size, sort);
 
-        UUID viewerId = this.securityUtils.getCurrentUserId();
+        UUID viewerId = securityUtil.getCurrentUserId();
         return messageService.listByConversation(conversationId, viewerId.toString(), pageable);
     }
 }

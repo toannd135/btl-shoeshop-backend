@@ -1,6 +1,5 @@
 package vn.edu.ptit.shoe_shop.common.security;
 
-
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
@@ -40,7 +39,6 @@ public class SecurityUtils {
                 .filter(authentication -> authentication.getCredentials() instanceof String)
                 .map(authentication -> (String) authentication.getCredentials());
     }
-
 
     public static boolean isCurrentUserInRole(String authority) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
