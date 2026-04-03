@@ -1,6 +1,9 @@
 package vn.edu.ptit.shoe_shop.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -11,6 +14,8 @@ import vn.edu.ptit.shoe_shop.common.enums.ITStatusEnum;
 import vn.edu.ptit.shoe_shop.common.enums.OrderStatusEnum;
 import vn.edu.ptit.shoe_shop.common.exception.IdInvalidException;
 import vn.edu.ptit.shoe_shop.common.exception.NotFoundException;
+import vn.edu.ptit.shoe_shop.common.security.SecurityUtils;
+import vn.edu.ptit.shoe_shop.dto.logEvent.PurchaseViewEvent;
 import vn.edu.ptit.shoe_shop.mapper.OrderMapper;
 import vn.edu.ptit.shoe_shop.dto.response.OrderResponse;
 import vn.edu.ptit.shoe_shop.entity.InventoryTransaction;
@@ -26,11 +31,13 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final OrderMapper orderMapper;
     private final ProductVariantRepository productVariantRepository;
     private final InventoryTransactionRepository inventoryTransactionRepository;
+    private final ObjectMapper objectMapper;
 
     // --- 1. Lịch sử đơn hàng / Danh sách đơn hàng ---
     public Page<OrderResponse> getUserOrders(String userId, OrderStatusEnum status, Pageable pageable) {
@@ -147,7 +154,29 @@ public class OrderServiceImpl implements OrderService {
                 .orElseThrow(() -> new NotFoundException("Không tìm thấy đơn hàng!"));
         order.setStatus(status);
         this.orderRepository.save(order);
+        if(status.equals(OrderStatusEnum.DELIVERED)) {
+            for (OrderItem item : order.getListOrderItems()) {
+                sendAdminBehaviorEvent(item.getVariant().getProductVariantId());
+            }
+        }
         return orderMapper.toOrderResponse(order);
+    }
+
+    private void sendAdminBehaviorEvent(UUID productId) {
+        try {
+            PurchaseViewEvent event = PurchaseViewEvent.builder()
+                    .eventId(UUID.randomUUID().toString())
+                    .userId(String.valueOf(SecurityUtils.getCurrentUserId()))
+                    .productId(productId.toString())
+                    .action("PURCHASE")
+                    .timestamp(System.currentTimeMillis())
+                    .build();
+
+            log.info("USER_EVENT_JSON: {}", objectMapper.writeValueAsString(event));
+
+        } catch (Exception e) {
+            log.error("Failed to log event for Big Data pipeline", e);
+        }
     }
 
     
