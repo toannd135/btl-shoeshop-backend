@@ -1,19 +1,26 @@
 package vn.edu.ptit.shoe_shop.service.impl;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import vn.edu.ptit.shoe_shop.common.enums.OrderStatusEnum;
 import vn.edu.ptit.shoe_shop.common.exception.IdInvalidException;
 import vn.edu.ptit.shoe_shop.common.exception.NotFoundException;
 import vn.edu.ptit.shoe_shop.common.security.SecurityUtils;
+import vn.edu.ptit.shoe_shop.common.utils.request.RequestUtils;
+import vn.edu.ptit.shoe_shop.dto.logEvent.PurchaseViewEvent;
+import vn.edu.ptit.shoe_shop.dto.response.SellingProductResponseDTO;
 import vn.edu.ptit.shoe_shop.dto.response.TopSellingProductResponseDTO;
+import vn.edu.ptit.shoe_shop.entity.OrderItem;
 import vn.edu.ptit.shoe_shop.entity.Product;
 import vn.edu.ptit.shoe_shop.entity.User;
 import vn.edu.ptit.shoe_shop.mapper.OrderMapper;
@@ -28,7 +35,7 @@ import vn.edu.ptit.shoe_shop.service.AdminOrderService;
 
 import java.time.Instant;
 import java.util.*;
-import java.util.stream.Collectors;
+
 
 @Service
 @RequiredArgsConstructor
@@ -40,6 +47,7 @@ public class AdminOrderServiceImpl implements AdminOrderService {
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
+    private final ObjectMapper objectMapper;
     // 1. Lấy danh sách & Filter
     public Page<OrderResponse> searchOrders(OrderStatusEnum status, String phone, 
                                             Instant startDate, Instant endDate, Pageable pageable) {
@@ -62,7 +70,11 @@ public class AdminOrderServiceImpl implements AdminOrderService {
 
     // 3. Cập nhật trạng thái đơn hàng (CÓ RÀNG BUỘC)
     @Transactional
-    public OrderResponse updateOrderStatus(String orderId, UpdateOrderStatusRequest request) {
+    public OrderResponse updateOrderStatus(String orderId, UpdateOrderStatusRequest updateOrderStatusRequest) {
+
+        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        HttpServletRequest request = (attributes != null) ? attributes.getRequest() : null;
+
         UUID oderIdUUID;
         try {
             oderIdUUID = UUID.fromString(orderId);
@@ -73,7 +85,7 @@ public class AdminOrderServiceImpl implements AdminOrderService {
                 .orElseThrow(() -> new NotFoundException("Không tìm thấy đơn hàng!"));
 
         OrderStatusEnum currentStatus = order.getStatus();
-        OrderStatusEnum newStatus = request.getNewStatus();
+        OrderStatusEnum newStatus = updateOrderStatusRequest.getNewStatus();
 
         // VALIDATE STATE MACHINE (Chống nhảy cóc trạng thái)
         validateStatusTransition(currentStatus, newStatus);
@@ -81,18 +93,43 @@ public class AdminOrderServiceImpl implements AdminOrderService {
         order.setStatus(newStatus);
         
         // Cập nhật note (Nối thêm vào note cũ để giữ lịch sử)
-        if (request.getAdminNote() != null && !request.getAdminNote().isBlank()) {
+        if (updateOrderStatusRequest.getAdminNote() != null && !updateOrderStatusRequest.getAdminNote().isBlank()) {
             String existingNote = order.getNote() != null ? order.getNote() + " | " : "";
-            order.setNote(existingNote + "[" + Instant.now() + "] Admin: " + request.getAdminNote());
+            order.setNote(existingNote + "[" + Instant.now() + "] Admin: " + updateOrderStatusRequest.getAdminNote());
         }
 
         // TODO: Nếu status = CANCELLED, gọi logic cộng lại Tồn kho (như bài trước)
         // TODO: Nếu status = DELIVERED, có thể gọi logic cộng điểm tích lũy cho User
-
+        this.orderRepository.save(order);
+        if(newStatus.equals(OrderStatusEnum.DELIVERED)) {
+            for (OrderItem item : order.getListOrderItems()) {
+                sendAdminBehaviorEvent(item.getVariant().getProduct().getProductId(),
+                        item.getVariant().getProductVariantId(),
+                        request);
+            }
+        }
         return orderMapper.toOrderResponse(orderRepository.save(order));
     }
 
+    private void sendAdminBehaviorEvent(UUID productId, UUID variantId, HttpServletRequest request) {
+        try {
+            PurchaseViewEvent event = PurchaseViewEvent.builder()
+                    .eventId(UUID.randomUUID().toString())
+                    .userId(String.valueOf(SecurityUtils.getCurrentUserId()))
+                    .productId(productId.toString())
+                    .variantId(variantId.toString())
+                    .action("PURCHASE")
+                    .timestamp(System.currentTimeMillis())
+                    .userAgent("Admin agent")
+                    .ipAddress(RequestUtils.getClientIp(request))
+                    .build();
 
+            log.info("USER_EVENT_JSON: {}", objectMapper.writeValueAsString(event));
+
+        } catch (Exception e) {
+            log.error("Failed to log event for Big Data pipeline", e);
+        }
+    }
 
 
     // Hàm kiểm tra luồng đi của trạng thái
@@ -142,27 +179,29 @@ public class AdminOrderServiceImpl implements AdminOrderService {
         if (!user.getRole().getCode().equals("ROLE_ADMIN")) {
             throw new IllegalArgumentException("User access deny");
         }
-        Map<String, String> valueInRedis = stringRedisTemplate.<String, String>opsForHash().entries("rec:best-seller");
-        if (valueInRedis == null || valueInRedis.isEmpty()) {
-            log.warn("No recommendation found in Redis");
-            return new ArrayList<>();
-        }
+        try {
+            String jsonValue = stringRedisTemplate.opsForValue().get("rec:best_seller");
+            if (jsonValue != null) {
+                ObjectMapper mapper = new ObjectMapper();
+                List<SellingProductResponseDTO> dataInRedis = mapper.readValue(jsonValue, new TypeReference<List<SellingProductResponseDTO>>() {
 
-        List<String> productIds = valueInRedis.keySet().stream()
-                .map(id -> id.toString())
-                .toList();
-        List<Product> products = productRepository.findByProductIdIn(productIds);
-
-        return products.stream().map(product -> {
+                });
+                List<TopSellingProductResponseDTO> bestSellers = dataInRedis.stream().map(item -> {
                     TopSellingProductResponseDTO dto = new TopSellingProductResponseDTO();
-                    dto.setProductId(product.getProductId());
+                    dto.setTotalSold(item.getTotalSold());
+                    Product product = this.productRepository.findByProductId(item.getProductId())
+                            .orElseThrow(() -> new IdInvalidException("Product not found"));
+                    dto.setProductId(item.getProductId());
                     dto.setProductName(product.getName());
                     dto.setImageUrl(product.getImageUrl());
-                    String sellCount = valueInRedis.get(product.getProductId().toString());
-                    dto.setTotalSold(sellCount != null ? Long.parseLong(sellCount) : 0L);
-
                     return dto;
-                }).sorted(Comparator.comparing(TopSellingProductResponseDTO::getTotalSold).reversed())
-                .toList();
+                }).toList();
+                return bestSellers;
+            }
+        } catch (Exception e) {
+            log.error("Failed to parse JSON from Redis", e);
+        }
+
+        return null;
     }
 }

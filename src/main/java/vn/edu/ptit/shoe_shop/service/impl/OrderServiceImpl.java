@@ -154,30 +154,31 @@ public class OrderServiceImpl implements OrderService {
                 .orElseThrow(() -> new NotFoundException("Không tìm thấy đơn hàng!"));
         order.setStatus(status);
         this.orderRepository.save(order);
-        if(status.equals(OrderStatusEnum.DELIVERED)) {
-            for (OrderItem item : order.getListOrderItems()) {
-                sendAdminBehaviorEvent(item.getVariant().getProductVariantId());
-            }
-        }
+//        if(status.equals(OrderStatusEnum.DELIVERED)) {
+//            for (OrderItem item : order.getListOrderItems()) {
+//                sendAdminBehaviorEvent(item.getVariant().getProduct().getProductId(), item.getVariant().getProductVariantId());
+//            }
+//        }
         return orderMapper.toOrderResponse(order);
     }
 
-    private void sendAdminBehaviorEvent(UUID productId) {
-        try {
-            PurchaseViewEvent event = PurchaseViewEvent.builder()
-                    .eventId(UUID.randomUUID().toString())
-                    .userId(String.valueOf(SecurityUtils.getCurrentUserId()))
-                    .productId(productId.toString())
-                    .action("PURCHASE")
-                    .timestamp(System.currentTimeMillis())
-                    .build();
-
-            log.info("USER_EVENT_JSON: {}", objectMapper.writeValueAsString(event));
-
-        } catch (Exception e) {
-            log.error("Failed to log event for Big Data pipeline", e);
-        }
-    }
+//    private void sendAdminBehaviorEvent(UUID productId, UUID variantId) {
+//        try {
+//            PurchaseViewEvent event = PurchaseViewEvent.builder()
+//                    .eventId(UUID.randomUUID().toString())
+//                    .userId(String.valueOf(SecurityUtils.getCurrentUserId()))
+//                    .productId(productId.toString())
+//                    .variantId(variantId.toString())
+//                    .action("PURCHASE")
+//                    .timestamp(System.currentTimeMillis())
+//                    .build();
+//
+//            log.info("USER_EVENT_JSON: {}", objectMapper.writeValueAsString(event));
+//
+//        } catch (Exception e) {
+//            log.error("Failed to log event for Big Data pipeline", e);
+//        }
+//    }
 
     
 }
