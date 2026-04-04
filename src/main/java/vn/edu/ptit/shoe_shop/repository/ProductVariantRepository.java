@@ -14,6 +14,7 @@ import jakarta.persistence.LockModeType;
 import vn.edu.ptit.shoe_shop.entity.Product;
 import vn.edu.ptit.shoe_shop.entity.ProductVariant;
 
+import java.util.Collection;
 import java.util.List;
 
 @Repository
@@ -32,4 +33,8 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariant, 
     Optional<ProductVariant> findByProductVariantIdForUpdate(@Param("id") UUID id);
     @Query("SELECT v FROM ProductVariant v WHERE v.productVariantId = :id")
     Optional<ProductVariant> findByIdWithLock(UUID id);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT v FROM ProductVariant v WHERE v.productVariantId IN :ids")
+    List<ProductVariant> findAllByIdsWithLock(@Param("ids") Collection<UUID> ids);
 }
