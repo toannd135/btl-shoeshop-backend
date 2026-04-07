@@ -35,16 +35,16 @@ public interface UserRepository extends JpaRepository<User, UUID>{
 
     // 4. Tìm Top khách hàng chi tiêu nhiều nhất (Khách VIP)
     @Query(value = "SELECT u.user_id AS userId, " +
-                   "u.name AS fullName, " +
-                   "u.email AS email, " +
-                   "u.phone AS phone, " +
-                   "COUNT(o.order_id) AS totalOrders, " +
-                   "SUM(o.final_price) AS totalSpent " +
-                   "FROM users u " +
-                   "JOIN orders o ON u.user_id = o.user_id " +
-                   "WHERE o.status = 'DELIVERED' " +
-                   "GROUP BY u.user_id, u.name, u.email, u.phone " +
-                   "ORDER BY totalSpent DESC ", nativeQuery = true)
+            "CONCAT(u.first_name, ' ', u.last_name) AS fullName, " +
+            "u.email AS email, " +
+            "u.phone AS phone, " +
+            "COUNT(o.order_id) AS totalOrders, " +
+            "SUM(o.final_price) AS totalSpent " +
+            "FROM users u " +
+            "JOIN orders o ON u.user_id = o.user_id " +
+            "WHERE o.status = 'DELIVERED' " +
+            "GROUP BY u.user_id, u.first_name, u.last_name, u.email, u.phone " +
+            "ORDER BY totalSpent DESC", nativeQuery = true)
     List<TopCustomerDto> getTopSpendingCustomers(@Param("limit") int limit);
 
 }

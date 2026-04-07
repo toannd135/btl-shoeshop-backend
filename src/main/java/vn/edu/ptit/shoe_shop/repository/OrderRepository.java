@@ -49,4 +49,14 @@ public interface OrderRepository extends JpaRepository<Order,UUID> {
     List<Order> getOrdersForExport(@Param("status") OrderStatusEnum status,
                                    @Param("startDate") Instant startDate,
                                    @Param("endDate") Instant endDate);
+
+    @Query("""
+    SELECT COUNT(oi) > 0
+    FROM Order o
+    JOIN o.listOrderItems oi
+    WHERE o.user.userId = :userId
+    AND oi.variant.productVariantId = :variantId
+    AND o.status = vn.edu.ptit.shoe_shop.common.enums.OrderStatusEnum.DELIVERED
+""")
+    boolean hasUserPurchasedVariant(UUID userId, UUID variantId);
 }

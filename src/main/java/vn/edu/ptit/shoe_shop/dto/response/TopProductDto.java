@@ -7,5 +7,6 @@ public interface TopProductDto {
     String getProductId();
     String getProductName();
     Integer getTotalSold(); // Tổng số lượng đã bán
-    BigDecimal getTotalRevenue(); // Doanh thu mang lại từ sản phẩm này
+    BigDecimal getTotalRevenue();// Doanh thu mang lại từ sản phẩm này
+    String getProductImage();
 }

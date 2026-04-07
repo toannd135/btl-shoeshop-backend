@@ -1,4 +1,5 @@
 package vn.edu.ptit.shoe_shop.service.impl;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,6 +16,8 @@ import vn.edu.ptit.shoe_shop.entity.Order;
 import vn.edu.ptit.shoe_shop.repository.OrderRepository;
 import vn.edu.ptit.shoe_shop.service.AdminOrderService;
 
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -96,23 +99,43 @@ public class AdminOrderServiceImpl implements AdminOrderService {
         }
     }
 
-    // 4. Sinh file CSV để Export
-    public String exportOrdersToCsv(OrderStatusEnum status, Instant startDate, Instant endDate) {
+    public void exportOrdersToCsv(OrderStatusEnum status, Instant startDate, Instant endDate, HttpServletResponse response) throws IOException {
         List<Order> orders = orderRepository.getOrdersForExport(status, startDate, endDate);
-        
-        StringBuilder csvBuilder = new StringBuilder();
-        // Header
-        csvBuilder.append("Mã Đơn Hàng,Ngày Đặt,Tên Người Nhận,Số Điện Thoại,Tổng Tiền,Trạng Thái\n");
-        
-        // Data
-        for (Order order : orders) {
-            csvBuilder.append(order.getOrderId()).append(",")
-                      .append(order.getCreatedAt()).append(",")
-                      .append(order.getReceiverName()).append(",")
-                      .append(order.getReceiverPhone()).append(",")
-                      .append(order.getFinalPrice()).append(",")
-                      .append(order.getStatus().name()).append("\n");
+
+        // Cấu hình response để download file CSV
+        response.setContentType("text/csv; charset=UTF-8");
+        response.setHeader("Content-Disposition", "attachment; filename=orders_export.csv");
+
+        try (PrintWriter writer = response.getWriter()) {
+            // Ghi header UTF-8 BOM (optional nhưng tốt cho tiếng Việt)
+            writer.write('\uFEFF');
+
+            // Header CSV
+            writer.println("Mã Đơn Hàng,Ngày Đặt,Tên Người Nhận,Số Điện Thoại,Tổng Tiền,Trạng Thái");
+
+            // Ghi dữ liệu từng dòng
+            for (Order order : orders) {
+                writer.printf("%s,%s,%s,%s,%s,%s%n",
+                        escapeCsv(order.getOrderId().toString()),
+                        escapeCsv(order.getCreatedAt().toString()),
+                        escapeCsv(order.getReceiverName()),
+                        escapeCsv(order.getReceiverPhone()),
+                        order.getFinalPrice(),
+                        escapeCsv(order.getStatus().name())
+                );
+            }
+            writer.flush();
         }
-        return csvBuilder.toString();
+    }
+
+    // Helper method để escape các ký tự đặc biệt trong CSV
+    private String escapeCsv(String value) {
+        if (value == null) return "";
+        // Nếu có dấu phẩy, xuống dòng hoặc nháy kép thì bọc trong nháy kép và escape
+        if (value.contains(",") || value.contains("\"") || value.contains("\n")) {
+            value = value.replace("\"", "\"\"");
+            return "\"" + value + "\"";
+        }
+        return value;
     }
 }

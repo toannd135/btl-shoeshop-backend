@@ -1,5 +1,6 @@
 package vn.edu.ptit.shoe_shop.controller;
 
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -17,6 +18,8 @@ import vn.edu.ptit.shoe_shop.common.enums.OrderStatusEnum;
 import vn.edu.ptit.shoe_shop.dto.request.UpdateOrderStatusRequest;
 import vn.edu.ptit.shoe_shop.dto.response.OrderResponse;
 import vn.edu.ptit.shoe_shop.service.AdminOrderService;
+
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 
@@ -59,19 +62,14 @@ public class AdminOrderController {
 
     // 4. Export dữ liệu ra CSV
     // Trả về file tải xuống cho trình duyệt
-    @GetMapping("/export")
-    public ResponseEntity<Resource> exportOrders(
+    @GetMapping("/export/csv")
+    public void exportOrdersCsv(
             @RequestParam(required = false) OrderStatusEnum status,
             @RequestParam(required = false) Instant startDate,
-            @RequestParam(required = false) Instant endDate) {
-            
-         String csvData = adminOrderService.exportOrdersToCsv(status, startDate, endDate);
-    ByteArrayResource resource = new ByteArrayResource(csvData.getBytes(StandardCharsets.UTF_8));
+            @RequestParam(required = false) Instant endDate,
+            HttpServletResponse response) throws IOException {
 
-    return ResponseEntity.ok()
-            .header(HttpHeaders.CONTENT_DISPOSITION,
-                    "attachment; filename=orders.csv")
-            .contentType(MediaType.parseMediaType("text/csv"))
-            .body(resource);
+        adminOrderService.exportOrdersToCsv(status, startDate, endDate, response);
     }
+
 }

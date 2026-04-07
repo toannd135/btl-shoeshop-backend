@@ -37,7 +37,8 @@ public interface ReportRepository extends JpaRepository<Order, UUID> {
     SELECT p.product_id AS productId,
            p.name AS productName,
            SUM(oi.quantity) AS totalSold,
-           SUM(oi.quantity * oi.price_at_purchase) AS totalRevenue
+           SUM(oi.quantity * oi.price_at_purchase) AS totalRevenue,
+           p.image_url AS productImage
     FROM order_items oi
     JOIN orders o ON oi.order_id = o.order_id
     JOIN product_variants pv ON oi.variant_id = pv.product_variant_id
