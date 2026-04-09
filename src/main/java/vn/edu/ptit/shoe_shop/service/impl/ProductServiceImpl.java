@@ -18,6 +18,7 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import vn.edu.ptit.shoe_shop.common.enums.GenderEnum;
 import vn.edu.ptit.shoe_shop.common.security.SecurityUtils;
 import vn.edu.ptit.shoe_shop.common.utils.request.RequestUtils;
 import vn.edu.ptit.shoe_shop.dto.logEvent.ProductViewEvent;
@@ -189,6 +190,9 @@ public class ProductServiceImpl implements ProductService {
             BigDecimal maxPrice,
             List<BigDecimal> sizes,
             List<String> colors,
+            UUID categoryId,
+            GenderEnum gender,
+            String brand,
             Pageable pageable
     ) {
 
@@ -202,12 +206,15 @@ public class ProductServiceImpl implements ProductService {
         List<String> sortedColors = colors == null ? List.of() :
                 colors.stream().sorted().toList();
 
-        String cacheKey = String.format("%s-%s-%s-%s-%s-%s-%s-%s",
+        String cacheKey = String.format("%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s",
                 keyword != null ? keyword : "",
                 minPrice != null ? minPrice : 0,
                 maxPrice != null ? maxPrice : 0,
                 sortedSizes,
                 sortedColors,
+                categoryId != null ? categoryId : "",
+                gender != null ? gender : "",
+                brand != null ? brand : "",
                 pageable.getPageNumber(),
                 pageable.getPageSize(),
                 pageable.getSort().isUnsorted()
@@ -228,7 +235,10 @@ public class ProductServiceImpl implements ProductService {
                 ProductSpecs.keyword(keyword),
                 ProductSpecs.priceBetween(minPrice, maxPrice),
                 ProductSpecs.variationSizeIn(sizes),
-                ProductSpecs.variationColorIn(colors)
+                ProductSpecs.variationColorIn(colors),
+                ProductSpecs.categoryIdEquals(categoryId),
+                ProductSpecs.genderEquals(gender),
+                ProductSpecs.brandEquals(brand)
         );
 
         Page<Product> page = productRepository.findAll(spec, pageable);

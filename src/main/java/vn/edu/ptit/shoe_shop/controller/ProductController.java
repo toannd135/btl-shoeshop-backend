@@ -11,6 +11,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import vn.edu.ptit.shoe_shop.common.enums.GenderEnum;
 import vn.edu.ptit.shoe_shop.dto.request.ProductCreateRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.request.ProductUpdateRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.response.ProductResponseDTO;
@@ -88,13 +89,16 @@ public class ProductController {
             @RequestParam(required = false) BigDecimal maxPrice,
             @RequestParam(required = false) List<BigDecimal> sizes,
             @RequestParam(required = false) List<String> colors,
+            @RequestParam(required = false) UUID categoryId,
+            @RequestParam(required = false) GenderEnum gender,
+            @RequestParam(required = false) String brand,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "5") int size,
             @RequestParam(defaultValue = "createdAt") String sort
     ) {
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by(sort).descending());
         return ResponseEntity.ok().body(
-                productService.search(keyword, minPrice, maxPrice, sizes, colors, pageable)
+                productService.search(keyword, minPrice, maxPrice, sizes, colors, categoryId, gender, brand, pageable)
         );
     }
 }

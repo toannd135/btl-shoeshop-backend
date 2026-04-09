@@ -2,11 +2,13 @@ package vn.edu.ptit.shoe_shop.repository.impl;
 
 import jakarta.persistence.criteria.Join;
 import org.springframework.data.jpa.domain.Specification;
+import vn.edu.ptit.shoe_shop.common.enums.GenderEnum;
 import vn.edu.ptit.shoe_shop.entity.Product;
 import vn.edu.ptit.shoe_shop.entity.ProductVariant;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 
 public class ProductSpecs {
 
@@ -55,6 +57,30 @@ public class ProductSpecs {
 
             Join<Product, ProductVariant> variant = root.join("productVariants");
             return variant.get("color").in(colors);
+        };
+    }
+
+    public static Specification<Product> categoryIdEquals(UUID categoryId) {
+        return (root, query, cb) -> {
+            if (categoryId == null) return null;
+
+            return cb.equal(root.get("category").get("categoryId"), categoryId);
+        };
+    }
+
+    public static Specification<Product> genderEquals(GenderEnum gender) {
+        return (root, query, cb) -> {
+            if (gender == null) return null;
+
+            return cb.equal(root.get("gender"), gender);
+        };
+    }
+
+    public static Specification<Product> brandEquals(String brand) {
+        return (root, query, cb) -> {
+            if (brand == null || brand.isBlank()) return null;
+
+            return cb.equal(cb.lower(root.get("brand")), brand.toLowerCase());
         };
     }
 }
