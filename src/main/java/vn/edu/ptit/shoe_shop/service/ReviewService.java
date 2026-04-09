@@ -5,10 +5,12 @@ import vn.edu.ptit.shoe_shop.dto.request.ReviewRequest;
 import vn.edu.ptit.shoe_shop.dto.response.ReviewResponse;
 import vn.edu.ptit.shoe_shop.dto.response.page.ReviewPageResponseDTO;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
 public interface ReviewService {
+
     ReviewResponse createReview(UUID variantId, ReviewRequest request);
 
     void deleteReview(UUID reviewId);
@@ -18,7 +20,7 @@ public interface ReviewService {
     ReviewPageResponseDTO searchReviews(Integer rating,
                                         UUID productId,
                                         UUID variantId,
-                                        String size,
+                                        BigDecimal size,
                                         String color,
                                         String keyword,
                                         Pageable pageable);

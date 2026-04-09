@@ -17,6 +17,7 @@ import vn.edu.ptit.shoe_shop.dto.response.page.ReviewPageResponseDTO;
 import vn.edu.ptit.shoe_shop.service.ReviewService;
 import vn.edu.ptit.shoe_shop.common.utils.annotation.ApiMessage;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -29,10 +30,10 @@ public class ReviewController {
 
     ReviewService reviewService;
 
-    @PostMapping
+    @PostMapping("/variants/{variantId}")
     @ApiMessage("Review created successfully")
     public ResponseEntity<ReviewResponse> createReview(
-            @RequestParam UUID variantId,
+            @PathVariable UUID variantId,
             @Valid @RequestBody ReviewRequest request) {
         ReviewResponse response = reviewService.createReview(variantId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -57,7 +58,7 @@ public class ReviewController {
             @RequestParam(required = false) Integer rating,
             @RequestParam(required = false) UUID productId,
             @RequestParam(required = false) UUID variantId,
-            @RequestParam(required = false) String size,
+            @RequestParam(required = false) BigDecimal size,
             @RequestParam(required = false) String color,
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "1") int page,

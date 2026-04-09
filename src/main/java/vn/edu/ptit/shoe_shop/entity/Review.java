@@ -21,7 +21,7 @@ import java.util.UUID;
 public class Review {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "po_id", columnDefinition = "CHAR(36)")
+    @Column(name = "review_id", columnDefinition = "CHAR(36)")
     @JdbcTypeCode(Types.VARCHAR)
     UUID reviewId;
 
