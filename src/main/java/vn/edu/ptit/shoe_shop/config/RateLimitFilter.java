@@ -54,8 +54,9 @@ public class RateLimitFilter extends OncePerRequestFilter {
                                  FilterChain filterChain,
                                  String type) throws ServletException, IOException {
         String ip = RequestUtils.getClientIp(request);
+        String bucketKey = ip + ":" + type;
         // nếu cho token trong xô rồi thì lấy xô ra. nếu không thì tạo 1 xô mới
-        Bucket bucket = buckets.computeIfAbsent(ip, key -> switch (type) {
+        Bucket bucket = buckets.computeIfAbsent(bucketKey, key -> switch (type) {
             case "register" -> createRegisterBuilder();
             case "forgot-password" -> createForgotPasswordBuilder();
             default -> createLoginBuilder();
@@ -78,8 +79,8 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private Bucket createLoginBuilder() {
         Bandwidth limit = Bandwidth
                 .builder()
-                .capacity(5)
-                .refillIntervally(5, Duration.ofMinutes(5))
+                .capacity(20)
+                .refillIntervally(20, Duration.ofMinutes(5))
                 .build();
         return Bucket.builder()
                 .addLimit(limit)
@@ -90,8 +91,8 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private Bucket createRegisterBuilder() {
         Bandwidth limit = Bandwidth
                 .builder()
-                .capacity(3)
-                .refillIntervally(3, Duration.ofMinutes(30))
+                .capacity(10)
+                .refillIntervally(10, Duration.ofMinutes(30))
                 .build();
         return Bucket.builder()
                 .addLimit(limit)
@@ -101,8 +102,8 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private Bucket createForgotPasswordBuilder() {
         Bandwidth limit = Bandwidth
                 .builder()
-                .capacity(2)
-                .refillIntervally(2, Duration.ofMinutes(15))
+                .capacity(5)
+                .refillIntervally(5, Duration.ofMinutes(15))
                 .build();
         return Bucket.builder()
                 .addLimit(limit)

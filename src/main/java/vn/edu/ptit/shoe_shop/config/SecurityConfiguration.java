@@ -81,9 +81,6 @@ public class SecurityConfiguration {
                                 .requestMatchers(HttpMethod.GET, "/api/v1/products/**").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/categories/**").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/coupons/**").permitAll()
-                                .requestMatchers( "/api/v1/users/**").hasAnyRole(ADMIN.name())
-                                .requestMatchers("/api/v1/roles/**").hasRole(ADMIN.name())
-                                .requestMatchers("/api/v1/permissions/**").hasRole(ADMIN.name())
                                 .anyRequest()
                                 .authenticated()
                                 // .permitAll()
@@ -93,9 +90,9 @@ public class SecurityConfiguration {
                         session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 )
                 .formLogin(form -> form.disable())
-                // .oauth2Login(oauth2 -> oauth2
-                //         .successHandler(oAuth2LoginSuccessHandler)
-                // )
+                .oauth2Login(oauth2 -> oauth2
+                        .successHandler(oAuth2LoginSuccessHandler)
+                )
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter))
                         .authenticationEntryPoint(customAuthenticationEntryPoint)

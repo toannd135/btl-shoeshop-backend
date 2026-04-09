@@ -129,40 +129,40 @@ public class DatabaseInitializer implements CommandLineRunner {
                 permissions.add(new Permission("Update inventory transaction status", "/api/v1/inventory-transactions/{itId}/status", "PUT", "INVENTORY_TRANSACTIONS"));
 
                                 // Chat
-                                permissions.add(new Permission("Create a default chat when user starts a conversation",
-                                                "/api/v1/chat/conversations/ensure", "POST", "CHAT"));
-                                permissions.add(new Permission("Send message to other user", "/api/v1/chat/messages",
-                                                "POST", "CHAT"));
-                                permissions.add(new Permission("Get messages in a conversation",
-                                                "/api/v1/chat/messages?conversationId={conversationId}", "GET",
-                                                "CHAT"));
+                permissions.add(new Permission("Create a default chat when user starts a conversation",
+                                "/api/v1/chat/conversations/ensure", "POST", "CHAT"));
+                permissions.add(new Permission("Send message to other user", "/api/v1/chat/messages",
+                                "POST", "CHAT"));
+                permissions.add(new Permission("Get messages in a conversation",
+                                "/api/v1/chat/messages?conversationId={conversationId}", "GET",
+                                "CHAT"));
 
-                                // Chat for admin
-                                permissions.add(new Permission("Get all conversations for admin",
-                                                "/api/v1/conversations", "GET", "CHAT"));
+                // Chat for admin
+                permissions.add(new Permission("Get all conversations for admin",
+                                "/api/v1/conversations", "GET", "CHAT"));
                                 this.permissionRepository.saveAll(permissions);
                         }
                         if (countRole == 0) {
                                 List<Permission> allPermissions = new ArrayList<>();
                                 Role role = new Role();
-                                role.setName("ADMIN");
-                                role.setCode("ROLE_ADMIN");
-                                role.setDescription("Admin full permission");
+                                role.setName("SUPER_ADMIN");
+                                role.setCode("ROLE_SUPER_ADMIN");
+                                role.setDescription("Super admin full permission");
                                 role.setStatus(StatusEnum.ACTIVE);
                                 role.setPermissions(allPermissions);
                                 this.roleRepository.save(role);
                         }
                         if (countUser == 0) {
                                 User adminUser = new User();
-                                adminUser.setEmail("admin@gmail.com");
-                                adminUser.setFirstName("admin");
+                                adminUser.setEmail("superadmin@gmail.com");
+                                adminUser.setFirstName("super");
                                 adminUser.setLastName("admin");
-                                adminUser.setUsername("admin123");
+                                adminUser.setUsername("superadmin123");
                                 adminUser.setPhone("0987654321");
                                 adminUser.setProvider(ProviderEnum.SERVER);
                                 adminUser.setStatus(StatusEnum.ACTIVE);
-                                adminUser.setPassword(this.passwordEncoder.encode("Admin123@"));
-                                Role adminRole = this.roleRepository.findByName(RoleEnum.ADMIN.name())
+                                adminUser.setPassword(this.passwordEncoder.encode("SuperAdmin123@"));
+                                Role adminRole = this.roleRepository.findByName(RoleEnum.SUPER_ADMIN.name())
                                                 .orElseThrow(() -> new IllegalStateException("role not found"));
                                 if (adminUser != null) {
                                         adminUser.setRole(adminRole);

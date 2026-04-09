@@ -49,15 +49,14 @@ public class AuthServiceImpl implements AuthService {
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
 
-
     private final Logger log = LoggerFactory.getLogger(AuthServiceImpl.class);
 
     @Value("${app.jwt.refresh-token-validity-in-seconds}")
     private Long refreshTokenExpiration;
 
-    public AuthServiceImpl(AuthenticationManager authenticationManager, TokenProvider tokenProvider,UserService userService
-            , UserRepository userRepository, RedisService redisService, RefreshTokenRepository refreshTokenRepository
-            , EmailService emailService, PasswordEncoder passwordEncoder) {
+    public AuthServiceImpl(AuthenticationManager authenticationManager, TokenProvider tokenProvider,
+            UserService userService, UserRepository userRepository, RedisService redisService,
+            RefreshTokenRepository refreshTokenRepository, EmailService emailService, PasswordEncoder passwordEncoder) {
         this.authenticationManager = authenticationManager;
         this.tokenProvider = tokenProvider;
         this.userRepository = userRepository;
@@ -71,8 +70,8 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public LoginResult login(LoginRequestDTO request, String deviceId) {
-        UsernamePasswordAuthenticationToken authenticationToken =
-                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword());
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
+                request.getUsername(), request.getPassword());
         Authentication authentication = this.authenticationManager.authenticate(authenticationToken);
         SecurityContextHolder.getContext().setAuthentication(authentication);
         // get user info
@@ -94,7 +93,7 @@ public class AuthServiceImpl implements AuthService {
         tokenEntity.setUser(user);
         this.refreshTokenRepository.save(tokenEntity);
         log.debug("Saved refresh token in Database for userId: {}", userId);
-        this.redisService.storeRefreshToken(userId, refreshJti ,deviceId);
+        this.redisService.storeRefreshToken(userId, refreshJti, deviceId);
 
         return buildLoginResult(user, accessToken, refreshToken);
     }
@@ -111,7 +110,7 @@ public class AuthServiceImpl implements AuthService {
         // check redis
 
         String jtiInRedis = this.redisService.getRefreshToken(userId, deviceId);
-        if(jtiInRedis == null || !jtiInRedis.equals(jtiFromRefreshToken)) {
+        if (jtiInRedis == null || !jtiInRedis.equals(jtiFromRefreshToken)) {
             throw new BadCredentialsException("login fail");
         }
 
@@ -142,10 +141,11 @@ public class AuthServiceImpl implements AuthService {
         revokeAccessToken(accessToken);
 
         CustomUserDetail userDetail = new CustomUserDetail(user);
-        UsernamePasswordAuthenticationToken authentication =
-                new UsernamePasswordAuthenticationToken(userDetail, null, userDetail.getAuthorities());
+        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetail, null,
+                userDetail.getAuthorities());
         // new access token
-        String newAccessToken = this.tokenProvider.createAccessToken(authentication, deviceId); // save into memory frontend
+        String newAccessToken = this.tokenProvider.createAccessToken(authentication, deviceId); // save into memory
+                                                                                                // frontend
 
         // new refresh token
         String newRefreshToken = this.tokenProvider.createRefreshToken(authentication, deviceId);
@@ -157,7 +157,7 @@ public class AuthServiceImpl implements AuthService {
         log.debug("Saved refresh token in Database for userId: {}", userId);
         this.redisService.storeRefreshToken(userId, newRefreshJti, deviceId);
 
-       return buildLoginResult(user, newAccessToken, newRefreshToken);
+        return buildLoginResult(user, newAccessToken, newRefreshToken);
     }
 
     @Override
@@ -182,10 +182,10 @@ public class AuthServiceImpl implements AuthService {
         String email = forgotPasswordRequestDTO.getEmail();
 
         User user = this.userService.getUserByUsernameOrEmail(email);
-        if(!user.getStatus().equals(StatusEnum.ACTIVE)) {
+        if (!user.getStatus().equals(StatusEnum.ACTIVE)) {
             throw new IllegalArgumentException("User account is not active");
         }
-        if(!user.getProvider().equals(ProviderEnum.SERVER)) {
+        if (!user.getProvider().equals(ProviderEnum.SERVER)) {
             throw new IllegalArgumentException("User account is not provided server");
         }
         long ttl = 3L;
@@ -197,18 +197,17 @@ public class AuthServiceImpl implements AuthService {
                 user.getEmail(),
                 "OTP for Password Reset",
                 "otpVerify",
-                variables
-        );
+                variables);
         return new ForgotPasswordResponseDTO(email, ttl);
     }
 
     @Override
     public String otpVerification(String otp, String email) {
         String otpInRedis = this.redisService.getOtp(email);
-        if(otpInRedis == null) {
+        if (otpInRedis == null) {
             throw new IllegalArgumentException("Otp time out");
         }
-        if(!otpInRedis.equals(otp)) {
+        if (!otpInRedis.equals(otp)) {
             throw new IllegalArgumentException("Otp not matching");
         }
         String resetTokenValue = UUID.randomUUID().toString();
@@ -220,13 +219,13 @@ public class AuthServiceImpl implements AuthService {
     public String resetPassword(ResetPasswordRequestDTO resetPasswordRequestDTO) {
         String newPassword = resetPasswordRequestDTO.getNewPassword();
         String confirmNewPassword = resetPasswordRequestDTO.getConfirmNewPassword();
-        if(!newPassword.equals(confirmNewPassword)) {
+        if (!newPassword.equals(confirmNewPassword)) {
             throw new IllegalArgumentException("Password not match");
         }
         String email = resetPasswordRequestDTO.getEmail();
         String tokenInRedis = this.redisService.getResetToken(email);
-        if(!tokenInRedis.equals(resetPasswordRequestDTO.getResetToken())) {
-            throw  new IllegalArgumentException("token expired");
+        if (!tokenInRedis.equals(resetPasswordRequestDTO.getResetToken())) {
+            throw new IllegalArgumentException("token expired");
         }
         User user = this.userService.getUserByUsernameOrEmail(email);
         user.setPassword(this.passwordEncoder.encode(newPassword));
@@ -238,8 +237,7 @@ public class AuthServiceImpl implements AuthService {
                 user.getEmail(),
                 "Password Changed Successfully",
                 "resetPasswordNotifition",
-                variables
-        );
+                variables);
 
         return "Password has been reset successfully. An email confirmation has been sent.";
     }

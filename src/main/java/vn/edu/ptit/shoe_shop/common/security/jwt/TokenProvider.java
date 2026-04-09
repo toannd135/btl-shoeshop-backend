@@ -45,9 +45,9 @@ public class TokenProvider {
     @Transactional
     public String createAccessToken(Authentication authentication, String deviceId) {
         CustomUserDetail userPrincipal = (CustomUserDetail) authentication.getPrincipal();
-        //header
+        // header
         JwsHeader jwtHeader = JwsHeader.with(JwtConstants.Header.ALGORITHM).build();
-        //payload
+        // payload
         Map<String, Object> extraClaims = buildCustomClaims(userPrincipal, deviceId, TokenConstants.ACCESS_TOKEN);
 
         Instant now = Instant.now();
@@ -60,8 +60,8 @@ public class TokenProvider {
                 .issuedAt(now)
                 .expiresAt(validity)
                 .build();
-        //encode & signature
-        String accessToken =  this.jwtEncoder.encode(JwtEncoderParameters.from(jwtHeader,jwtPayLoad)).getTokenValue();
+        // encode & signature
+        String accessToken = this.jwtEncoder.encode(JwtEncoderParameters.from(jwtHeader, jwtPayLoad)).getTokenValue();
         log.debug("Created access token for userId {}: {}", userPrincipal.getUser().getUserId(), accessToken);
         return accessToken;
     }
@@ -69,10 +69,10 @@ public class TokenProvider {
     @Transactional
     public String createRefreshToken(Authentication authentication, String deviceId) {
         CustomUserDetail userPrincipal = (CustomUserDetail) authentication.getPrincipal();
-        //header
+        // header
         JwsHeader jwtHeader = JwsHeader.with(JwtConstants.Header.ALGORITHM).build();
-        //payload
-        Map<String, Object> extraClaims = buildCustomClaims(userPrincipal, deviceId,TokenConstants.REFRESH_TOKEN);
+        // payload
+        Map<String, Object> extraClaims = buildCustomClaims(userPrincipal, deviceId, TokenConstants.REFRESH_TOKEN);
 
         Instant now = Instant.now();
         Instant validity = now.plus(this.refreshTokenExpiration, ChronoUnit.SECONDS);
@@ -84,19 +84,19 @@ public class TokenProvider {
                 .issuedAt(now)
                 .expiresAt(validity)
                 .build();
-        //encode & signature
-        String refreshToken =  this.jwtEncoder.encode(JwtEncoderParameters.from(jwtHeader,jwtPayLoad)).getTokenValue();
+        // encode & signature
+        String refreshToken = this.jwtEncoder.encode(JwtEncoderParameters.from(jwtHeader, jwtPayLoad)).getTokenValue();
         log.debug("Created refresh token for userId {}: {}", userPrincipal.getUser().getUserId(), refreshToken);
         return refreshToken;
     }
 
-
     @Transactional
     public String createAccessTokenForOAuth2(User user, OAuth2User oAuth2User, String deviceId) {
-        //header
+        // header
         JwsHeader jwtHeader = JwsHeader.with(JwtConstants.Header.ALGORITHM).build();
-        //payload
-        Map<String, Object> extraClaims = buildCustomForOAuth2Claims(user, oAuth2User, deviceId,TokenConstants.ACCESS_TOKEN);
+        // payload
+        Map<String, Object> extraClaims = buildCustomForOAuth2Claims(user, oAuth2User, deviceId,
+                TokenConstants.ACCESS_TOKEN);
         Instant now = Instant.now();
         Instant validity = now.plus(this.accessTokenExpiration, ChronoUnit.SECONDS);
         String jti = UUID.randomUUID().toString();
@@ -116,10 +116,11 @@ public class TokenProvider {
 
     @Transactional
     public String createRefreshTokenForOAuth2(User user, OAuth2User oAuth2User, String deviceId) {
-        //header
+        // header
         JwsHeader jwtHeader = JwsHeader.with(JwtConstants.Header.ALGORITHM).build();
-        //payload
-        Map<String, Object> extraClaims = buildCustomForOAuth2Claims(user, oAuth2User, deviceId,TokenConstants.REFRESH_TOKEN);
+        // payload
+        Map<String, Object> extraClaims = buildCustomForOAuth2Claims(user, oAuth2User, deviceId,
+                TokenConstants.REFRESH_TOKEN);
         Instant now = Instant.now();
         Instant validity = now.plus(this.refreshTokenExpiration, ChronoUnit.SECONDS);
         String jti = UUID.randomUUID().toString();
@@ -136,7 +137,6 @@ public class TokenProvider {
         log.debug("Created OAuth2 access token for email {}: {}", oAuth2User.getAttribute("email"), refreshToken);
         return refreshToken;
     }
-
 
     public Jwt checkValidRefreshToken(String refreshToken) {
         NimbusJwtDecoder jwtDecoder = NimbusJwtDecoder.withSecretKey(
@@ -179,7 +179,7 @@ public class TokenProvider {
         extraClaims.put(JwtConstants.Claims.FIRST_NAME, userPrincipal.getUser().getFirstName());
         extraClaims.put(JwtConstants.Claims.LAST_NAME, userPrincipal.getUser().getLastName());
         extraClaims.put(JwtConstants.Claims.ROLE, userPrincipal.getUser().getRole().getCode());
-        extraClaims.put(JwtConstants.Claims.USERNAME,userPrincipal.getUser().getUsername());
+        extraClaims.put(JwtConstants.Claims.USERNAME, userPrincipal.getUser().getUsername());
         extraClaims.put(JwtConstants.Claims.EMAIL, userPrincipal.getUser().getEmail());
         extraClaims.put(JwtConstants.Claims.TOKEN_TYPE, tokenType);
         extraClaims.put(JwtConstants.Claims.PROVIDER, userPrincipal.getUser().getProvider());
@@ -189,7 +189,8 @@ public class TokenProvider {
         return extraClaims;
     }
 
-    private Map<String, Object> buildCustomForOAuth2Claims(User user, OAuth2User auth2User, String deviceId, String tokenType) {
+    private Map<String, Object> buildCustomForOAuth2Claims(User user, OAuth2User auth2User, String deviceId,
+            String tokenType) {
         String firstName = auth2User.getAttribute("given_name");
         String lastName = auth2User.getAttribute("family_name");
         String role = user.getRole().getCode();
