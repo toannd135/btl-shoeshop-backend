@@ -72,7 +72,7 @@ public class UserServiceImpl implements UserService {
         this.emailService = emailService;
     }
 
-    @Value("${app.frontendUrl}")
+    @Value("${app.backendUrl}")
     private String domain;
 
     @Override
