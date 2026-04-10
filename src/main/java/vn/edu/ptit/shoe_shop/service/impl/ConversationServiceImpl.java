@@ -5,7 +5,9 @@ import vn.edu.ptit.shoe_shop.dto.response.Chat.ConversationItemResponse;
 import vn.edu.ptit.shoe_shop.dto.response.Chat.ListConversationForAdminResponse;
 import vn.edu.ptit.shoe_shop.dto.response.Chat.SenderSummary;
 import vn.edu.ptit.shoe_shop.entity.Conversation;
+import vn.edu.ptit.shoe_shop.entity.Message;
 import vn.edu.ptit.shoe_shop.entity.User;
+import vn.edu.ptit.shoe_shop.repository.ChatMessageRepository;
 import vn.edu.ptit.shoe_shop.repository.ConversationRepository;
 import vn.edu.ptit.shoe_shop.repository.UserRepository;
 import vn.edu.ptit.shoe_shop.service.ConversationService;
@@ -16,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -25,7 +28,7 @@ import java.util.UUID;
 public class ConversationServiceImpl implements ConversationService {
     private final ConversationRepository conversationRepository;
     private final UserRepository userRepository;
-
+    private final ChatMessageRepository chatMessageRepository;
     public static final String DEFAULT_ADMIN_ID = "6f83db48-ab38-4888-9d6d-4f61e3b451e5";
 
     @Transactional
@@ -36,7 +39,16 @@ public class ConversationServiceImpl implements ConversationService {
                             .user(userRepository.findByUserId(userId).orElseThrow())
                             .admin(userRepository.findByUserId(UUID.fromString(DEFAULT_ADMIN_ID)).orElseThrow())
                             .build();
-                    return conversationRepository.save(conversation);
+                    conversationRepository.save(conversation);
+                    Message message = Message.builder()
+                            .conversation(conversation)
+                            .createdAt(Instant.now())
+                            .sender(userRepository.findByUserId(UUID.fromString(DEFAULT_ADMIN_ID)).orElseThrow())
+                            .content("Xin chào! Mình là trợ lý của SHOESHOP 👟\nMình có thể giúp gì cho bạn?")
+                            .build();
+                    chatMessageRepository.save(message);
+                    conversation.setLastMessage(message.getContent());
+                    return conversation;
                 });
     }
 

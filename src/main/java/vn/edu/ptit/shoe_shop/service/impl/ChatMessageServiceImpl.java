@@ -115,7 +115,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         try {
             conversationIdUUID = UUID.fromString(conversationId);
         } catch (IllegalArgumentException e) {
-            throw new IdInvalidException("Id không đúng định dạng UUID");
+            throw new IdInvalidException("Id không đúng định dạng UUID nhé");
         }
         // Đảm bảo sắp xếp theo createdAt tăng dần (cũ nhất lên trước)
         Page<Message> page = chatMessageRepository
