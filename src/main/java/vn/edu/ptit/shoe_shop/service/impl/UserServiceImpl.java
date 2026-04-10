@@ -259,7 +259,7 @@ public class UserServiceImpl implements UserService {
         String token = UUID.randomUUID().toString();
         this.redisService.storeVerificationToken(token, user.getUserId(), 600L);
 
-        String verifyUrl = domain + "api/v1/auth/verify?token=" + token;
+        String verifyUrl = domain + "/api/v1/auth/verify?token=" + token;
         Map<String, Object> variables = new HashMap<>();
         variables.put("confirmationLink", verifyUrl);
         this.emailService.sendEmailFromTemplateSync(

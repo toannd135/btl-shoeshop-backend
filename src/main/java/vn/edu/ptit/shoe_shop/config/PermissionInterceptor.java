@@ -20,11 +20,11 @@ import java.nio.file.AccessDeniedException;
 import java.util.List;
 
 @Component
-public class PermissionIntercepter implements HandlerInterceptor {
+public class PermissionInterceptor implements HandlerInterceptor {
    @Autowired
    private UserService userService;
 
-   private static final Logger log = LoggerFactory.getLogger(PermissionIntercepter.class);
+   private static final Logger log = LoggerFactory.getLogger(PermissionInterceptor.class);
 
    @Override
    @Transactional
@@ -37,10 +37,16 @@ public class PermissionIntercepter implements HandlerInterceptor {
        log.debug("Checking permission for path: {}", path);
        log.debug("HTTP Method: {}", httpMethod);
        // check permission
-       String email = SecurityUtils.getCurrentUserLogin().isPresent() ? SecurityUtils.getCurrentUserLogin().get() : "";
-       if (email != null && !email.isEmpty()) {
+       String email = SecurityUtils.getCurrentUserLogin().orElse("");
+       if (email != null && !email.isEmpty() && !email.equals("anonymousUser")) {
            log.debug("Authenticated user: {}", email);
-           User user = this.userService.getUserByUsernameOrEmail(email);
+           User user = null;
+           try {
+               user = this.userService.getUserByUsernameOrEmail(email);
+           } catch (Exception e) {
+               log.error("User not found in DB: {}", email);
+           }
+
            if (user != null) {
                Role role = user.getRole();
                if (role != null) {
@@ -59,10 +65,12 @@ public class PermissionIntercepter implements HandlerInterceptor {
                }
            }
            else {
-               log.error("User not found in DB: {}", email);
+               // User not found in DB but email was present.
+               // This can happen if the token is valid but the user was deleted or it's a public endpoint with an old token.
+               log.warn("User not found in DB for email: {}. Allowing request if it's a public endpoint or will be blocked by Security.", email);
            }
        } else {
-           log.warn("No authenticated user (email is empty)");
+           log.debug("No authenticated user or anonymous user");
        }
        return true;
    }

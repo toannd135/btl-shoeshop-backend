@@ -7,20 +7,22 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class PermissionIntercepterConfiguration implements WebMvcConfigurer {
    @Bean
-   PermissionIntercepter permissionIntercepter() {
-       return new PermissionIntercepter();
+   PermissionInterceptor permissionIntercepter() {
+       return new PermissionInterceptor();
    }
 
    @Override
    public void addInterceptors(InterceptorRegistry registry) {
        String[] whiteList = {
                "/",
-               "/api/v1/auth/refresh",
-               "/api/v1/auth/account",
+               "/api/v1/auth/refresh-token",
                "/api/v1/auth/login",
+               "/api/v1/auth/register",
+               "/api/v1/auth/verify",
                "/api/v1/auth/forgot-password",
                "/api/v1/auth/verify-otp",
                "/api/v1/auth/reset-password",
+               "/api/v1/recommend-products/**",
                "/storage/**",
                "/v3/api-docs/**",
                "/swagger-ui/**",
