@@ -18,6 +18,7 @@ import vn.edu.ptit.shoe_shop.common.security.service.CustomUserDetailService;
 import vn.edu.ptit.shoe_shop.service.UserService;
 
 import static vn.edu.ptit.shoe_shop.common.enums.RoleEnum.ADMIN;
+import static vn.edu.ptit.shoe_shop.common.enums.RoleEnum.SUPER_ADMIN;
 import static vn.edu.ptit.shoe_shop.common.enums.RoleEnum.MANAGER;
 
 @Configuration
@@ -59,7 +60,13 @@ public class SecurityConfiguration {
             "/api/v1/auth/forgot-password",
             "/api/v1/auth/reset-password",
             "/api/v1/auth/verify-otp",
-            "/api/v1/users/{id}"
+            "/api/v1/users/{id}",
+            // WebSocket endpoints
+            "/ws/**",
+            "/ws",
+            // Chat endpoints - authenticated users
+            "/api/v1/chat/**",
+            "/api/v1/conversations/**"
     };
 
     @Bean
@@ -81,6 +88,15 @@ public class SecurityConfiguration {
                                 .requestMatchers(HttpMethod.GET, "/api/v1/products/**").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/categories/**").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/coupons/**").permitAll()
+                                // WebSocket handshake - bypass auth temporarily for handshake
+                                .requestMatchers("/ws/**").permitAll()
+                                .requestMatchers("/api/v1/chat/conversations/ensure").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/v1/conversations/**").permitAll()
+                                .requestMatchers(HttpMethod.POST, "/api/v1/chat/**").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/v1/chat/messages/**").permitAll()
+                                .requestMatchers( "/api/v1/users/**").hasAnyRole(SUPER_ADMIN.name())
+                                .requestMatchers("/api/v1/roles/**").hasRole(SUPER_ADMIN.name())
+                                .requestMatchers("/api/v1/permissions/**").hasRole(SUPER_ADMIN.name())
                                 .anyRequest()
                                 .authenticated()
                                 // .permitAll()

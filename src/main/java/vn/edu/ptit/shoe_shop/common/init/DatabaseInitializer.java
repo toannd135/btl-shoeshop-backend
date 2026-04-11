@@ -143,7 +143,7 @@ public class DatabaseInitializer implements CommandLineRunner {
                                 this.permissionRepository.saveAll(permissions);
                         }
                         if (countRole == 0) {
-                                List<Permission> allPermissions = new ArrayList<>();
+                                List<Permission> allPermissions = permissionRepository.findAll();
                                 Role role = new Role();
                                 role.setName("SUPER_ADMIN");
                                 role.setCode("ROLE_SUPER_ADMIN");
