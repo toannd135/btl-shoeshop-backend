@@ -14,15 +14,17 @@ import vn.edu.ptit.shoe_shop.common.security.SecurityUtils;
 import vn.edu.ptit.shoe_shop.entity.Permission;
 import vn.edu.ptit.shoe_shop.entity.Role;
 import vn.edu.ptit.shoe_shop.entity.User;
-import vn.edu.ptit.shoe_shop.service.UserService;
+import vn.edu.ptit.shoe_shop.repository.UserRepository;
 
 import java.nio.file.AccessDeniedException;
 import java.util.List;
+import java.util.UUID;
+
 
 @Component
 public class PermissionInterceptor implements HandlerInterceptor {
    @Autowired
-   private UserService userService;
+   private UserRepository userRepository;
 
    private static final Logger log = LoggerFactory.getLogger(PermissionInterceptor.class);
 
@@ -36,39 +38,45 @@ public class PermissionInterceptor implements HandlerInterceptor {
        String httpMethod = request.getMethod();
        log.debug("Checking permission for path: {}", path);
        log.debug("HTTP Method: {}", httpMethod);
-       // check permission
-       String email = SecurityUtils.getCurrentUserLogin().orElse("");
-       if (email != null && !email.isEmpty() && !email.equals("anonymousUser")) {
-           log.debug("Authenticated user: {}", email);
-           User user = null;
-           try {
-               user = this.userService.getUserByUsernameOrEmail(email);
-           } catch (Exception e) {
-               log.error("User not found in DB: {}", email);
-           }
+       if (path.startsWith("/api/v1/products") && httpMethod.equals("GET")) {
+           return true;
+       }
+       if (path.startsWith("/api/v1/categories") && httpMethod.equals("GET")) {
+           return true;
+       }
+       if (path.startsWith("/api/v1/coupons/**") && httpMethod.equals("GET")) {
+           return true;
+       }
 
+       // check permission
+       UUID userid = SecurityUtils.getCurrentUserId();
+
+       if (userid != null) {
+           User user = this.userRepository.findByUserId(userid).orElse(null);
            if (user != null) {
                Role role = user.getRole();
                if (role != null) {
                    List<Permission> permissions = role.getPermissions();
                    boolean isAllow = permissions.stream().anyMatch(p ->
-                           p.getApiPath().equals(path) && p.getMethod().equalsIgnoreCase(httpMethod));
-                   // neu khong co quyen
+                           p.getApiPath().equals(path)
+                                   && p.getMethod().equalsIgnoreCase(httpMethod)
+                   );
                    if (!isAllow) {
-                       log.warn("Permission DENIED for user: {} | path: {} | method: {}", email, path, httpMethod);
+                       log.warn("Permission DENIED for userId: {} | path: {} | method: {}",
+                               userid, path, httpMethod);
                        throw new AccessDeniedException("User don't have permission to access this resource");
                    }
-                   log.info("Permission GRANTED for user: {} | path: {} | method: {}", email, path, httpMethod);
+                   log.info("Permission GRANTED for userId: {} | path: {} | method: {}",
+                           userid, path, httpMethod);
                } else {
-                   log.error("User {} has no role assigned!", email);
+                   log.error("UserId {} has no role assigned!", userid);
                    throw new AccessDeniedException("User don't have permission to access this resource");
                }
+
+           } else {
+               log.warn("User not found in DB for userId: {}", userid);
            }
-           else {
-               // User not found in DB but email was present.
-               // This can happen if the token is valid but the user was deleted or it's a public endpoint with an old token.
-               log.warn("User not found in DB for email: {}. Allowing request if it's a public endpoint or will be blocked by Security.", email);
-           }
+
        } else {
            log.debug("No authenticated user or anonymous user");
        }

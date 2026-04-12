@@ -5,9 +5,9 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
-public class PermissionIntercepterConfiguration implements WebMvcConfigurer {
+public class PermissionInterceptorConfiguration implements WebMvcConfigurer {
    @Bean
-   PermissionInterceptor permissionIntercepter() {
+   PermissionInterceptor permissionInterceptor() {
        return new PermissionInterceptor();
    }
 
@@ -15,6 +15,7 @@ public class PermissionIntercepterConfiguration implements WebMvcConfigurer {
    public void addInterceptors(InterceptorRegistry registry) {
        String[] whiteList = {
                "/",
+               "/api/v1/recommend-products/**",
                "/api/v1/auth/refresh-token",
                "/api/v1/auth/login",
                "/api/v1/auth/register",
@@ -27,10 +28,14 @@ public class PermissionIntercepterConfiguration implements WebMvcConfigurer {
                "/storage/**",
                "/v3/api-docs/**",
                "/swagger-ui/**",
-               "/swagger-ui.html"
+               "/swagger-ui.html",
+               "/ws/**",
+               "/ws",
+               "/api/v1/chat/**",
+               "/api/v1/conversations/**"
        };
 
-       registry.addInterceptor(permissionIntercepter())
+       registry.addInterceptor(permissionInterceptor())
                .addPathPatterns("/**")
                .excludePathPatterns(whiteList);
    }
