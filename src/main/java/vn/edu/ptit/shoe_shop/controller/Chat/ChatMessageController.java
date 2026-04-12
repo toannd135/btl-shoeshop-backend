@@ -51,13 +51,13 @@ public class ChatMessageController {
     @GetMapping("/messages")
     public Page<ChatMessageResponse> listMessages(
             @RequestParam String conversationId,
-            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "asc") String direction) {
 
         // đảm bảo page và size hợp lệ
-        page = Math.max(page, 1);
+        page = Math.max(page, 0);
         size = Math.min(Math.max(size, 1), 100);
 
         // chỉ cho phép sort theo createdAt
@@ -69,7 +69,7 @@ public class ChatMessageController {
                 ? Sort.by(sortBy).ascending()
                 : Sort.by(sortBy).descending();
 
-        Pageable pageable = PageRequest.of(page - 1, size, sort);
+        Pageable pageable = PageRequest.of(page, size, sort);
 
         UUID viewerId = securityUtil.getCurrentUserId();
         return messageService.listByConversation(conversationId, viewerId.toString(), pageable);

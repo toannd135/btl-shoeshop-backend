@@ -48,7 +48,7 @@ import vn.edu.ptit.shoe_shop.repository.OrderRepository;
 import vn.edu.ptit.shoe_shop.service.impl.OrderPaymentService;
 
 @RestController
-@RequestMapping ("api/v1/payment")
+@RequestMapping("api/v1/payment")
 @RequiredArgsConstructor
 public class PaymentController {
 
@@ -72,7 +72,7 @@ public class PaymentController {
             throw new IdInvalidException("Id không đúng định dạng!");
         }
         try {
-            
+
             Order order = orderRepository.findByOrderId(UUID.fromString(orderId))
                     .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
 
@@ -97,15 +97,12 @@ public class PaymentController {
                 return handleCashPayment(order);
             } else {
                 return ResponseEntity.badRequest().body(
-                        Map.of("error", "Invalid payment method")
-                );
+                        Map.of("error", "Invalid payment method"));
             }
-
 
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(
-                    Map.of("error", "Payment creation failed: " + e.getMessage())
-            );
+                    Map.of("error", "Payment creation failed: " + e.getMessage()));
         }
     }
 
@@ -195,7 +192,7 @@ public class PaymentController {
                 .order(order)
                 .paymentMethod(PaymentMethodEnum.COD)
                 .amount(order.getFinalPrice())
-                .paymentStatus(PaymentStatusEnum.PENDING)
+                .paymentStatus(PaymentStatusEnum.UNPAID)
                 .createdAt(Instant.now())
                 .build();
         paymentRepository.save(payment);
@@ -229,8 +226,7 @@ public class PaymentController {
 
         if (!PaymentMethodEnum.COD.equals(payment.getPaymentMethod())) {
             return ResponseEntity.badRequest().body(
-                    Map.of("error", "Payment method is not CASH")
-            );
+                    Map.of("error", "Payment method is not CASH"));
         }
 
         payment.setPaymentStatus(PaymentStatusEnum.COMPLETED);
@@ -280,7 +276,8 @@ public class PaymentController {
                 orderRepository.save(order);
 
                 vnpayApiResponse.setStatusCode(HttpStatus.OK.value());
-                vnpayApiResponse.setMessage("Thanh toán thành công! Đơn hàng #" + order.getOrderId().toString() + " đã được xác nhận.");
+                vnpayApiResponse.setMessage(
+                        "Thanh toán thành công! Đơn hàng #" + order.getOrderId().toString() + " đã được xác nhận.");
 
             } else {
                 // THANH TOÁN THẤT BẠI - HUỶ ORDER
@@ -290,7 +287,8 @@ public class PaymentController {
                 cancelOrderAndRestoreStock(order);
 
                 vnpayApiResponse.setStatusCode(HttpStatus.BAD_REQUEST.value());
-                vnpayApiResponse.setMessage("Thanh toán thất bại! Đơn hàng #" + order.getOrderId().toString() + " đã bị huỷ. Mã lỗi: " + responseCode);
+                vnpayApiResponse.setMessage("Thanh toán thất bại! Đơn hàng #" + order.getOrderId().toString()
+                        + " đã bị huỷ. Mã lỗi: " + responseCode);
             }
 
         } catch (Exception e) {
@@ -306,10 +304,10 @@ public class PaymentController {
     @PutMapping("/{paymentId}/status")
     public ResponseEntity<?> updatePaymentStatus(
             @PathVariable String paymentId,
-                @RequestParam PaymentStatusEnum status) {  // URL: /api/payment/10/status?status=COMPLETED
+            @RequestParam PaymentStatusEnum status) { // URL: /api/payment/10/status?status=COMPLETED
 
-                    PaymentResponse paymentResponse = orderPaymentService.updatePaymentStatus(paymentId, status);
-                    return ResponseEntity.ok(paymentResponse);
+        PaymentResponse paymentResponse = orderPaymentService.updatePaymentStatus(paymentId, status);
+        return ResponseEntity.ok(paymentResponse);
     }
 
     // HUỶ ORDER, TRẢ LẠI STOCK
