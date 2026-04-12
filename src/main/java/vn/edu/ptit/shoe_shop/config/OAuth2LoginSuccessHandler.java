@@ -99,7 +99,7 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
 
             response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
 
-            String targetUrl = domain + "/oauth2/redirect?token=" + accessToken;
+            String targetUrl = domain + "/api/v1/auth/oauth2-success?token=" + accessToken;
             getRedirectStrategy().sendRedirect(request, response, targetUrl);
 
         } catch (Exception e) {

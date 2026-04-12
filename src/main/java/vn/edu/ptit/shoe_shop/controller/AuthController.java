@@ -40,6 +40,9 @@ public class AuthController {
     @Value("${app.jwt.refresh-token-validity-in-seconds}")
     private Long refreshTokenExpiration;
 
+    @Value("${app.frontendUrl}")
+    private String domain;
+
     @PostMapping("/login")
     @ApiMessage("Login successful")
     public ResponseEntity<LoginResponseDTO> login(
@@ -147,13 +150,18 @@ public class AuthController {
     public ModelAndView verifyAccount(@RequestParam("token") String token) {
         try {
             userService.verifyUser(token);
-            return new ModelAndView("registerConfirmationSuscessfully");
+            ModelAndView mav = new ModelAndView("registerConfirmationSuscessfully");
+            mav.addObject("frontendUrl", domain);
+            return mav;
         } catch (TokenExpiredOrUsedException e) {
             ModelAndView mav = new ModelAndView("registerConfirmationSuscessfully");
             mav.addObject("message", "Tài khoản của bạn đã được xác thực trước đó.");
+            mav.addObject("frontendUrl", domain);
             return mav;
         } catch (Exception e) {
-            return new ModelAndView("registerConfirmationFail");
+            ModelAndView mav = new ModelAndView("registerConfirmationFail");
+            mav.addObject("frontendUrl", domain);
+            return mav;
         }
     }
 
@@ -163,6 +171,14 @@ public class AuthController {
             return ResponseEntity.status(401).body("Unauthorized");
         }
         return ResponseEntity.ok(principal.getAttributes());
+    }
+
+    @GetMapping("/oauth2-success")
+    public ModelAndView oauth2Success(@RequestParam("token") String token) {
+        ModelAndView mav = new ModelAndView("oauth2Success");
+        mav.addObject("token", token);
+        mav.addObject("frontendUrl", domain);
+        return mav;
     }
 
     @PostMapping("/forgot-password")

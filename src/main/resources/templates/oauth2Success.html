@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Xác thực thất bại</title>
+    <title>Đăng nhập thành công</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background: #fff1f2;
+            background: #f0fdf4; /* nền xanh lá rất nhạt */
             margin: 0;
             padding: 0;
             display: flex;
@@ -20,13 +20,13 @@
             background: #ffffff;
             padding: 40px 50px;
             border-radius: 14px;
-            box-shadow: 0 6px 20px rgba(220, 38, 38, 0.15);
-            border-top: 6px solid #b91c1c;
+            box-shadow: 0 6px 20px rgba(22, 163, 74, 0.15);
+            border-top: 6px solid #16a34a; /* viền xanh lá trên */
         }
         .icon {
             width: 90px;
             height: 90px;
-            background: #fee2e2;
+            background: #dcfce7; /* xanh lá nhạt */
             border-radius: 50%;
             display: flex;
             justify-content: center;
@@ -36,12 +36,12 @@
         .icon svg {
             width: 48px;
             height: 48px;
-            stroke: #b91c1c;
+            stroke: #16a34a; /* xanh lá chủ đạo */
             stroke-width: 2.5;
             fill: none;
         }
         h2 {
-            color: #991b1b;
+            color: #15803d; /* xanh lá đậm */
             margin-bottom: 10px;
         }
         p {
@@ -52,7 +52,7 @@
         a {
             display: inline-block;
             padding: 12px 22px;
-            background: #dc2626;
+            background: #16a34a;
             color: white;
             text-decoration: none;
             font-weight: bold;
@@ -60,36 +60,27 @@
             transition: 0.3s ease;
         }
         a:hover {
-            background: #b91c1c;
+            background: #15803d;
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(220,38,38,0.3);
-        }
-        .secondary-btn {
-            background: #ffffff;
-            color: #dc2626;
-            border: 2px solid #dc2626;
-            margin-left: 10px;
-        }
-        .secondary-btn:hover {
-            background: #fee2e2;
+            box-shadow: 0 4px 12px rgba(22,163,74,0.3);
         }
     </style>
 </head>
 <body>
 <div class="container">
     <div class="icon">
-        <!-- Red X Icon -->
         <svg viewBox="0 0 24 24">
             <circle cx="12" cy="12" r="9"></circle>
-            <path d="M9 9l6 6M15 9l-6 6"></path>
+            <path d="M8 12.5l2.2 2.2L16 9"></path>
         </svg>
     </div>
 
-    <h2>Xác thực thất bại!</h2>
-    <p>Liên kết xác thực không hợp lệ hoặc đã hết hạn.<br>
-        Vui lòng thử lại hoặc yêu cầu gửi lại email xác thực.</p>
+    <h2>Đăng nhập thành công!</h2>
+    <p>Chào mừng bạn đã quay trở lại Shoeshop.<br>
+        Quá trình đăng nhập bằng Google đã hoàn tất.</p>
 
-    <a th:href="${frontendUrl ?: 'https://shoeshopecommerce.dpdns.org'} + '/register'">Đăng ký lại</a>
+    <!-- Chúng ta sẽ dùng domain cấu hình hoặc mặc định về frontend -->
+    <a th:href="${frontendUrl ?: 'http://localhost:5173'}">Truy cập vào cửa hàng</a>
 </div>
 </body>
 </html>
