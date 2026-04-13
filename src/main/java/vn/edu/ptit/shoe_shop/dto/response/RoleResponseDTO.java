@@ -20,6 +20,7 @@ public class RoleResponseDTO {
     @Getter
     @Setter
     public static class PermissionRoleRequestDTO {
+        private String permissionId;
         private String name;
     }
 
