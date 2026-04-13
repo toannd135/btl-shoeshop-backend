@@ -9,6 +9,8 @@ import lombok.Setter;
 @Setter
 public class RoleUpdateRequestDTO {
     private String status;
+    private String description;
+    private boolean clearAll;
 
     private List<RolePermissionUpdateRequestDTO> permissions;
 

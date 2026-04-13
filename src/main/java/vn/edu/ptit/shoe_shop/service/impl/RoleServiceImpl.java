@@ -19,6 +19,7 @@ import vn.edu.ptit.shoe_shop.repository.RoleRepository;
 import vn.edu.ptit.shoe_shop.repository.RoleRepositoryCustom;
 import vn.edu.ptit.shoe_shop.service.RoleService;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -62,13 +63,30 @@ public class RoleServiceImpl implements RoleService {
         Role role = this.roleRepository.findByRoleId(id)
                 .orElseThrow(() -> new IdInvalidException("Role not found"));
         this.roleMapper.updateRoleEntityToDto(roleUpdateRequestDTO, role);
-        if (roleUpdateRequestDTO.getPermissions() != null) {
-            List<UUID> permissions = roleUpdateRequestDTO.getPermissions()
+        if (roleUpdateRequestDTO.isClearAll()) {
+            role.setPermissions(new ArrayList<>());
+        }
+
+        if (roleUpdateRequestDTO.getPermissions() != null && !roleUpdateRequestDTO.getPermissions().isEmpty()) {
+            List<UUID> permissionIds = roleUpdateRequestDTO.getPermissions()
                     .stream()
                     .map(RoleUpdateRequestDTO.RolePermissionUpdateRequestDTO::getId)
                     .collect(Collectors.toList());
-            List<Permission> dbPermissions = this.permissionRepository.findByPermissionIdIn(permissions);
-            role.setPermissions(dbPermissions);
+            List<Permission> dbPermissions = this.permissionRepository.findByPermissionIdIn(permissionIds);
+
+            List<Permission> currentPermissions = role.getPermissions();
+            if (currentPermissions == null) {
+                currentPermissions = new ArrayList<>();
+            }
+
+            for (Permission p : dbPermissions) {
+                boolean exists = currentPermissions.stream()
+                        .anyMatch(cp -> cp.getPermissionId().equals(p.getPermissionId()));
+                if (!exists) {
+                    currentPermissions.add(p);
+                }
+            }
+            role.setPermissions(currentPermissions);
         }
         return this.roleMapper.toResponseDTO(this.roleRepository.save(role));
     }
