@@ -4,12 +4,15 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import vn.edu.ptit.shoe_shop.common.security.SecurityUtils;
+import vn.edu.ptit.shoe_shop.common.utils.annotation.ApiMessage;
 import vn.edu.ptit.shoe_shop.dto.response.Chat.ConversationItemResponse;
 import vn.edu.ptit.shoe_shop.dto.response.Chat.ListConversationForAdminResponse;
 import vn.edu.ptit.shoe_shop.service.ConversationService;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,5 +30,12 @@ public class ConversationController {
     public ListConversationForAdminResponse getAllConversations() {
         UUID viewerId = securityUtil.getCurrentUserId();
         return conversationService.listConversationsForAdmin(viewerId);
+    }
+
+    @PutMapping("/{conversationId}/read")
+    @ApiMessage("Mark conversation as read")
+    public void markAsRead(@PathVariable String conversationId) {
+        UUID adminId = securityUtil.getCurrentUserId();
+        conversationService.markConversationAsRead(UUID.fromString(conversationId), adminId);
     }
 }

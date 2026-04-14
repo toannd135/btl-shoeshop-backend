@@ -25,12 +25,27 @@ public interface ConversationRepository extends JpaRepository<Conversation, UUID
      * Cập nhật nhanh lastMessage và updatedAt của Conversation
      * mà không cần load entity lên Hibernate.
      */
-    @Modifying
-    @Query("""
+            @Modifying
+            @Query("""
             UPDATE Conversation c
             SET c.lastMessage = :content,
                 c.updatedAt = CURRENT_TIMESTAMP
             WHERE c.conversationId = :id
             """)
-    void updateLastMessage(UUID id, String content);
+            void updateLastMessage(UUID id, String content);
+
+            /**
+             * Đánh dấu admin đã đọc một conversation.
+             */
+            @Modifying
+            @Query("UPDATE Conversation c SET c.isReadByAdmin = true WHERE c.conversationId = :id")
+            void markAsReadByAdmin(UUID id);
+
+            /**
+             * Đánh dấu admin chưa đọc (khi có tin nhắn mới từ user gửi vào).
+             */
+            @Modifying
+            @Query("UPDATE Conversation c SET c.isReadByAdmin = false WHERE c.conversationId = :id")
+            void markAsUnreadByAdmin(UUID id);
+        
 }

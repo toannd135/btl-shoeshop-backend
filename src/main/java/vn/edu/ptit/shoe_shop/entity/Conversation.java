@@ -43,4 +43,13 @@ public class Conversation {
     @UpdateTimestamp
     Instant updatedAt;
 
+    /**
+     * Admin đã đọc cuộc trò chuyện này chưa.
+     * true = đã đọc (hoặc đang đọc), false = chưa đọc (cần hiện badge đỏ).
+     * Chỉ dùng cho phía admin; user không dùng trường này.
+     */
+    @Column(name = "admin_read", nullable = false)
+    @Builder.Default
+    boolean isReadByAdmin = false;
+
 }

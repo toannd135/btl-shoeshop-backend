@@ -29,7 +29,7 @@ public class ConversationServiceImpl implements ConversationService {
     private final ConversationRepository conversationRepository;
     private final UserRepository userRepository;
     private final ChatMessageRepository chatMessageRepository;
-    public static final String DEFAULT_ADMIN_ID = "e6607943-e7a0-4102-8344-f6798aee81c2";
+    public static final String DEFAULT_ADMIN_ID = "8d838a9d-dea6-4140-b348-dee5d4a9d160";
 
     @Transactional
     public Conversation addConversation(UUID userId) {
@@ -69,12 +69,13 @@ public class ConversationServiceImpl implements ConversationService {
 
         return conversations.stream().map(c -> {
             User counterpart = isAdminViewer ? c.getUser() : c.getAdmin();
-            return ConversationItemResponse.builder()
-                    .conversationId(c.getConversationId().toString())
-                    .senderSummary(toSenderSummary(counterpart))
-                    .lastMessage(c.getLastMessage())
-                    .updatedAt(c.getUpdatedAt())
-                    .build();
+                    return ConversationItemResponse.builder()
+                            .conversationId(c.getConversationId().toString())
+                            .senderSummary(toSenderSummary(counterpart))
+                            .lastMessage(c.getLastMessage())
+                            .updatedAt(c.getUpdatedAt())
+                            .isRead(c.isReadByAdmin())
+                            .build();
         }).toList();
     }
 
@@ -89,9 +90,16 @@ public class ConversationServiceImpl implements ConversationService {
                             .senderSummary(toSenderSummary(user))
                             .lastMessage(c.getLastMessage())
                             .updatedAt(c.getUpdatedAt())
+                            .isRead(c.isReadByAdmin())
                             .build();
                 }).toList())
                 .build();
+    }
+
+    @Override
+    @Transactional
+    public void markConversationAsRead(UUID conversationId, UUID adminId) {
+        conversationRepository.markAsReadByAdmin(conversationId);
     }
 
 }

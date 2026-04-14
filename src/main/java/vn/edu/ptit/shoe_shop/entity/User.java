@@ -90,7 +90,7 @@ public class User {
     @Column(name = "updated_by")
     private String updatedBy;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "role_id", nullable = false)
     private Role role;
 

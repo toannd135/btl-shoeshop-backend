@@ -54,7 +54,7 @@ public class ChatMessageController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
-            @RequestParam(defaultValue = "asc") String direction) {
+            @RequestParam(defaultValue = "desc") String direction) {
 
         // đảm bảo page và size hợp lệ
         page = Math.max(page, 0);
@@ -66,7 +66,7 @@ public class ChatMessageController {
         }
 
         Sort sort = "asc".equalsIgnoreCase(direction)
-                ? Sort.by(sortBy).ascending()
+                ? Sort.by(sortBy).descending()
                 : Sort.by(sortBy).descending();
 
         Pageable pageable = PageRequest.of(page, size, sort);

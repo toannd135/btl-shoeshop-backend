@@ -20,25 +20,22 @@ import vn.edu.ptit.shoe_shop.service.ChatMessageService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class ChatMessageServiceImpl implements ChatMessageService {
-    private final ConversationRepository conversationRepository;
-    private final ChatMessageRepository chatMessageRepository;
-    private final UserRepository userRepository;
-    private final ConversationServiceImpl conversationServiceImpl;
-    private final SimpMessagingTemplate messagingTemplate;
+    final ConversationRepository conversationRepository;
+    final ChatMessageRepository chatMessageRepository;
+    final UserRepository userRepository;
+    final ConversationServiceImpl conversationServiceImpl;
+    final SimpMessagingTemplate messagingTemplate;
 
     public SenderSummary toSenderSummary(User user) {
         return SenderSummary.builder()
@@ -63,7 +60,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
     @Transactional
     public ChatMessageResponse send(ChatMessageRequest req, UUID senderID) {
         if (req.getContent() == null || req.getContent().isBlank()) {
-            throw new IllegalArgumentException("Nội dung tin nhắn trống");
+            throw new IllegalArgumentException("Content is blank");
         }
 
         final String ADMIN_ID = ConversationServiceImpl.DEFAULT_ADMIN_ID;
@@ -72,56 +69,56 @@ public class ChatMessageServiceImpl implements ChatMessageService {
 
         UUID userId;
         if (Objects.equals(sender.getUserId().toString(), ADMIN_ID)) {
-            // Admin gửi: bắt buộc targetUserId
             if (req.getReceiverId() == null) {
-                throw new IllegalArgumentException("Admin gửi tin phải chỉ định targetUserId");
+                throw new IllegalArgumentException("Admin must specify receiverId");
             }
             userId = UUID.fromString(req.getReceiverId());
         } else {
-            // User gửi: luôn chat với admin cố định
             userId = sender.getUserId();
         }
 
-        // Luôn đảm bảo có phòng user <-> admin
         Conversation conv = conversationServiceImpl.addConversation(userId);
 
-        // Lưu message
         Message m = new Message();
         m.setConversation(conv);
         m.setSender(sender);
         m.setContent(req.getContent());
-        // createdAt do @CreationTimestamp lo
         chatMessageRepository.save(m);
 
-        // update conversation nhanh hơn
-        conversationRepository.updateLastMessage(
-                conv.getConversationId(),
-                req.getContent());
+        conversationRepository.updateLastMessage(conv.getConversationId(), req.getContent());
 
-        // public socket event to client is conversation
+        // User sends message -> mark as unread for admin
+        // Admin sends message -> keep read status (admin just interacted)
+        boolean isSenderAdmin = Objects.equals(sender.getUserId().toString(), ADMIN_ID);
+        if (!isSenderAdmin) {
+            conversationRepository.markAsUnreadByAdmin(conv.getConversationId());
+        }
+
         ChatMessageResponse response = toMessageResponse(m, sender.getUserId().toString());
-        messagingTemplate.convertAndSend(
-                "/topic/conversation/" + conv.getConversationId(),
-                response);
 
-        // “currentUserId” để set cờ me — ở đây mình coi người gửi là current
+        // Per-conversation broadcast (for client already open in this conversation)
+        messagingTemplate.convertAndSend("/topic/conversation/" + conv.getConversationId(), response);
+
+        // Global broadcast: all admins receive to update conversationsList realtime
+        messagingTemplate.convertAndSend("/topic/chat", response);
+
         return response;
     }
 
     @Transactional(readOnly = true)
-
     public Page<ChatMessageResponse> listByConversation(String conversationId, String viewerId, Pageable pageable) {
         UUID conversationIdUUID;
         try {
             conversationIdUUID = UUID.fromString(conversationId);
         } catch (IllegalArgumentException e) {
-            throw new IdInvalidException("Id không đúng định dạng UUID nhé");
+            throw new IdInvalidException("Invalid UUID format");
         }
-        // Đảm bảo sắp xếp theo createdAt tăng dần (cũ nhất lên trước)
+
+        // pageable chứa cả filter (conversationId) và Sort (DESC/ASC)
+        // Dùng method có filter + pageable để Spring Data hiểu đúng
         Page<Message> page = chatMessageRepository
-                .findAllByConversationConversationIdOrderByCreatedAtAsc(conversationIdUUID, pageable);
+                .findByConversationConversationId(conversationIdUUID, pageable);
 
         return page.map(m -> toMessageResponse(m, viewerId));
     }
-
 }

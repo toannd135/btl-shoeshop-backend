@@ -17,4 +17,6 @@ public interface ConversationService {
     List<ConversationItemResponse> listConversationsForViewer(UUID viewerId);
 
     ListConversationForAdminResponse listConversationsForAdmin(UUID adminId);
+
+    void markConversationAsRead(UUID conversationId, UUID adminId);
 }

@@ -18,4 +18,9 @@ public class ConversationItemResponse {
     String lastMessage;
     Instant updatedAt;
     SenderSummary senderSummary;
+    /**
+     * Admin đã đọc cuộc trò chuyện này chưa.
+     * true = đã đọc, false = chưa đọc (frontend hiện badge đỏ).
+     */
+    boolean isRead;
 }
