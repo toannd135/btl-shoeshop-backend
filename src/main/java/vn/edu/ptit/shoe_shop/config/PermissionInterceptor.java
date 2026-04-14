@@ -38,15 +38,15 @@ public class PermissionInterceptor implements HandlerInterceptor {
        String httpMethod = request.getMethod();
        log.debug("Checking permission for path: {}", path);
        log.debug("HTTP Method: {}", httpMethod);
-       if (path.startsWith("/api/v1/products") && httpMethod.equals("GET")) {
-           return true;
-       }
-       if (path.startsWith("/api/v1/categories") && httpMethod.equals("GET")) {
-           return true;
-       }
-       if (path.startsWith("/api/v1/coupons/**") && httpMethod.equals("GET")) {
-           return true;
-       }
+    //    if (path.startsWith("/api/v1/products") && httpMethod.equals("GET")) {
+    //        return true;
+    //    }
+    //    if (path.startsWith("/api/v1/categories") && httpMethod.equals("GET")) {
+    //        return true;
+    //    }
+    //    if (path.startsWith("/api/v1/coupons/**") && httpMethod.equals("GET")) {
+    //        return true;
+    //    }
 
        // check permission
        UUID userid = SecurityUtils.getCurrentUserId();

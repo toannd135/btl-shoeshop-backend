@@ -15,6 +15,10 @@ public class PermissionInterceptorConfiguration implements WebMvcConfigurer {
    public void addInterceptors(InterceptorRegistry registry) {
        String[] whiteList = {
                "/",
+               "/api/v1/products/**",
+               "/api/v1/categories/**",
+               "/api/v1/coupons/**",
+               
                "/api/v1/recommend-products/**",
                "/api/v1/auth/refresh-token",
                "/api/v1/auth/login",
