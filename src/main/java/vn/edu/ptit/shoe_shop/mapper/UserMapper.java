@@ -1,9 +1,7 @@
 package vn.edu.ptit.shoe_shop.mapper;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
-import org.mapstruct.Named;
+import org.mapstruct.*;
+import vn.edu.ptit.shoe_shop.dto.request.UpdateInfoUserRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.request.UserCreateRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.request.UserUpdateRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.request.auth.RegisterRequestDTO;
@@ -48,11 +46,8 @@ public interface UserMapper {
     @Mapping(target = "status", ignore = true)
     User registerDTOToUser(RegisterRequestDTO dto);
 
-
-
-
-
-
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    User updateInfoFromDto(UpdateInfoUserRequestDTO dto, @MappingTarget User user);
 
 
     @Named("normalizeName")

@@ -17,6 +17,9 @@ import vn.edu.ptit.shoe_shop.common.enums.ProviderEnum;
 import vn.edu.ptit.shoe_shop.common.enums.RoleEnum;
 import vn.edu.ptit.shoe_shop.common.enums.StatusEnum;
 import vn.edu.ptit.shoe_shop.common.exception.TokenExpiredOrUsedException;
+import vn.edu.ptit.shoe_shop.common.security.SecurityUtils;
+import vn.edu.ptit.shoe_shop.dto.request.UpdateInfoUserRequestDTO;
+import vn.edu.ptit.shoe_shop.dto.request.auth.PasswordChangeRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.request.auth.RegisterRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.request.search.UserSearchRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.response.page.UserPageResponseDTO;
@@ -290,5 +293,29 @@ public class UserServiceImpl implements UserService {
         return "Account verified successfully";
     }
 
-    
+    @Override
+    public String changePassword(PasswordChangeRequestDTO request) {
+        UUID userId = SecurityUtils.getCurrentUserId();
+        User user = this.userRepository.findByUserId(userId)
+                .orElseThrow(() -> new IdInvalidException("User not found"));
+        if (!this.passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("Current password is incorrect");
+        }
+        user.setPassword(this.passwordEncoder.encode(request.getNewPassword()));
+        this.userRepository.save(user);
+        return "User changed password successfully";
+    }
+
+    @Override
+    public UserResponseDTO updateInfoUser(UpdateInfoUserRequestDTO request) {
+        UUID userId = SecurityUtils.getCurrentUserId();
+        User user = this.userRepository.findByUserId(userId)
+                .orElseThrow(() -> new IdInvalidException("User not found"));
+        this.userMapper.updateInfoFromDto(request, user);
+        this.userRepository.save(user);
+        log.info("User updated info successfully. id={}", user.getUserId());
+        return this.userMapper.toResponseDTO(user);
+    }
+
+
 }

@@ -104,7 +104,7 @@ public class CategoryServiceImpl implements CategoryService {
         return toResponse(updated);
         }
 
-    @CacheEvict(value = "categories", key = "#id") // chỉ clear category này
+    @CacheEvict(value = "categories", allEntries = true)
     public void delete(UUID id) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found"));

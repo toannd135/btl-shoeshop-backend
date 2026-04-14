@@ -8,8 +8,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import vn.edu.ptit.shoe_shop.dto.request.UpdateInfoUserRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.request.UserCreateRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.request.UserUpdateRequestDTO;
+import vn.edu.ptit.shoe_shop.dto.request.auth.PasswordChangeRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.request.search.UserSearchRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.response.UserResponseDTO;
 import vn.edu.ptit.shoe_shop.dto.response.page.UserPageResponseDTO;
@@ -90,5 +92,4 @@ public class UserController {
         return ResponseEntity.ok().body(userPageResponseDTO);
     }
 
-    
 }
