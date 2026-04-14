@@ -19,7 +19,7 @@ public class ShippingServiceImpl implements ShippingService {
 
     @Override
     public BigDecimal calculateFee(String provinceCode, Cart cart) {
-        return new BigDecimal(0);
+        return new BigDecimal(30000);
     }
 
     /**
