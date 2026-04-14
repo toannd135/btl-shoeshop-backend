@@ -23,7 +23,7 @@ import java.util.List;
 @RequestMapping("/api/v1/admin")
 @RequiredArgsConstructor
 // @PreAuthorize("hasRole('ADMIN')") // Mở ra khi có bảo mật
-public class ReportController {
+public class    ReportController {
 
     private final ReportService reportService;
     private final ReportExportService reportExportService;
