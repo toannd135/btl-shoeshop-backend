@@ -19,6 +19,7 @@ public interface RoleMapper {
     @Mapping(target = "code", source = "code", qualifiedByName = "normalizerRoleCode")
     RoleResponseDTO toResponseDTO(Role role);
 
+    @Mapping(target = "permissions", ignore = true)
     void updateRoleEntityToDto(RoleUpdateRequestDTO roleUpdateRequestDTO, @MappingTarget Role role);
 
     @Named("normalizerRoleName")

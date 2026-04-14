@@ -46,6 +46,13 @@ public class ReviewController {
         return ResponseEntity.noContent().build();
     }
 
+    @DeleteMapping("/admin/{reviewId}")
+    @ApiMessage("Review deleted by admin successfully")
+    public ResponseEntity<Void> adminDeleteReview(@PathVariable UUID reviewId) {
+        reviewService.adminDeleteReview(reviewId);
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/my-reviews")
     @ApiMessage("My reviews retrieved successfully")
     public ResponseEntity<List<ReviewResponse>> getMyReviews() {

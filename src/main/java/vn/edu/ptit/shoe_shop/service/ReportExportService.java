@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.time.Instant;
 
 public interface ReportExportService {
-    public byte[] exportAllReportsToExcel(Instant startDate, Instant endDate,
-                                          int limitProduct, int limitCustomer) throws IOException;
+    byte[] exportAllReportsToExcel(Instant startDate, Instant endDate,
+                                   int limitProduct, int limitCustomer) throws IOException;
+
+    byte[] exportAllReportsToCsv(Instant startDate, Instant endDate,
+                                  int limitProduct, int limitCustomer) throws IOException;
 }

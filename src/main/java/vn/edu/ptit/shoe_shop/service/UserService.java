@@ -1,8 +1,10 @@
 package vn.edu.ptit.shoe_shop.service;
 
 import org.springframework.data.domain.Pageable;
+import vn.edu.ptit.shoe_shop.dto.request.UpdateInfoUserRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.request.UserCreateRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.request.UserUpdateRequestDTO;
+import vn.edu.ptit.shoe_shop.dto.request.auth.PasswordChangeRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.request.auth.RegisterRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.request.search.UserSearchRequestDTO;
 import vn.edu.ptit.shoe_shop.dto.response.UserResponseDTO;
@@ -20,4 +22,6 @@ public interface UserService {
     User getUserByUsernameOrEmail(String username);
     String register(RegisterRequestDTO registerRequestDTO);
     String verifyUser(String token);
+    String changePassword (PasswordChangeRequestDTO request);
+    UserResponseDTO updateInfoUser(UpdateInfoUserRequestDTO request);
 }

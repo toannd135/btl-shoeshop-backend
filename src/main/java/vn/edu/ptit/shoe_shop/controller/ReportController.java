@@ -64,4 +64,24 @@ public class ReportController {
         response.getOutputStream().write(excelData);
         response.flushBuffer();
     }
+
+    // 4. Xuất báo cáo thống kê ra CSV
+    // GET /api/v1/admin/reports/export/csv?startDate=...&endDate=...&limitProduct=5&limitCustomer=5
+    @GetMapping("/reports/export/csv")
+    public void exportCsv(
+            @RequestParam(required = false) Instant startDate,
+            @RequestParam(required = false) Instant endDate,
+            @RequestParam(defaultValue = "5") int limitProduct,
+            @RequestParam(defaultValue = "5") int limitCustomer,
+            HttpServletResponse response) throws IOException {
+
+        byte[] csvData = reportExportService.exportAllReportsToCsv(startDate, endDate, limitProduct, limitCustomer);
+
+        response.setContentType("text/csv; charset=UTF-8");
+        response.setCharacterEncoding("UTF-8");
+        response.setHeader("Content-Disposition", "attachment; filename=thong_ke_tong_hop.csv");
+        response.setContentLength(csvData.length);
+        response.getOutputStream().write(csvData);
+        response.flushBuffer();
+    }
 }

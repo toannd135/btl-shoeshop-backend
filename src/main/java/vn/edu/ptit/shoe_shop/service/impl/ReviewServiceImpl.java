@@ -84,6 +84,13 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Transactional
+    public void adminDeleteReview(UUID reviewId) {
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new RuntimeException("Review not found"));
+        reviewRepository.delete(review);
+    }
+
+    @Transactional
     public List<ReviewResponse> getMyReviews() {
 
         User user = getCurrentUser();
