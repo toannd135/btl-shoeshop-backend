@@ -45,7 +45,8 @@ public class PermissionInterceptorConfiguration implements WebMvcConfigurer {
                 "/ws/**",
                 "/ws",
                 "/api/v1/chat/**",
-                "/api/v1/conversations/**"
+                "/api/v1/conversations/**",
+                "/api/v1/reviews/**"
         };
 
         registry.addInterceptor(permissionInterceptor())

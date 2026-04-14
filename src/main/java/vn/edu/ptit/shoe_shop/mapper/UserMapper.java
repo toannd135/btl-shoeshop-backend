@@ -47,7 +47,10 @@ public interface UserMapper {
     User registerDTOToUser(RegisterRequestDTO dto);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    User updateInfoFromDto(UpdateInfoUserRequestDTO dto, @MappingTarget User user);
+    @Mapping(target = "firstName", ignore = true)   // handled manually in service (split from fullName)
+    @Mapping(target = "lastName", ignore = true)    // handled manually in service (split from fullName)
+    @Mapping(target = "avatarImage", ignore = true) // handled manually in service
+    void updateInfoFromDto(UpdateInfoUserRequestDTO dto, @MappingTarget User user);
 
 
     @Named("normalizeName")

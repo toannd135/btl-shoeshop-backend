@@ -15,6 +15,9 @@ import vn.edu.ptit.shoe_shop.service.ReportService;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -167,4 +170,87 @@ public class ReportExportServiceImpl implements ReportExportService {
         sheet.autoSizeColumn(0);
         sheet.autoSizeColumn(1);
     }
-}
+
+    // ==================== CSV EXPORT ====================
+
+    @Override
+    public byte[] exportAllReportsToCsv(Instant startDate, Instant endDate,
+                                        int limitProduct, int limitCustomer) throws IOException {
+        List<RevenueReportDto> revenueList = reportService.getRevenueReport(startDate, endDate);
+        List<TopProductDto> topProducts = reportService.getTopProducts(startDate, endDate, PageRequest.of(0, limitProduct));
+        List<TopCustomerDto> topCustomers = customerReportService.getTopSpenders(limitCustomer);
+        CustomerOverviewDto overview = customerReportService.getCustomerOverview();
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        // Thêm BOM UTF-8 để Excel mở đúng tiếng Việt
+        out.write(new byte[]{(byte) 0xEF, (byte) 0xBB, (byte) 0xBF});
+
+        try (PrintWriter writer = new PrintWriter(
+                new OutputStreamWriter(out, StandardCharsets.UTF_8), true)) {
+
+            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy").withZone(ZoneOffset.UTC);
+            String startStr = startDate != null ? fmt.format(startDate) : "Không giới hạn";
+            String endStr = endDate != null ? fmt.format(endDate) : "Không giới hạn";
+
+            // ---- Sheet 1: Doanh thu ----
+            writer.println("=== DOANH THU ===");
+            writer.println("Từ ngày: " + startStr + ",Đến ngày: " + endStr);
+            writer.println("Thời gian (ngày/tháng),Tổng doanh thu (VNĐ),Số đơn hàng");
+            for (RevenueReportDto dto : revenueList) {
+                writer.printf("%s,%s,%d%n",
+                        escapeCsv(dto.getReportDate()),
+                        dto.getTotalRevenue().toPlainString(),
+                        dto.getTotalOrders());
+            }
+
+            writer.println();
+
+            // ---- Sheet 2: Top sản phẩm bán chạy ----
+            writer.println("=== TOP SẢN PHẨM BÁN CHẠY ===");
+            writer.println("Mã sản phẩm,Tên sản phẩm,Số lượng bán,Doanh thu (VNĐ)");
+            for (TopProductDto dto : topProducts) {
+                writer.printf("%s,%s,%d,%s%n",
+                        escapeCsv(dto.getProductId()),
+                        escapeCsv(dto.getProductName()),
+                        dto.getTotalSold(),
+                        dto.getTotalRevenue().toPlainString());
+            }
+
+            writer.println();
+
+            // ---- Sheet 3: Top khách hàng VIP ----
+            writer.println("=== TOP KHÁCH HÀNG VIP ===");
+            writer.println("Mã KH,Họ tên,Email,Số điện thoại,Tổng đơn hàng,Tổng chi tiêu (VNĐ)");
+            for (TopCustomerDto dto : topCustomers) {
+                writer.printf("%s,%s,%s,%s,%d,%s%n",
+                        escapeCsv(dto.getUserId()),
+                        escapeCsv(dto.getFullName()),
+                        escapeCsv(dto.getEmail()),
+                        escapeCsv(dto.getPhone()),
+                        dto.getTotalOrders(),
+                        dto.getTotalSpent().toPlainString());
+            }
+
+            writer.println();
+
+            // ---- Sheet 4: Tổng quan khách hàng ----
+            writer.println("=== TỔNG QUAN KHÁCH HÀNG ===");
+            writer.printf("Tổng số khách hàng,%d%n", overview.getTotalCustomers());
+            writer.printf("Số khách hàng mới trong tháng,%d%n", overview.getNewCustomersThisMonth());
+            writer.printf("Số khách hàng đã mua ít nhất 1 đơn,%d%n", overview.getCustomersWithOrders());
+        }
+
+        return out.toByteArray();
+    }
+
+    /**
+     * Escape giá trị CSV: bọc trong dấu ngoặc kép nếu chứa dấu phẩy, ngoặc kép hoặc xuống dòng.
+     */
+    private String escapeCsv(String value) {
+        if (value == null) return "";
+        if (value.contains(",") || value.contains("\"") || value.contains("\n")) {
+            return "\"" + value.replace("\"", "\"\"") + "\"";
+        }
+        return value;
+    }
+}

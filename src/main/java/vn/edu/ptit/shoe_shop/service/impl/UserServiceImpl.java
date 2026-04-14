@@ -311,10 +311,33 @@ public class UserServiceImpl implements UserService {
         UUID userId = SecurityUtils.getCurrentUserId();
         User user = this.userRepository.findByUserId(userId)
                 .orElseThrow(() -> new IdInvalidException("User not found"));
+
+        // Mapper cập nhật phone, gender, dateOfBirth (bỏ qua fullName, avatar)
         this.userMapper.updateInfoFromDto(request, user);
+
+        // Xử lý fullName -> firstName + lastName
+        if (request.getFullName() != null && !request.getFullName().isBlank()) {
+            String fullName = request.getFullName().trim();
+            int lastSpace = fullName.lastIndexOf(' ');
+            if (lastSpace > 0) {
+                user.setLastName(fullName.substring(0, lastSpace).trim());
+                user.setFirstName(fullName.substring(lastSpace + 1).trim());
+            } else {
+                user.setFirstName(fullName);
+                user.setLastName("");
+            }
+        }
+
+        // Xử lý avatarImage
+        if (request.getAvatarImage() != null && !request.getAvatarImage().isBlank()) {
+            user.setAvatarImage(request.getAvatarImage());
+        }
+
         this.userRepository.save(user);
         log.info("User updated info successfully. id={}", user.getUserId());
-        return this.userMapper.toResponseDTO(user);
+        UserResponseDTO res = this.userMapper.toResponseDTO(user);
+        res.setFullName(user.getFirstName() + " " + user.getLastName());
+        return res;
     }
 
 

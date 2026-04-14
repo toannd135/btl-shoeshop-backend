@@ -15,6 +15,8 @@ public interface ReviewService {
 
     void deleteReview(UUID reviewId);
 
+    void adminDeleteReview(UUID reviewId);
+
     List<ReviewResponse> getMyReviews();
 
     ReviewPageResponseDTO searchReviews(Integer rating,
