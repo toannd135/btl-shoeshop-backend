@@ -16,11 +16,14 @@ public class PermissionInterceptorConfiguration implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         String[] whiteList = {
                 "/",
+                "/api/v2/users/me/**",
+                "/api/v1/users/me/**",
                 "/api/v1/products/**",
                 "/api/v1/cart/**",
                 "/api/v1/cloudinary/**",
                 "/api/v1/file/**",
                 "/api/v1/categories/**",
+                "/api/v1/orders/**",
                 "/api/v1/coupons/**",
                 "/api/v1/variants/**",
                 "/api/v1/brands/**",
