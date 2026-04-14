@@ -31,7 +31,9 @@ public class RoleServiceImpl implements RoleService {
     private final RoleRepository roleRepository;
     private final PermissionRepository permissionRepository;
     private final RoleRepositoryCustom roleRepositoryCustom;
-    public RoleServiceImpl(RoleMapper roleMapper, RoleRepository roleRepository, PermissionRepository permissionRepository, RoleRepositoryCustom roleRepositoryCustom) {
+
+    public RoleServiceImpl(RoleMapper roleMapper, RoleRepository roleRepository,
+            PermissionRepository permissionRepository, RoleRepositoryCustom roleRepositoryCustom) {
         this.roleMapper = roleMapper;
         this.roleRepository = roleRepository;
         this.permissionRepository = permissionRepository;
@@ -47,8 +49,8 @@ public class RoleServiceImpl implements RoleService {
             throw new DataIntegrityViolationException("Role already exists with same code!");
         }
         Role role = this.roleMapper.toEntity(roleCreateRequestDTO);
-        //check permission
-        if(roleCreateRequestDTO.getPermissions() != null && !roleCreateRequestDTO.getPermissions().isEmpty()) {
+        // check permission
+        if (roleCreateRequestDTO.getPermissions() != null && !roleCreateRequestDTO.getPermissions().isEmpty()) {
             List<UUID> permissionIds = roleCreateRequestDTO.getPermissions().stream()
                     .map(RoleCreateRequestDTO.PermissionRoleCreateRequestDTO::getId).collect(Collectors.toList());
             List<Permission> permissions = this.permissionRepository.findByPermissionIdIn(permissionIds);
@@ -62,32 +64,27 @@ public class RoleServiceImpl implements RoleService {
     public RoleResponseDTO updateRole(RoleUpdateRequestDTO roleUpdateRequestDTO, UUID id) {
         Role role = this.roleRepository.findByRoleId(id)
                 .orElseThrow(() -> new IdInvalidException("Role not found"));
+
         this.roleMapper.updateRoleEntityToDto(roleUpdateRequestDTO, role);
+
         if (roleUpdateRequestDTO.isClearAll()) {
             role.setPermissions(new ArrayList<>());
+            return this.roleMapper.toResponseDTO(this.roleRepository.save(role));
         }
 
-        if (roleUpdateRequestDTO.getPermissions() != null && !roleUpdateRequestDTO.getPermissions().isEmpty()) {
+        if (roleUpdateRequestDTO.getPermissions() != null) {
             List<UUID> permissionIds = roleUpdateRequestDTO.getPermissions()
                     .stream()
                     .map(RoleUpdateRequestDTO.RolePermissionUpdateRequestDTO::getId)
                     .collect(Collectors.toList());
-            List<Permission> dbPermissions = this.permissionRepository.findByPermissionIdIn(permissionIds);
 
-            List<Permission> currentPermissions = role.getPermissions();
-            if (currentPermissions == null) {
-                currentPermissions = new ArrayList<>();
-            }
+            List<Permission> dbPermissions = permissionIds.isEmpty()
+                    ? new ArrayList<>()
+                    : this.permissionRepository.findByPermissionIdIn(permissionIds);
 
-            for (Permission p : dbPermissions) {
-                boolean exists = currentPermissions.stream()
-                        .anyMatch(cp -> cp.getPermissionId().equals(p.getPermissionId()));
-                if (!exists) {
-                    currentPermissions.add(p);
-                }
-            }
-            role.setPermissions(currentPermissions);
+            role.setPermissions(dbPermissions);
         }
+
         return this.roleMapper.toResponseDTO(this.roleRepository.save(role));
     }
 
