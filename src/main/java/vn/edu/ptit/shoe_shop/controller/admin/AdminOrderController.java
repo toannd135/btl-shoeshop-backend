@@ -1,4 +1,4 @@
-package vn.edu.ptit.shoe_shop.controller;
+package vn.edu.ptit.shoe_shop.controller.admin;
 
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;

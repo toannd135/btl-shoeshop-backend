@@ -1,33 +1,53 @@
 package vn.edu.ptit.shoe_shop.service.impl;
-import jakarta.servlet.http.HttpServletResponse;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import vn.edu.ptit.shoe_shop.common.enums.OrderStatusEnum;
 import vn.edu.ptit.shoe_shop.common.exception.IdInvalidException;
 import vn.edu.ptit.shoe_shop.common.exception.NotFoundException;
+import vn.edu.ptit.shoe_shop.common.security.SecurityUtils;
+import vn.edu.ptit.shoe_shop.common.utils.request.RequestUtils;
+import vn.edu.ptit.shoe_shop.dto.logEvent.PurchaseViewEvent;
+import vn.edu.ptit.shoe_shop.dto.response.SellingProductResponseDTO;
+import vn.edu.ptit.shoe_shop.dto.response.TopSellingProductResponseDTO;
+import vn.edu.ptit.shoe_shop.entity.OrderItem;
+import vn.edu.ptit.shoe_shop.entity.Product;
+import vn.edu.ptit.shoe_shop.entity.User;
 import vn.edu.ptit.shoe_shop.mapper.OrderMapper;
 import vn.edu.ptit.shoe_shop.dto.request.UpdateOrderStatusRequest;
 import vn.edu.ptit.shoe_shop.dto.response.OrderResponse;
 import vn.edu.ptit.shoe_shop.entity.Order;
+import vn.edu.ptit.shoe_shop.mapper.ProductMapper;
 import vn.edu.ptit.shoe_shop.repository.OrderRepository;
+import vn.edu.ptit.shoe_shop.repository.ProductRepository;
+import vn.edu.ptit.shoe_shop.repository.UserRepository;
 import vn.edu.ptit.shoe_shop.service.AdminOrderService;
 
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.time.Instant;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AdminOrderServiceImpl implements AdminOrderService {
     private final OrderRepository orderRepository;
-    private final OrderMapper orderMapper; 
-
+    private final OrderMapper orderMapper;
+    private final StringRedisTemplate stringRedisTemplate;
+    private final UserRepository userRepository;
+    private final ProductRepository productRepository;
+    private final ProductMapper productMapper;
+    private final ObjectMapper objectMapper;
     // 1. Lấy danh sách & Filter
     public Page<OrderResponse> searchOrders(OrderStatusEnum status, String phone, 
                                             Instant startDate, Instant endDate, Pageable pageable) {
@@ -50,7 +70,11 @@ public class AdminOrderServiceImpl implements AdminOrderService {
 
     // 3. Cập nhật trạng thái đơn hàng (CÓ RÀNG BUỘC)
     @Transactional
-    public OrderResponse updateOrderStatus(String orderId, UpdateOrderStatusRequest request) {
+    public OrderResponse updateOrderStatus(String orderId, UpdateOrderStatusRequest updateOrderStatusRequest) {
+
+        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        HttpServletRequest request = (attributes != null) ? attributes.getRequest() : null;
+
         UUID oderIdUUID;
         try {
             oderIdUUID = UUID.fromString(orderId);
@@ -61,7 +85,7 @@ public class AdminOrderServiceImpl implements AdminOrderService {
                 .orElseThrow(() -> new NotFoundException("Không tìm thấy đơn hàng!"));
 
         OrderStatusEnum currentStatus = order.getStatus();
-        OrderStatusEnum newStatus = request.getNewStatus();
+        OrderStatusEnum newStatus = updateOrderStatusRequest.getNewStatus();
 
         // VALIDATE STATE MACHINE (Chống nhảy cóc trạng thái)
         validateStatusTransition(currentStatus, newStatus);
@@ -69,16 +93,44 @@ public class AdminOrderServiceImpl implements AdminOrderService {
         order.setStatus(newStatus);
         
         // Cập nhật note (Nối thêm vào note cũ để giữ lịch sử)
-        if (request.getAdminNote() != null && !request.getAdminNote().isBlank()) {
+        if (updateOrderStatusRequest.getAdminNote() != null && !updateOrderStatusRequest.getAdminNote().isBlank()) {
             String existingNote = order.getNote() != null ? order.getNote() + " | " : "";
-            order.setNote(existingNote + "[" + Instant.now() + "] Admin: " + request.getAdminNote());
+            order.setNote(existingNote + "[" + Instant.now() + "] Admin: " + updateOrderStatusRequest.getAdminNote());
         }
 
         // TODO: Nếu status = CANCELLED, gọi logic cộng lại Tồn kho (như bài trước)
         // TODO: Nếu status = DELIVERED, có thể gọi logic cộng điểm tích lũy cho User
-
+        this.orderRepository.save(order);
+        if(newStatus.equals(OrderStatusEnum.DELIVERED)) {
+            for (OrderItem item : order.getListOrderItems()) {
+                sendAdminBehaviorEvent(item.getVariant().getProduct().getProductId(),
+                        item.getVariant().getProductVariantId(),
+                        request);
+            }
+        }
         return orderMapper.toOrderResponse(orderRepository.save(order));
     }
+
+    private void sendAdminBehaviorEvent(UUID productId, UUID variantId, HttpServletRequest request) {
+        try {
+            PurchaseViewEvent event = PurchaseViewEvent.builder()
+                    .eventId(UUID.randomUUID().toString())
+                    .userId(String.valueOf(SecurityUtils.getCurrentUserId()))
+                    .productId(productId.toString())
+                    .variantId(variantId.toString())
+                    .action("PURCHASE")
+                    .timestamp(System.currentTimeMillis())
+                    .userAgent("Admin agent")
+                    .ipAddress(RequestUtils.getClientIp(request))
+                    .build();
+
+            log.info("USER_EVENT_JSON: {}", objectMapper.writeValueAsString(event));
+
+        } catch (Exception e) {
+            log.error("Failed to log event for Big Data pipeline", e);
+        }
+    }
+
 
     // Hàm kiểm tra luồng đi của trạng thái
     private void validateStatusTransition(OrderStatusEnum current, OrderStatusEnum next) {
@@ -99,43 +151,57 @@ public class AdminOrderServiceImpl implements AdminOrderService {
         }
     }
 
-    public void exportOrdersToCsv(OrderStatusEnum status, Instant startDate, Instant endDate, HttpServletResponse response) throws IOException {
+    // 4. Sinh file CSV để Export
+    public String exportOrdersToCsv(OrderStatusEnum status, Instant startDate, Instant endDate) {
         List<Order> orders = orderRepository.getOrdersForExport(status, startDate, endDate);
-
-        // Cấu hình response để download file CSV
-        response.setContentType("text/csv; charset=UTF-8");
-        response.setHeader("Content-Disposition", "attachment; filename=orders_export.csv");
-
-        try (PrintWriter writer = response.getWriter()) {
-            // Ghi header UTF-8 BOM (optional nhưng tốt cho tiếng Việt)
-            writer.write('\uFEFF');
-
-            // Header CSV
-            writer.println("Mã Đơn Hàng,Ngày Đặt,Tên Người Nhận,Số Điện Thoại,Tổng Tiền,Trạng Thái");
-
-            // Ghi dữ liệu từng dòng
-            for (Order order : orders) {
-                writer.printf("%s,%s,%s,%s,%s,%s%n",
-                        escapeCsv(order.getOrderId().toString()),
-                        escapeCsv(order.getCreatedAt().toString()),
-                        escapeCsv(order.getReceiverName()),
-                        escapeCsv(order.getReceiverPhone()),
-                        order.getFinalPrice(),
-                        escapeCsv(order.getStatus().name())
-                );
-            }
-            writer.flush();
+        
+        StringBuilder csvBuilder = new StringBuilder();
+        // Header
+        csvBuilder.append("Mã Đơn Hàng,Ngày Đặt,Tên Người Nhận,Số Điện Thoại,Tổng Tiền,Trạng Thái\n");
+        
+        // Data
+        for (Order order : orders) {
+            csvBuilder.append(order.getOrderId()).append(",")
+                      .append(order.getCreatedAt()).append(",")
+                      .append(order.getReceiverName()).append(",")
+                      .append(order.getReceiverPhone()).append(",")
+                      .append(order.getFinalPrice()).append(",")
+                      .append(order.getStatus().name()).append("\n");
         }
+        return csvBuilder.toString();
     }
 
-    // Helper method để escape các ký tự đặc biệt trong CSV
-    private String escapeCsv(String value) {
-        if (value == null) return "";
-        // Nếu có dấu phẩy, xuống dòng hoặc nháy kép thì bọc trong nháy kép và escape
-        if (value.contains(",") || value.contains("\"") || value.contains("\n")) {
-            value = value.replace("\"", "\"\"");
-            return "\"" + value + "\"";
+    @Override
+    public List<TopSellingProductResponseDTO> getTopSellingProducts() {
+        UUID userId = SecurityUtils.getCurrentUserId();
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new IdInvalidException("User not found"));
+        if (!user.getRole().getCode().equals("ROLE_ADMIN")) {
+            throw new IllegalArgumentException("User access deny");
         }
-        return value;
+        try {
+            String jsonValue = stringRedisTemplate.opsForValue().get("rec:best_seller");
+            if (jsonValue != null) {
+                ObjectMapper mapper = new ObjectMapper();
+                List<SellingProductResponseDTO> dataInRedis = mapper.readValue(jsonValue, new TypeReference<List<SellingProductResponseDTO>>() {
+
+                });
+                List<TopSellingProductResponseDTO> bestSellers = dataInRedis.stream().map(item -> {
+                    TopSellingProductResponseDTO dto = new TopSellingProductResponseDTO();
+                    dto.setTotalSold(item.getTotalSold());
+                    Product product = this.productRepository.findByProductId(item.getProductId())
+                            .orElseThrow(() -> new IdInvalidException("Product not found"));
+                    dto.setProductId(item.getProductId());
+                    dto.setProductName(product.getName());
+                    dto.setImageUrl(product.getImageUrl());
+                    return dto;
+                }).toList();
+                return bestSellers;
+            }
+        } catch (Exception e) {
+            log.error("Failed to parse JSON from Redis", e);
+        }
+
+        return null;
     }
 }

@@ -16,6 +16,12 @@ public class RecommendController {
 
     private final RecommendService recommendService;
 
+    @GetMapping("/products/top")
+    @ApiMessage("Get recommended products")
+    public ResponseEntity<?> getTopProducts() {
+        return ResponseEntity.ok().body(this.recommendService.getTopProducts());
+    }
+
     @GetMapping("/recommend-products")
     @ApiMessage("Get recommended products for the user")
     public ResponseEntity<?> getRecommendProducts() {

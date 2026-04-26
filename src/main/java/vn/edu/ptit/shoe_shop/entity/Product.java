@@ -40,7 +40,7 @@ public class Product extends Auditable {
     @JdbcTypeCode(Types.VARCHAR)
     private UUID productId;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String name;
 
     @Column(nullable = false)
